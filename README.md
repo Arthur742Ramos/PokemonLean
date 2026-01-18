@@ -38,7 +38,7 @@ Proven theorems:
 - `bench_card_count`: Bench card count equals list length
 - `playCard_preserves_player_cards`: **PROVEN** - Card conservation invariant
 
-Theorem stubs (requires Mathlib/more modeling):
+Additional proven theorems:
 - `no_turn_one_win`: No T1 win from standard starting state
 - `bestAttackIndex_sound`: Solver returns valid indices
 - `maxDamage_complete`: Solver finds true maximum
