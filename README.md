@@ -84,6 +84,10 @@ Solver Result (Formally Verified):
 ## Roadmap to Publication Readiness
 
 - **M1: Energy Cost Rules** — formalize energy requirements, validate costs in `applyAction`, prove energy conservation.
+- **Top 3 Next Features (Highest ROI)**:
+  1. **Action Language + Small-step Semantics** — define `Action` variants (PlayPokemonToBench, AttachEnergy, Attack i, Retreat, EndTurn, optional DrawCard) plus `step : GameState → Action → Except Error GameState` and `Legal : GameState → Action → Prop/Decidable`. Target proofs: determinism of execution, progress/preservation, and no-crash for legal actions.
+  2. **Reachability + Global Invariants (Meta-Safety)** — define `Reachable`, then prove global invariants for all reachable states: state validity preserved, zone conservation, boundedness (bench ≤ 5, prizes ∈ [0,6], HP bounds), and turn discipline.
+  3. **Certified Strategy Procedure (Optimal Solver)** — formalize a per-turn optimization objective and implement `bestAttack` with soundness + optimality theorems (legal index in bounds and damage maximal among legal attacks), with optional stability/monotonicity lemmas.
 - **M2: Prize & Win Invariants** — strengthen prize-taking lemmas, prove win-condition soundness across multi-turn play.
 - **M3: Rule Coverage Expansion** — add trainer/ability/evolution rules with invariants for legal board states.
 - **M4: Solver Generalization** — extend solver proofs across a larger card corpus and full effect stacking semantics.
