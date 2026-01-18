@@ -12,7 +12,7 @@ def main : IO Unit := do
   IO.println "Battle Simulation: Charmander (🔥) vs Pikachu (⚡)"
   IO.println "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   
-  let pikachu : PokemonInPlay := { card := samplePikachu, damage := 40, status := none }
+  let pikachu : PokemonInPlay := { card := samplePikachu, damage := 40, status := none, energy := [.lightning] }
   IO.println s!"Pikachu: {samplePikachu.hp} HP, {40} damage taken"
   IO.println s!"Charmander: {sampleCharmander.hp} HP, Ember attack (30 base)"
   
@@ -30,7 +30,7 @@ def main : IO Unit := do
   IO.println "Battle Simulation: Squirtle (💧) vs Charmander (🔥)"
   IO.println "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   
-  let charmander : PokemonInPlay := { card := sampleCharmander, damage := 0, status := none }
+  let charmander : PokemonInPlay := { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
   IO.println s!"Charmander: {sampleCharmander.hp} HP, weak to Water"
   IO.println s!"Squirtle: {sampleSquirtle.hp} HP, Water Gun (20 base)"
   

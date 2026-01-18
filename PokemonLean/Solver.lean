@@ -132,10 +132,10 @@ def solve (attacker : Card) (defender : PokemonInPlay) : Option SolverResult :=
 -- EXAMPLE USAGE
 -- ============================================================================
 
-#eval solve sampleCharmander { card := samplePikachu, damage := 40, status := none }
+#eval solve sampleCharmander { card := samplePikachu, damage := 40, status := none, energy := [.lightning] }
 -- Should return: attackIndex 0, expectedDamage 30, isLethal true (60 - 40 = 20 remaining, 30 >= 20)
 
-#eval solve sampleSquirtle { card := sampleCharmander, damage := 0, status := none }
+#eval solve sampleSquirtle { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
 -- Should return: attackIndex 0, expectedDamage 40 (weakness), isLethal false
 
 end PokemonLean.Solver

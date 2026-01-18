@@ -99,8 +99,12 @@ def parse_attacks(attacks: list[dict] | None) -> str:
                 damage = damage * 10 + int(char)
             else:
                 break
+        energy_cost = []
+        for energy in atk.get("cost", []) or []:
+            energy_cost.append(ENERGY_TYPE_MAP.get(energy, "colorless"))
+        energy_cost_str = "[" + ", ".join(f".{e}" for e in energy_cost) + "]"
         attack_strs.append(
-            f'{{ name := "{name}", baseDamage := {damage}, effects := [] }}'
+            f'{{ name := "{name}", baseDamage := {damage}, effects := [], energyCost := {energy_cost_str} }}'
         )
     
     return "[" + ", ".join(attack_strs) + "]"

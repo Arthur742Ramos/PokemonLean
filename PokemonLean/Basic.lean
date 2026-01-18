@@ -31,6 +31,7 @@ structure Attack where
   name : String
   baseDamage : Nat
   effects : List AttackEffect
+  energyCost : List EnergyType := []
   deriving Repr, BEq, DecidableEq
 
 structure Weakness where
@@ -56,6 +57,7 @@ structure PokemonInPlay where
   card : Card
   damage : Nat
   status : Option StatusCondition
+  energy : List EnergyType := []
   deriving Repr, BEq, DecidableEq
 
 structure PlayerState where
@@ -81,6 +83,7 @@ structure GameState where
 inductive Action
   | endTurn
   | playCard (card : Card)
+  | attachEnergy (energyType : EnergyType)
   | attack (attackIndex : Nat)
   deriving Repr, BEq, DecidableEq
 
@@ -89,6 +92,8 @@ inductive TurnOneActions : List Action -> Prop
   | nil : TurnOneActions []
   | play {card : Card} {actions : List Action} (h : TurnOneActions actions) :
       TurnOneActions (Action.playCard card :: actions)
+  | attach {energyType : EnergyType} {actions : List Action} (h : TurnOneActions actions) :
+      TurnOneActions (Action.attachEnergy energyType :: actions)
   | endTurn : TurnOneActions [Action.endTurn]
 
 def otherPlayer : PlayerId -> PlayerId
@@ -115,6 +120,25 @@ def removeFirst (card : Card) : List Card -> Option (List Card)
       | some rest => some (x :: rest)
       | none => none
 
+def removeFirstEnergy (energyType : EnergyType) : List EnergyType -> Option (List EnergyType)
+  | [] => none
+  | x :: xs =>
+    if energyType == .colorless then
+      some xs
+    else if x == energyType then
+      some xs
+    else
+      match removeFirstEnergy energyType xs with
+      | some rest => some (x :: rest)
+      | none => none
+
+def energyCostSatisfied : List EnergyType -> List EnergyType -> Bool
+  | [], _ => true
+  | required :: rest, energy =>
+    match removeFirstEnergy required energy with
+    | some remaining => energyCostSatisfied rest remaining
+    | none => false
+
 def listGet? {α : Type} (xs : List α) (index : Nat) : Option α :=
   match xs, index with
   | [], _ => none
@@ -122,7 +146,7 @@ def listGet? {α : Type} (xs : List α) (index : Nat) : Option α :=
   | _ :: xs, Nat.succ index => listGet? xs index
 
 def toPokemonInPlay (card : Card) : PokemonInPlay :=
-  { card := card, damage := 0, status := none }
+  { card := card, damage := 0, status := none, energy := [] }
 
 def applyDamage (pokemon : PokemonInPlay) (amount : Nat) : PokemonInPlay :=
   { pokemon with damage := pokemon.damage + amount }
@@ -193,6 +217,9 @@ def calculateDamage (attack : Attack) (attackerType : EnergyType) (defender : Ca
   let afterResistance := applyResistance afterWeakness attackerType defender.resistance
   afterResistance
 
+def hasEnergyCost (attack : Attack) (energy : List EnergyType) : Bool :=
+  energyCostSatisfied attack.energyCost energy
+
 def applyAction (state : GameState) (action : Action) : Option GameState :=
   match action with
   | .endTurn =>
@@ -209,6 +236,15 @@ def applyAction (state : GameState) (action : Action) : Option GameState :=
         | none => { playerState with hand := newHand, active := some pokemon }
         | some _ => { playerState with hand := newHand, bench := playerState.bench ++ [pokemon] }
       some (setPlayerState state player updatedPlayerState)
+  | .attachEnergy energyType =>
+    let player := state.activePlayer
+    let playerState := getPlayerState state player
+    match playerState.active with
+    | none => none
+    | some active =>
+      let updatedActive := { active with energy := energyType :: active.energy }
+      let updatedPlayerState := { playerState with active := some updatedActive }
+      some (setPlayerState state player updatedPlayerState)
   | .attack attackIndex =>
     let attackerPlayer := state.activePlayer
     let defenderPlayer := otherPlayer attackerPlayer
@@ -219,20 +255,23 @@ def applyAction (state : GameState) (action : Action) : Option GameState :=
       match listGet? attacker.card.attacks attackIndex with
       | none => none
       | some attack =>
-        let damage := calculateDamage attack attacker.card.energyType defender.card
-        let damagedDefender := applyDamage defender damage
-        let effectedDefender := applyAttackEffects damagedDefender attack.effects
-        if effectedDefender.damage >= effectedDefender.card.hp then
-          let (updatedAttacker, updatedDefender) := takePrize attackerState defenderState
-          let newDefenderState :=
-            { updatedDefender with active := none, discard := defender.card :: updatedDefender.discard }
-          let newState := setPlayerState state attackerPlayer updatedAttacker
-          let finalState := setPlayerState newState defenderPlayer newDefenderState
-          some { finalState with activePlayer := otherPlayer state.activePlayer }
+        if hasEnergyCost attack attacker.energy then
+          let damage := calculateDamage attack attacker.card.energyType defender.card
+          let damagedDefender := applyDamage defender damage
+          let effectedDefender := applyAttackEffects damagedDefender attack.effects
+          if effectedDefender.damage >= effectedDefender.card.hp then
+            let (updatedAttacker, updatedDefender) := takePrize attackerState defenderState
+            let newDefenderState :=
+              { updatedDefender with active := none, discard := defender.card :: updatedDefender.discard }
+            let newState := setPlayerState state attackerPlayer updatedAttacker
+            let finalState := setPlayerState newState defenderPlayer newDefenderState
+            some { finalState with activePlayer := otherPlayer state.activePlayer }
+          else
+            let newDefenderState := { defenderState with active := some effectedDefender }
+            let newState := setPlayerState state defenderPlayer newDefenderState
+            some { newState with activePlayer := otherPlayer state.activePlayer }
         else
-          let newDefenderState := { defenderState with active := some effectedDefender }
-          let newState := setPlayerState state defenderPlayer newDefenderState
-          some { newState with activePlayer := otherPlayer state.activePlayer }
+          none
     | _, _ => none
 
 -- ============================================================================
@@ -421,6 +460,37 @@ theorem turn_one_cards_preserved (state : GameState) (actions : List Action)
       have hCardsRest := ih (state := state') (finalState := finalState) hFold'
       have hCardsPlay := applyAction_playCard_preserves_total_cards state card state' hAct
       exact hCardsRest.trans hCardsPlay
+  | attach hRest ih =>
+    rename_i energyType rest
+    intro finalState hFold
+    cases hAct : applyAction state (.attachEnergy energyType) with
+    | none =>
+      simp [List.foldlM, hAct] at hFold
+    | some state' =>
+      have hFold' : rest.foldlM applyAction state' = some finalState := by
+        simpa [List.foldlM, hAct] using hFold
+      have hCardsRest := ih (state := state') (finalState := finalState) hFold'
+      cases hPlayer : state.activePlayer with
+      | playerOne =>
+        simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
+        cases hActive : state.playerOne.active with
+        | none =>
+          simp [hActive] at hAct
+        | some active =>
+          simp [hActive] at hAct
+          cases hAct
+          simpa [totalCardCount, playerCardCount, getPlayerState, setPlayerState, hPlayer, hActive,
+            bench_card_count] using hCardsRest
+      | playerTwo =>
+        simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
+        cases hActive : state.playerTwo.active with
+        | none =>
+          simp [hActive] at hAct
+        | some active =>
+          simp [hActive] at hAct
+          cases hAct
+          simpa [totalCardCount, playerCardCount, getPlayerState, setPlayerState, hPlayer, hActive,
+            bench_card_count] using hCardsRest
   | endTurn =>
     intro finalState hFold
     simp [List.foldlM] at hFold
@@ -486,6 +556,39 @@ theorem turn_one_prizes_preserved (state : GameState) (actions : List Action)
             cases hAct
             cases hActive : state.playerTwo.active <;> simp [getPlayerState, hActive]
       exact hEqRest.trans hEqPlay
+  | attach hRest ih =>
+    rename_i energyType rest
+    intro finalState hFold
+    cases hAct : applyAction state (.attachEnergy energyType) with
+    | none =>
+      simp [List.foldlM, hAct] at hFold
+    | some state' =>
+      have hFold' : rest.foldlM applyAction state' = some finalState := by
+        simpa [List.foldlM, hAct] using hFold
+      have hEqRest := ih (state := state') (finalState := finalState) hFold'
+      have hEqAttach :
+          (getPlayerState state' .playerTwo).prizes.length =
+            (getPlayerState state .playerTwo).prizes.length := by
+        cases hPlayer : state.activePlayer with
+        | playerOne =>
+          simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
+          cases hActive : state.playerOne.active with
+          | none =>
+            simp [hActive] at hAct
+          | some active =>
+            simp [hActive] at hAct
+            cases hAct
+            simp [getPlayerState, setPlayerState]
+        | playerTwo =>
+          simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
+          cases hActive : state.playerTwo.active with
+          | none =>
+            simp [hActive] at hAct
+          | some active =>
+            simp [hActive] at hAct
+            cases hAct
+            simp [getPlayerState, setPlayerState]
+      exact hEqRest.trans hEqAttach
   | endTurn =>
     intro finalState hFold
     simp [List.foldlM, applyAction] at hFold
@@ -507,20 +610,22 @@ theorem applyAction_attack_prizes_le (state : GameState) (attackIndex : Nat) (fi
       | none =>
         simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack] at h
       | some attack =>
-        let damage := calculateDamage attack attacker.card.energyType defender.card
-        let damagedDefender := applyDamage defender damage
-        let effectedDefender := applyAttackEffects damagedDefender attack.effects
-        by_cases hKo : effectedDefender.damage >= effectedDefender.card.hp
-        · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hKo,
-            damage, damagedDefender, effectedDefender] at h
-          cases h
-          simpa [getPlayerState, setPlayerState] using
-            (takePrize_prizes_length_le state.playerOne state.playerTwo)
-        · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hKo,
-            damage, damagedDefender, effectedDefender] at h
-          cases h
-          simpa [getPlayerState, setPlayerState] using
-            (Nat.le_succ state.playerTwo.prizes.length)
+        by_cases hCost : hasEnergyCost attack attacker.energy
+        · let damage := calculateDamage attack attacker.card.energyType defender.card
+          let damagedDefender := applyDamage defender damage
+          let effectedDefender := applyAttackEffects damagedDefender attack.effects
+          by_cases hKo : effectedDefender.damage >= effectedDefender.card.hp
+          · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hCost, hKo,
+              damage, damagedDefender, effectedDefender] at h
+            cases h
+            simpa [getPlayerState, setPlayerState] using
+              (takePrize_prizes_length_le state.playerOne state.playerTwo)
+          · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hCost, hKo,
+              damage, damagedDefender, effectedDefender] at h
+            cases h
+            simpa [getPlayerState, setPlayerState] using
+              (Nat.le_succ state.playerTwo.prizes.length)
+        · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hCost] at h
 
 theorem turn_one_prizes_at_most_one (state : GameState) (actions : List Action)
     (hActions : TurnOneActions actions) :
@@ -590,7 +695,8 @@ def samplePikachu : Card :=
   { name := "Pikachu"
   , hp := 60
   , energyType := .lightning
-  , attacks := [{ name := "Thunder Shock", baseDamage := 20, effects := [.applyStatus .paralyzed] }]
+  , attacks :=
+      [{ name := "Thunder Shock", baseDamage := 20, effects := [.applyStatus .paralyzed], energyCost := [.lightning] }]
   , weakness := some { energyType := .fighting }
   , resistance := some { energyType := .metal } }
 
@@ -598,7 +704,7 @@ def sampleCharmander : Card :=
   { name := "Charmander"
   , hp := 70
   , energyType := .fire
-  , attacks := [{ name := "Ember", baseDamage := 30, effects := [] }]
+  , attacks := [{ name := "Ember", baseDamage := 30, effects := [], energyCost := [.fire] }]
   , weakness := some { energyType := .water }
   , resistance := none }
 
@@ -619,7 +725,7 @@ def sampleSquirtle : Card :=
   { name := "Squirtle"
   , hp := 60
   , energyType := .water
-  , attacks := [{ name := "Water Gun", baseDamage := 20, effects := [] }]
+  , attacks := [{ name := "Water Gun", baseDamage := 20, effects := [], energyCost := [.water] }]
   , weakness := some { energyType := .lightning }
   , resistance := none }
 
