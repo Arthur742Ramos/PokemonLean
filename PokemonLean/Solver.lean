@@ -1,6 +1,7 @@
 -- Verified Solver for Maximum Damage Calculation
 -- Phase 4: Scaling, Tooling & Integration
 
+import Init.Data.List.Find
 import PokemonLean.Basic
 
 namespace PokemonLean.Solver
@@ -38,28 +39,52 @@ theorem bestAttackIndex_sound (attacks : List Attack) (attackerType : EnergyType
   | nil => simp at hIdx
   | cons a as =>
     simp only at hIdx
-    -- findIdx? returns index in bounds when it returns Some
-    sorry -- Requires List.findIdx? properties from Mathlib
+    have hLen : idx < ((a :: as).map (fun atk => calculateDamage atk attackerType defender)).length :=
+      (List.findIdx?_eq_some_iff_findIdx_eq.mp hIdx).1
+    simpa using hLen
 
 -- ============================================================================
 -- COMPLETENESS PROOFS
 -- ============================================================================
 
+private theorem foldl_max_ge (attacks : List Attack) (attackerType : EnergyType) (defender : Card) (acc : Nat) :
+    acc ≤ attacks.foldl (fun acc atk => max acc (calculateDamage atk attackerType defender)) acc := by
+  induction attacks generalizing acc with
+  | nil => simp
+  | cons head tail ih =>
+    simp [List.foldl]
+    exact Nat.le_trans (Nat.le_max_left _ _) (ih _)
+
+private theorem maxDamage_complete_acc (attacks : List Attack) (attackerType : EnergyType) (defender : Card) (acc : Nat) :
+    ∀ atk ∈ attacks,
+      calculateDamage atk attackerType defender ≤
+        attacks.foldl (fun acc atk => max acc (calculateDamage atk attackerType defender)) acc := by
+  intro atk hIn
+  induction attacks generalizing acc with
+  | nil => cases hIn
+  | cons attackHead tail ih =>
+    cases hIn with
+    | head =>
+      simp [List.foldl]
+      have hBase : calculateDamage atk attackerType defender ≤
+          max acc (calculateDamage atk attackerType defender) := by
+        simpa using (Nat.le_max_right acc (calculateDamage atk attackerType defender))
+      have hAcc :
+          max acc (calculateDamage atk attackerType defender) ≤
+            tail.foldl (fun acc atk => max acc (calculateDamage atk attackerType defender))
+              (max acc (calculateDamage atk attackerType defender)) := by
+        exact foldl_max_ge tail attackerType defender (max acc (calculateDamage atk attackerType defender))
+      exact Nat.le_trans hBase hAcc
+    | tail _ hTail =>
+      simpa [List.foldl] using
+        (ih (acc := max acc (calculateDamage attackHead attackerType defender)) hTail)
+
 -- The solver finds the true maximum (never misses a higher damage option)
 theorem maxDamage_complete (attacks : List Attack) (attackerType : EnergyType) (defender : Card) :
     ∀ atk ∈ attacks, calculateDamage atk attackerType defender ≤ maxDamageFromAttacks attacks attackerType defender := by
   intro atk hIn
-  simp only [maxDamageFromAttacks]
-  induction attacks with
-  | nil => cases hIn
-  | cons head tail ih =>
-    simp only [List.foldl]
-    cases hIn with
-    | head =>
-      -- atk = head, show damage head ≤ foldl(max, max(0, damage head), tail)
-      sorry -- Requires showing head damage is preserved through foldl
-    | tail _ hTail =>
-      sorry -- Induction case
+  simpa [maxDamageFromAttacks] using
+    (maxDamage_complete_acc attacks attackerType defender 0 atk hIn)
 
 -- ============================================================================
 -- DAMAGE RANGE ANALYSIS

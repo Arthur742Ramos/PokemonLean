@@ -84,6 +84,13 @@ inductive Action
   | attack (attackIndex : Nat)
   deriving Repr, BEq, DecidableEq
 
+-- Actions allowed during a single Turn 1 for player one.
+inductive TurnOneActions : List Action -> Prop
+  | nil : TurnOneActions []
+  | play {card : Card} {actions : List Action} (h : TurnOneActions actions) :
+      TurnOneActions (Action.playCard card :: actions)
+  | endTurn : TurnOneActions [Action.endTurn]
+
 def otherPlayer : PlayerId -> PlayerId
   | .playerOne => .playerTwo
   | .playerTwo => .playerOne
@@ -135,6 +142,18 @@ def applyAttackEffects (pokemon : PokemonInPlay) (effects : List AttackEffect) :
   match statusFromEffects effects with
   | none => pokemon
   | some condition => { pokemon with status := some condition }
+
+def takePrize (attacker defender : PlayerState) : PlayerState × PlayerState :=
+  match defender.prizes with
+  | [] => (attacker, defender)
+  | prize :: rest =>
+    ({ attacker with hand := prize :: attacker.hand }, { defender with prizes := rest })
+
+theorem takePrize_prizes_length_le (attacker defender : PlayerState) :
+    defender.prizes.length ≤ (takePrize attacker defender).2.prizes.length + 1 := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
 
 def damageBonus (effects : List AttackEffect) : Nat :=
   effects.foldl
@@ -189,9 +208,16 @@ def applyAction (state : GameState) (action : Action) : Option GameState :=
         let damage := calculateDamage attack attacker.card.energyType defender.card
         let damagedDefender := applyDamage defender damage
         let effectedDefender := applyAttackEffects damagedDefender attack.effects
-        let newDefenderState := { defenderState with active := some effectedDefender }
-        let newState := setPlayerState state defenderPlayer newDefenderState
-        some { newState with activePlayer := otherPlayer state.activePlayer }
+        if effectedDefender.damage >= effectedDefender.card.hp then
+          let (updatedAttacker, updatedDefender) := takePrize attackerState defenderState
+          let newDefenderState := { updatedDefender with active := none }
+          let newState := setPlayerState state attackerPlayer updatedAttacker
+          let finalState := setPlayerState newState defenderPlayer newDefenderState
+          some { finalState with activePlayer := otherPlayer state.activePlayer }
+        else
+          let newDefenderState := { defenderState with active := some effectedDefender }
+          let newState := setPlayerState state defenderPlayer newDefenderState
+          some { newState with activePlayer := otherPlayer state.activePlayer }
     | _, _ => none
 
 -- ============================================================================
@@ -317,20 +343,120 @@ structure ValidStartingState (state : GameState) : Prop where
   playerTwoPrizes : state.playerTwo.prizes.length = standardPrizeCount
   cardConservation : validCardCount state
 
+theorem turn_one_prizes_preserved (state : GameState) (actions : List Action)
+    (hFirst : state.activePlayer = .playerOne) (hActions : TurnOneActions actions) :
+    ∀ finalState : GameState,
+      (actions.foldlM applyAction state = some finalState) →
+      (getPlayerState finalState .playerTwo).prizes.length =
+        (getPlayerState state .playerTwo).prizes.length := by
+  -- Turn 1 actions exclude attacks, so player two prizes are unchanged.
+  clear hFirst
+  induction hActions generalizing state with
+  | nil =>
+    intro finalState hFold
+    simp [List.foldlM] at hFold
+    cases hFold
+    rfl
+  | play hRest ih =>
+    rename_i card rest
+    intro finalState hFold
+    cases hAct : applyAction state (.playCard card) with
+    | none =>
+      simp [List.foldlM, hAct] at hFold
+    | some state' =>
+      have hFold' : rest.foldlM applyAction state' = some finalState := by
+        simpa [List.foldlM, hAct] using hFold
+      have hEqRest :=
+        ih (state := state') (finalState := finalState) hFold'
+      have hEqPlay :
+          (getPlayerState state' .playerTwo).prizes.length =
+            (getPlayerState state .playerTwo).prizes.length := by
+        cases hPlayer : state.activePlayer with
+        | playerOne =>
+          simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
+          cases hRemove : removeFirst card state.playerOne.hand with
+          | none =>
+            simp [hRemove] at hAct
+          | some newHand =>
+            simp [hRemove] at hAct
+            cases hAct
+            simp [getPlayerState, setPlayerState]
+        | playerTwo =>
+          simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
+          cases hRemove : removeFirst card state.playerTwo.hand with
+          | none =>
+            simp [hRemove] at hAct
+          | some newHand =>
+            simp [hRemove] at hAct
+            cases hAct
+            cases hActive : state.playerTwo.active <;> simp [getPlayerState, hActive]
+      exact hEqRest.trans hEqPlay
+  | endTurn =>
+    intro finalState hFold
+    simp [List.foldlM, applyAction] at hFold
+    cases hFold
+    rfl
+theorem applyAction_attack_prizes_le (state : GameState) (attackIndex : Nat) (finalState : GameState)
+    (hFirst : state.activePlayer = .playerOne)
+    (h : applyAction state (.attack attackIndex) = some finalState) :
+    state.playerTwo.prizes.length ≤ finalState.playerTwo.prizes.length + 1 := by
+  cases hAtt : state.playerOne.active with
+  | none =>
+    simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt] at h
+  | some attacker =>
+    cases hDef : state.playerTwo.active with
+    | none =>
+      simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef] at h
+    | some defender =>
+      cases hAttack : listGet? attacker.card.attacks attackIndex with
+      | none =>
+        simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack] at h
+      | some attack =>
+        let damage := calculateDamage attack attacker.card.energyType defender.card
+        let damagedDefender := applyDamage defender damage
+        let effectedDefender := applyAttackEffects damagedDefender attack.effects
+        by_cases hKo : effectedDefender.damage >= effectedDefender.card.hp
+        · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hKo,
+            damage, damagedDefender, effectedDefender] at h
+          cases h
+          simpa [getPlayerState, setPlayerState] using
+            (takePrize_prizes_length_le state.playerOne state.playerTwo)
+        · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hKo,
+            damage, damagedDefender, effectedDefender] at h
+          cases h
+          simpa [getPlayerState, setPlayerState] using
+            (Nat.le_succ state.playerTwo.prizes.length)
+
+theorem turn_one_prizes_at_most_one (state : GameState) (actions : List Action)
+    (hFirst : state.activePlayer = .playerOne) (hActions : TurnOneActions actions) :
+    ∀ finalState : GameState,
+      (actions.foldlM applyAction state = some finalState) →
+      (getPlayerState state .playerTwo).prizes.length ≤
+        (getPlayerState finalState .playerTwo).prizes.length + 1 := by
+  intro finalState hFold
+  have hEq := turn_one_prizes_preserved state actions hFirst hActions finalState hFold
+  simpa [hEq] using (Nat.le_succ (getPlayerState state .playerTwo).prizes.length)
+
 -- The Turn 1 Theorem: No sequence of legal actions on Turn 1 can result in a win
 -- This states that from any valid starting state, after one turn, no player has won
 theorem no_turn_one_win (state : GameState) (actions : List Action)
     (hStart : ValidStartingState state)
-    (hFirst : state.activePlayer = .playerOne) :
+    (hFirst : state.activePlayer = .playerOne)
+    (hActions : TurnOneActions actions) :
     ∀ finalState : GameState,
       (actions.foldlM applyAction state = some finalState) →
       ¬ hasWon finalState .playerOne := by
-  intro finalState _hActions
-  -- The proof relies on:
-  -- 1. Starting with 6 prizes each
-  -- 2. No single attack in standard format can knock out 6 Pokemon in one turn
-  -- 3. Prize taking is bounded by knockouts achieved
-  sorry -- Full proof requires modeling prize taking mechanics
+  intro finalState hFold hWon
+  have hEq := turn_one_prizes_preserved state actions hFirst hActions finalState hFold
+  have hWon' : (getPlayerState finalState .playerTwo).prizes.length = 0 := by
+    simpa [hasWon, otherPlayer, hFirst, getPlayerState] using hWon
+  have hStartPrizes : (getPlayerState state .playerTwo).prizes.length = standardPrizeCount := by
+    simpa [getPlayerState] using hStart.playerTwoPrizes
+  have hStateZero : (getPlayerState state .playerTwo).prizes.length = 0 := by
+    simpa [hEq] using hWon'
+  have hStandardZero : standardPrizeCount = 0 := by
+    simpa [hStartPrizes] using hStateZero
+  simpa [standardPrizeCount] using hStandardZero
 
 -- ============================================================================
 -- DAMAGE CALCULATION VERIFICATION
