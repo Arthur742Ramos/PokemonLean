@@ -81,9 +81,11 @@ Solver Result (Formally Verified):
 ✓ All calculations verified by Lean 4 type system
 ```
 
-## Future Work
+## Roadmap to Publication Readiness
 
-- **Complete T1 Theorem**: Model prize-taking mechanics for full proof
-- **Phase 5**: Publication at ITP/FormaliSE conferences
-- **FFI Bindings**: C-export for Swift/Python integration
-- **Energy Cost Modeling**: Add energy requirements to attacks
+- **M1: Energy Cost Rules** — formalize energy requirements, validate costs in `applyAction`, prove energy conservation.
+- **M2: Prize & Win Invariants** — strengthen prize-taking lemmas, prove win-condition soundness across multi-turn play.
+- **M3: Rule Coverage Expansion** — add trainer/ability/evolution rules with invariants for legal board states.
+- **M4: Solver Generalization** — extend solver proofs across a larger card corpus and full effect stacking semantics.
+- **M5: Formal Proof Artifact** — compile a reproducible proof checklist and publishable theorem index.
+- **M6: Submission Package** — finalize paper draft, artifact packaging, and CI verification for ITP/FormaliSE.
