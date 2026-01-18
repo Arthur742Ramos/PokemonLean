@@ -155,6 +155,20 @@ theorem takePrize_prizes_length_le (attacker defender : PlayerState) :
   | nil => simp [takePrize, h]
   | cons prize rest => simp [takePrize, h]
 
+theorem takePrize_prizes_length_eq (attacker defender : PlayerState) :
+    defender.prizes.length = (takePrize attacker defender).2.prizes.length +
+      (if defender.prizes.isEmpty then 0 else 1) := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+theorem takePrize_hand_length_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).1.hand.length = attacker.hand.length +
+      (if defender.prizes.isEmpty then 0 else 1) := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
 def damageBonus (effects : List AttackEffect) : Nat :=
   effects.foldl
     (fun acc effect =>
@@ -210,7 +224,8 @@ def applyAction (state : GameState) (action : Action) : Option GameState :=
         let effectedDefender := applyAttackEffects damagedDefender attack.effects
         if effectedDefender.damage >= effectedDefender.card.hp then
           let (updatedAttacker, updatedDefender) := takePrize attackerState defenderState
-          let newDefenderState := { updatedDefender with active := none }
+          let newDefenderState :=
+            { updatedDefender with active := none, discard := defender.card :: updatedDefender.discard }
           let newState := setPlayerState state attackerPlayer updatedAttacker
           let finalState := setPlayerState newState defenderPlayer newDefenderState
           some { finalState with activePlayer := otherPlayer state.activePlayer }
@@ -246,6 +261,15 @@ def standardDeckSize : Nat := 60
 -- A game state is valid if total cards equals 120 (60 per player)
 def validCardCount (state : GameState) : Prop :=
   totalCardCount state = 2 * standardDeckSize
+
+theorem takePrize_preserves_total_cards (attacker defender : PlayerState) :
+    playerCardCount (takePrize attacker defender).1 +
+      playerCardCount (takePrize attacker defender).2 =
+      playerCardCount attacker + playerCardCount defender := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h, playerCardCount]
+  | cons prize rest =>
+    simp [takePrize, h, playerCardCount, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
 -- Win condition: opponent has no prizes left (took all 6)
 def hasWon (state : GameState) (player : PlayerId) : Prop :=
@@ -330,6 +354,78 @@ theorem playCard_preserves_player_cards (playerState : PlayerState) (card : Card
     simp only [List.length_append, List.length_cons, List.length_nil]
     omega
 
+theorem applyAction_endTurn_preserves_total_cards (state : GameState) (finalState : GameState)
+    (h : applyAction state .endTurn = some finalState) :
+    totalCardCount finalState = totalCardCount state := by
+  simp [applyAction] at h
+  cases h
+  simpa using (endTurn_preserves_cards state)
+
+theorem applyAction_playCard_preserves_total_cards (state : GameState) (card : Card) (finalState : GameState)
+    (h : applyAction state (.playCard card) = some finalState) :
+    totalCardCount finalState = totalCardCount state := by
+  cases hPlayer : state.activePlayer with
+  | playerOne =>
+    simp [applyAction, hPlayer, getPlayerState, setPlayerState] at h
+    cases hRemove : removeFirst card state.playerOne.hand with
+    | none =>
+      simp [hRemove] at h
+    | some newHand =>
+      simp [hRemove] at h
+      cases h
+      have hCards :
+          playerCardCount
+              (match state.playerOne.active with
+              | none => { state.playerOne with hand := newHand, active := some (toPokemonInPlay card) }
+              | some _ => { state.playerOne with hand := newHand, bench := state.playerOne.bench ++ [toPokemonInPlay card] }) =
+            playerCardCount state.playerOne := by
+        simpa using (playCard_preserves_player_cards state.playerOne card newHand hRemove)
+      simp [totalCardCount, hCards]
+  | playerTwo =>
+    simp [applyAction, hPlayer, getPlayerState, setPlayerState] at h
+    cases hRemove : removeFirst card state.playerTwo.hand with
+    | none =>
+      simp [hRemove] at h
+    | some newHand =>
+      simp [hRemove] at h
+      cases h
+      have hCards :
+          playerCardCount
+              (match state.playerTwo.active with
+              | none => { state.playerTwo with hand := newHand, active := some (toPokemonInPlay card) }
+              | some _ => { state.playerTwo with hand := newHand, bench := state.playerTwo.bench ++ [toPokemonInPlay card] }) =
+            playerCardCount state.playerTwo := by
+        simpa using (playCard_preserves_player_cards state.playerTwo card newHand hRemove)
+      simp [totalCardCount, hCards]
+
+theorem turn_one_cards_preserved (state : GameState) (actions : List Action)
+    (hActions : TurnOneActions actions) :
+    ∀ finalState : GameState,
+      (actions.foldlM applyAction state = some finalState) →
+      totalCardCount finalState = totalCardCount state := by
+  induction hActions generalizing state with
+  | nil =>
+    intro finalState hFold
+    simp [List.foldlM] at hFold
+    cases hFold
+    rfl
+  | play hRest ih =>
+    rename_i card rest
+    intro finalState hFold
+    cases hAct : applyAction state (.playCard card) with
+    | none =>
+      simp [List.foldlM, hAct] at hFold
+    | some state' =>
+      have hFold' : rest.foldlM applyAction state' = some finalState := by
+        simpa [List.foldlM, hAct] using hFold
+      have hCardsRest := ih (state := state') (finalState := finalState) hFold'
+      have hCardsPlay := applyAction_playCard_preserves_total_cards state card state' hAct
+      exact hCardsRest.trans hCardsPlay
+  | endTurn =>
+    intro finalState hFold
+    simp [List.foldlM] at hFold
+    exact applyAction_endTurn_preserves_total_cards state finalState hFold
+
 -- ============================================================================
 -- T1 (TURN ONE) THEOREM SETUP
 -- ============================================================================
@@ -344,13 +440,12 @@ structure ValidStartingState (state : GameState) : Prop where
   cardConservation : validCardCount state
 
 theorem turn_one_prizes_preserved (state : GameState) (actions : List Action)
-    (hFirst : state.activePlayer = .playerOne) (hActions : TurnOneActions actions) :
+    (hActions : TurnOneActions actions) :
     ∀ finalState : GameState,
       (actions.foldlM applyAction state = some finalState) →
       (getPlayerState finalState .playerTwo).prizes.length =
         (getPlayerState state .playerTwo).prizes.length := by
   -- Turn 1 actions exclude attacks, so player two prizes are unchanged.
-  clear hFirst
   induction hActions generalizing state with
   | nil =>
     intro finalState hFold
@@ -428,28 +523,27 @@ theorem applyAction_attack_prizes_le (state : GameState) (attackIndex : Nat) (fi
             (Nat.le_succ state.playerTwo.prizes.length)
 
 theorem turn_one_prizes_at_most_one (state : GameState) (actions : List Action)
-    (hFirst : state.activePlayer = .playerOne) (hActions : TurnOneActions actions) :
+    (hActions : TurnOneActions actions) :
     ∀ finalState : GameState,
       (actions.foldlM applyAction state = some finalState) →
       (getPlayerState state .playerTwo).prizes.length ≤
         (getPlayerState finalState .playerTwo).prizes.length + 1 := by
   intro finalState hFold
-  have hEq := turn_one_prizes_preserved state actions hFirst hActions finalState hFold
+  have hEq := turn_one_prizes_preserved state actions hActions finalState hFold
   simpa [hEq] using (Nat.le_succ (getPlayerState state .playerTwo).prizes.length)
 
 -- The Turn 1 Theorem: No sequence of legal actions on Turn 1 can result in a win
 -- This states that from any valid starting state, after one turn, no player has won
 theorem no_turn_one_win (state : GameState) (actions : List Action)
     (hStart : ValidStartingState state)
-    (hFirst : state.activePlayer = .playerOne)
     (hActions : TurnOneActions actions) :
     ∀ finalState : GameState,
       (actions.foldlM applyAction state = some finalState) →
       ¬ hasWon finalState .playerOne := by
   intro finalState hFold hWon
-  have hEq := turn_one_prizes_preserved state actions hFirst hActions finalState hFold
+  have hEq := turn_one_prizes_preserved state actions hActions finalState hFold
   have hWon' : (getPlayerState finalState .playerTwo).prizes.length = 0 := by
-    simpa [hasWon, otherPlayer, hFirst, getPlayerState] using hWon
+    simpa [hasWon, otherPlayer, getPlayerState] using hWon
   have hStartPrizes : (getPlayerState state .playerTwo).prizes.length = standardPrizeCount := by
     simpa [getPlayerState] using hStart.playerTwoPrizes
   have hStateZero : (getPlayerState state .playerTwo).prizes.length = 0 := by
