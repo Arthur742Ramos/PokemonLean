@@ -46,6 +46,7 @@ Proof checklist:
 | `legal_playSupporterDraw_iff` | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playItemHeal_iff` | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_evolveActive_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_evolveActive_iff` (HP monotonic) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_useAbilityHeal_iff` | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_useAbilityDraw_iff` | `PokemonLean/Semantics.lean` | ✅ |
 | `step_prizes_nonincreasing` | `PokemonLean/Semantics.lean` | ✅ |

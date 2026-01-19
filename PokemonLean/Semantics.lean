@@ -27,6 +27,7 @@ inductive StepError
   | cardNotInHand
   | benchFull
   | noActivePokemon
+  | evolutionHpTooLow
   | noDefenderPokemon
   | invalidAttackIndex
   | insufficientEnergy
@@ -414,9 +415,12 @@ def step (state : GameState) (action : Action) : Except StepError GameState :=
       match removeFirst card playerState.hand with
       | none => .error .cardNotInHand
       | some newHand =>
-        let evolved := { active with card := card }
-        let updatedPlayerState := { playerState with hand := newHand, active := some evolved }
-        .ok (setPlayerState state player updatedPlayerState)
+        if active.card.hp ≤ card.hp then
+          let evolved := { active with card := card }
+          let updatedPlayerState := { playerState with hand := newHand, active := some evolved }
+          .ok (setPlayerState state player updatedPlayerState)
+        else
+          .error .evolutionHpTooLow
   | .useAbilityHeal amount =>
     let player := state.activePlayer
     let playerState := getPlayerState state player
@@ -567,7 +571,7 @@ def canPlayTrainerHeal (state : GameState) (card : Card) : Prop :=
 def canEvolveActive (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state
   ∃ newHand active, removeFirst card playerState.hand = some newHand ∧
-    playerState.active = some active
+    playerState.active = some active ∧ active.card.hp ≤ card.hp
 
 def canUseAbilityHeal (state : GameState) : Prop :=
   let playerState := activePlayerState state
@@ -1132,20 +1136,26 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
       simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
       cases hRemove : removeFirst card state.playerOne.hand <;> simp [hRemove] at hStep
+      by_cases hHp : hActive.card.hp ≤ card.hp
+      · simp [hHp] at hStep
       cases hStep
       have hCards : playerCardCount
           { state.playerOne with hand := _, active := some { hActive with card := card } } =
           playerCardCount state.playerOne := by
         simp [playerCardCount, bench_card_count, hActive]
       simpa using (totalCardCount_setPlayerState state .playerOne _ (by simpa [getPlayerState] using hCards))
+      · simp [hHp] at hStep
     · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
       cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+      by_cases hHp : hActive.card.hp ≤ card.hp
+      · simp [hHp] at hStep
       cases hStep
       have hCards : playerCardCount
           { state.playerTwo with hand := _, active := some { hActive with card := card } } =
           playerCardCount state.playerTwo := by
         simp [playerCardCount, bench_card_count, hActive]
       simpa using (totalCardCount_setPlayerState state .playerTwo _ (by simpa [getPlayerState] using hCards))
+      · simp [hHp] at hStep
   | useAbilityHeal amount =>
     cases hPlayer : state.activePlayer <;>
       simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
@@ -1383,12 +1393,18 @@ theorem step_preserves_valid (state : GameState) (action : Action) (state' : Gam
       simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
       cases hRemove : removeFirst card state.playerOne.hand <;> simp [hRemove] at hStep
+      by_cases hHp : hActive.card.hp ≤ card.hp
+      · simp [hHp] at hStep
       cases hStep
       exact ⟨hBenchOne, hBenchTwo, hPrizeOne, hPrizeTwo⟩
+      · simp [hHp] at hStep
     · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
       cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+      by_cases hHp : hActive.card.hp ≤ card.hp
+      · simp [hHp] at hStep
       cases hStep
       exact ⟨hBenchOne, hBenchTwo, hPrizeOne, hPrizeTwo⟩
+      · simp [hHp] at hStep
   | useAbilityHeal amount =>
     cases hPlayer : state.activePlayer <;>
       simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
