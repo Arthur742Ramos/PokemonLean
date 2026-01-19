@@ -133,6 +133,10 @@ theorem runEffectStack_empty (state : GameState) :
     runEffectStack state ([] : EffectStack) = state := by
   rfl
 
+theorem runEffectStack_terminates (state : GameState) (stack : EffectStack) :
+    ∃ state', runEffectStack state stack = state' := by
+  exact ⟨runEffectStack state stack, rfl⟩
+
 abbrev CoinFlipStream := List Bool
 
 abbrev GameRand := StateM CoinFlipStream
