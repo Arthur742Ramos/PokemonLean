@@ -151,21 +151,23 @@ def toPokemonInPlay (card : Card) : PokemonInPlay :=
 def applyDamage (pokemon : PokemonInPlay) (amount : Nat) : PokemonInPlay :=
   { pokemon with damage := pokemon.damage + amount }
 
-def statusFromEffects (effects : List AttackEffect) : Option StatusCondition :=
+def attackBonus (effects : List AttackEffect) : Nat :=
   effects.foldl
     (fun acc effect =>
-      match acc with
-      | some _ => acc
-      | none =>
-        match effect with
-        | .applyStatus condition => some condition
-        | _ => none)
-    none
+      match effect with
+      | .addDamage amount => acc + amount
+      | _ => acc)
+    0
 
 def applyAttackEffects (pokemon : PokemonInPlay) (effects : List AttackEffect) : PokemonInPlay :=
-  match statusFromEffects effects with
-  | none => pokemon
-  | some condition => { pokemon with status := some condition }
+  effects.foldl
+    (fun acc effect =>
+      match effect with
+      | .applyStatus condition => { acc with status := some condition }
+      | .heal amount => { acc with damage := Nat.sub acc.damage amount }
+      | .drawCards _ => acc
+      | .addDamage _ => acc)
+    pokemon
 
 def takePrize (attacker defender : PlayerState) : PlayerState × PlayerState :=
   match defender.prizes with
@@ -212,7 +214,7 @@ def applyResistance (damage : Nat) (attackerType : EnergyType) (resistance : Opt
   | none => damage
 
 def calculateDamage (attack : Attack) (attackerType : EnergyType) (defender : Card) : Nat :=
-  let base := attack.baseDamage + damageBonus attack.effects
+  let base := attack.baseDamage + damageBonus attack.effects + attackBonus attack.effects
   let afterWeakness := applyWeakness base attackerType defender.weakness
   let afterResistance := applyResistance afterWeakness attackerType defender.resistance
   afterResistance
