@@ -41,6 +41,8 @@ Proven theorems:
 - `turnActions_supporterCount_le_one`: At most one supporter per turn
 - `turnActions_ends_turn`: Every turn ends with attack or endTurn
 - `stepMany_activePlayer_turn`: Turn action sequences flip the active player
+- `legal_playSupporterDraw_iff`: Supporter draw is legal iff card in hand and enough cards in deck
+- `legal_playItemHeal_iff`: Item heal is legal iff card in hand and active Pokemon exists
 
 Additional proven theorems:
 - `no_turn_one_win`: No T1 win from standard starting state
@@ -88,11 +90,11 @@ Solver Result (Formally Verified):
 ## Roadmap to Publication Readiness
 
 - **M1: Energy Cost Rules** ✅ — formalize energy requirements, validate costs in `applyAction`, prove energy conservation.
+- **M2: Trainer Rule Coverage** ✅ — add Items/Supporters/Tools with per-turn limits (items unlimited, supporter once), plus draw/heal trainer effects.
 - **Top 3 Next Features (Highest ROI)**:
   1. **Action Language + Small-step Semantics** — define `Action` variants (PlayPokemonToBench, AttachEnergy, Attack i, Retreat, EndTurn, optional DrawCard) plus `step : GameState → Action → Except Error GameState` and `Legal : GameState → Action → Prop/Decidable`. Target proofs: determinism of execution, progress/preservation, and no-crash for legal actions.
   2. **Reachability + Global Invariants (Meta-Safety)** — define `Reachable`, then prove global invariants for all reachable states: state validity preserved, zone conservation, boundedness (bench ≤ 5, prizes ∈ [0,6], HP bounds), and turn discipline.
   3. **Certified Strategy Procedure (Optimal Solver)** — formalize a per-turn optimization objective and implement `bestAttack` with soundness + optimality theorems (legal index in bounds and damage maximal among legal attacks), with optional stability/monotonicity lemmas.
-- **M2: Trainer Rule Coverage** — add Items/Supporters/Tools with per-turn limits (items unlimited, supporter once).
 - **M2: Prize & Win Invariants** — strengthen prize-taking lemmas, prove win-condition soundness across multi-turn play.
 - **M3: Rule Coverage Expansion** — add trainer/ability/evolution rules with invariants for legal board states.
 - **M4: Solver Generalization** — extend solver proofs across a larger card corpus and full effect stacking semantics.

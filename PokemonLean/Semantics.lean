@@ -11,6 +11,8 @@ inductive Action
   | playItem (card : Card)
   | playSupporter (card : Card)
   | playTool (card : Card)
+  | playSupporterDraw (card : Card) (count : Nat)
+  | playItemHeal (card : Card) (amount : Nat)
   | attachEnergy (energyType : EnergyType)
   | attack (attackIndex : Nat)
   | retreat
@@ -56,6 +58,12 @@ inductive TurnActionsAux : Bool → Bool → List Action → Prop
   | playSupporter {energyAttached : Bool} {card : Card} {actions : List Action}
       (h : TurnActionsAux energyAttached true actions) :
       TurnActionsAux energyAttached false (.playSupporter card :: actions)
+  | playSupporterDraw {energyAttached : Bool} {card : Card} {count : Nat} {actions : List Action}
+      (h : TurnActionsAux energyAttached true actions) :
+      TurnActionsAux energyAttached false (.playSupporterDraw card count :: actions)
+  | playItemHeal {energyAttached supporterUsed : Bool} {card : Card} {amount : Nat} {actions : List Action}
+      (h : TurnActionsAux energyAttached supporterUsed actions) :
+      TurnActionsAux energyAttached supporterUsed (.playItemHeal card amount :: actions)
   | attachEnergy {energyType : EnergyType} {supporterUsed : Bool} {actions : List Action}
       (h : TurnActionsAux true supporterUsed actions) :
       TurnActionsAux false supporterUsed (.attachEnergy energyType :: actions)
@@ -80,6 +88,7 @@ def attachEnergyCount : List Action → Nat
 def supporterCount : List Action → Nat
   | [] => 0
   | .playSupporter _ :: rest => supporterCount rest + 1
+  | .playSupporterDraw _ _ :: rest => supporterCount rest + 1
   | _ :: rest => supporterCount rest
 
 def EndsTurn : List Action → Prop
@@ -105,6 +114,10 @@ theorem turnActionsAux_attachEnergyCount_zero :
     simpa [attachEnergyCount] using ih
   | playSupporter h ih =>
     simpa [attachEnergyCount] using ih
+  | playSupporterDraw h ih =>
+    simpa [attachEnergyCount] using ih
+  | playItemHeal h ih =>
+    simpa [attachEnergyCount] using ih
   | retreat h ih =>
     simpa [attachEnergyCount] using ih
   | drawCard h ih =>
@@ -124,6 +137,10 @@ theorem turnActions_attachEnergyCount_le_one (actions : List Action) (h : TurnAc
   | playTool h ih =>
     simpa [attachEnergyCount] using ih
   | playSupporter h ih =>
+    simpa [attachEnergyCount] using ih
+  | playSupporterDraw h ih =>
+    simpa [attachEnergyCount] using ih
+  | playItemHeal h ih =>
     simpa [attachEnergyCount] using ih
   | retreat h ih =>
     simpa [attachEnergyCount] using ih
@@ -147,6 +164,10 @@ theorem turnActionsAux_supporterCount_zero :
   | playItem h ih =>
     simpa [supporterCount] using ih
   | playTool h ih =>
+    simpa [supporterCount] using ih
+  | playSupporterDraw h ih =>
+    simpa [supporterCount] using ih
+  | playItemHeal h ih =>
     simpa [supporterCount] using ih
   | retreat h ih =>
     simpa [supporterCount] using ih
@@ -174,7 +195,12 @@ theorem turnActions_supporterCount_le_one (actions : List Action) (h : TurnActio
     simpa [supporterCount] using ih
   | attachEnergy h ih =>
     simpa [supporterCount] using ih
+  | playItemHeal h ih =>
+    simpa [supporterCount] using ih
   | playSupporter h =>
+    have hZero := turnActionsAux_supporterCount_zero (actions := _) h
+    simp [supporterCount, hZero]
+  | playSupporterDraw h =>
     have hZero := turnActionsAux_supporterCount_zero (actions := _) h
     simp [supporterCount, hZero]
 
@@ -193,11 +219,15 @@ theorem turnActions_ends_turn (actions : List Action) (h : TurnActions actions) 
     simpa [EndsTurn] using ih
   | playSupporter h ih =>
     simpa [EndsTurn] using ih
+  | playSupporterDraw h ih =>
+    simpa [EndsTurn] using ih
   | retreat h ih =>
     simpa [EndsTurn] using ih
   | drawCard h ih =>
     simpa [EndsTurn] using ih
   | attachEnergy h ih =>
+    simpa [EndsTurn] using ih
+  | playItemHeal h ih =>
     simpa [EndsTurn] using ih
 
 theorem stepMany_activePlayer_turnAux :
@@ -239,6 +269,20 @@ theorem stepMany_activePlayer_turnAux :
     cases hStep : step state (.playSupporter card) <;>
       simp [stepMany, List.foldlM, hStep] at hRun
     have hActive := step_activePlayer_playSupporter state card _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | playSupporterDraw h ih =>
+    rename_i card count actions
+    cases hStep : step state (.playSupporterDraw card count) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playSupporterDraw state card count _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | playItemHeal h ih =>
+    rename_i card amount actions
+    cases hStep : step state (.playItemHeal card amount) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playItemHeal state card amount _ hStep
     have hFinal := ih hRun
     simpa [hActive] using hFinal
   | attachEnergy h ih =>
@@ -289,6 +333,10 @@ def step (state : GameState) (action : Action) : Except StepError GameState :=
     playTrainer state card
   | .playTool card =>
     playTrainer state card
+  | .playSupporterDraw card count =>
+    playTrainerDraw state card count
+  | .playItemHeal card amount =>
+    playTrainerHeal state card amount
   | .attachEnergy energyType =>
     let player := state.activePlayer
     let playerState := getPlayerState state player
@@ -365,6 +413,58 @@ def canPlayTrainer (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state
   ∃ newHand, removeFirst card playerState.hand = some newHand
 
+def drawFromDeck (playerState : PlayerState) (n : Nat) : Option (List Card × List Card) :=
+  if h : n ≤ playerState.deck.length then
+    let drawn := playerState.deck.take n
+    let rest := playerState.deck.drop n
+    some (drawn, rest)
+  else
+    none
+
+def playTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Except StepError GameState :=
+  let player := state.activePlayer
+  let playerState := getPlayerState state player
+  match removeFirst card playerState.hand with
+  | none => .error .cardNotInHand
+  | some newHand =>
+    match drawFromDeck playerState drawCount with
+    | none => .error .emptyDeck
+    | some (drawn, rest) =>
+      let updatedPlayerState :=
+        { playerState with
+          deck := rest
+          hand := newHand ++ drawn
+          discard := card :: playerState.discard }
+      .ok (setPlayerState state player updatedPlayerState)
+
+def playTrainerHeal (state : GameState) (card : Card) (healAmount : Nat) : Except StepError GameState :=
+  let player := state.activePlayer
+  let playerState := getPlayerState state player
+  match removeFirst card playerState.hand with
+  | none => .error .cardNotInHand
+  | some newHand =>
+    match playerState.active with
+    | none => .error .noActivePokemon
+    | some active =>
+      let newDamage := Nat.sub active.damage healAmount
+      let updatedActive := { active with damage := newDamage }
+      let updatedPlayerState :=
+        { playerState with
+          hand := newHand
+          active := some updatedActive
+          discard := card :: playerState.discard }
+      .ok (setPlayerState state player updatedPlayerState)
+
+def canPlayTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Prop :=
+  let playerState := activePlayerState state
+  ∃ newHand, removeFirst card playerState.hand = some newHand ∧
+    drawCount ≤ playerState.deck.length
+
+def canPlayTrainerHeal (state : GameState) (card : Card) : Prop :=
+  let playerState := activePlayerState state
+  ∃ newHand active, removeFirst card playerState.hand = some newHand ∧
+    playerState.active = some active
+
 def canAttachEnergy (state : GameState) : Prop :=
   let playerState := activePlayerState state
   ∃ active, playerState.active = some active
@@ -430,6 +530,19 @@ theorem legal_playTool_iff (state : GameState) (card : Card) :
     Legal state (.playTool card) ↔ canPlayTrainer state card := by
   cases hPlayer : state.activePlayer <;>
     simp [Legal, canPlayTrainer, activePlayerState, step, playTrainer, hPlayer, getPlayerState, setPlayerState]
+
+theorem legal_playSupporterDraw_iff (state : GameState) (card : Card) (count : Nat) :
+    Legal state (.playSupporterDraw card count) ↔ canPlayTrainerDraw state card count := by
+  cases hPlayer : state.activePlayer <;>
+    simp [Legal, canPlayTrainerDraw, activePlayerState, step, playTrainerDraw,
+      drawFromDeck, hPlayer, getPlayerState, setPlayerState]
+
+theorem legal_playItemHeal_iff (state : GameState) (card : Card) (amount : Nat) :
+    Legal state (.playItemHeal card amount) ↔ canPlayTrainerHeal state card := by
+  cases hPlayer : state.activePlayer <;>
+    cases hActive : (getPlayerState state state.activePlayer).active <;>
+    simp [Legal, canPlayTrainerHeal, activePlayerState, step, playTrainerHeal, hPlayer, getPlayerState, setPlayerState,
+      hActive]
 
 theorem legal_playPokemonToBench_iff (state : GameState) (card : Card) :
     Legal state (.playPokemonToBench card) ↔ canPlayPokemonToBench state card := by
@@ -518,6 +631,38 @@ theorem step_activePlayer_playSupporter (state : GameState) (card : Card) (state
     cases hStep
     simp [setPlayerState]
   · cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+    cases hStep
+    simp [setPlayerState]
+
+theorem step_activePlayer_playSupporterDraw (state : GameState) (card : Card) (count : Nat) (state' : GameState)
+    (hStep : step state (.playSupporterDraw card count) = .ok state') :
+    state'.activePlayer = state.activePlayer := by
+  cases hPlayer : state.activePlayer <;>
+    simp [step, playTrainerDraw, drawFromDeck, hPlayer, getPlayerState, setPlayerState] at hStep
+  · cases hRemove : removeFirst card state.playerOne.hand <;> simp [hRemove] at hStep
+    by_cases hCount : count ≤ state.playerOne.deck.length
+    · simp [hCount] at hStep
+      cases hStep
+      simp [setPlayerState]
+    · simp [hCount] at hStep
+  · cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+    by_cases hCount : count ≤ state.playerTwo.deck.length
+    · simp [hCount] at hStep
+      cases hStep
+      simp [setPlayerState]
+    · simp [hCount] at hStep
+
+theorem step_activePlayer_playItemHeal (state : GameState) (card : Card) (amount : Nat) (state' : GameState)
+    (hStep : step state (.playItemHeal card amount) = .ok state') :
+    state'.activePlayer = state.activePlayer := by
+  cases hPlayer : state.activePlayer <;>
+    simp [step, playTrainerHeal, hPlayer, getPlayerState, setPlayerState] at hStep
+  · cases hRemove : removeFirst card state.playerOne.hand <;> simp [hRemove] at hStep
+    cases hActive : state.playerOne.active <;> simp [hActive] at hStep
+    cases hStep
+    simp [setPlayerState]
+  · cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+    cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
     cases hStep
     simp [setPlayerState]
 
@@ -748,6 +893,68 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
           { state.playerTwo with hand := _, discard := card :: state.playerTwo.discard } =
           playerCardCount state.playerTwo := by
         simp [playerCardCount]
+      simpa using (totalCardCount_setPlayerState state .playerTwo _ (by simpa [getPlayerState] using hCards))
+  | playSupporterDraw card count =>
+    cases hPlayer : state.activePlayer <;>
+      simp [step, playTrainerDraw, drawFromDeck, hPlayer, getPlayerState, setPlayerState] at hStep
+    · cases hRemove : removeFirst card state.playerOne.hand <;> simp [hRemove] at hStep
+      by_cases hCount : count ≤ state.playerOne.deck.length
+      · simp [hCount] at hStep
+        cases hStep
+        have hCards :
+            playerCardCount
+              { state.playerOne with
+                deck := _
+                hand := _ ++ _
+                discard := card :: state.playerOne.discard } =
+            playerCardCount state.playerOne := by
+          have hLen : (state.playerOne.deck.drop count).length + count = state.playerOne.deck.length := by
+            simpa using (Nat.add_comm (state.playerOne.deck.drop count).length count)
+          simp [playerCardCount, bench_card_count, List.length_append, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
+            List.length_take, List.length_drop, hCount, hLen]
+        simpa using (totalCardCount_setPlayerState state .playerOne _ (by simpa [getPlayerState] using hCards))
+      · simp [hCount] at hStep
+    · cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+      by_cases hCount : count ≤ state.playerTwo.deck.length
+      · simp [hCount] at hStep
+        cases hStep
+        have hCards :
+            playerCardCount
+              { state.playerTwo with
+                deck := _
+                hand := _ ++ _
+                discard := card :: state.playerTwo.discard } =
+            playerCardCount state.playerTwo := by
+          have hLen : (state.playerTwo.deck.drop count).length + count = state.playerTwo.deck.length := by
+            simpa using (Nat.add_comm (state.playerTwo.deck.drop count).length count)
+          simp [playerCardCount, bench_card_count, List.length_append, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
+            List.length_take, List.length_drop, hCount, hLen]
+        simpa using (totalCardCount_setPlayerState state .playerTwo _ (by simpa [getPlayerState] using hCards))
+      · simp [hCount] at hStep
+  | playItemHeal card amount =>
+    cases hPlayer : state.activePlayer <;>
+      simp [step, playTrainerHeal, hPlayer, getPlayerState, setPlayerState] at hStep
+    · cases hRemove : removeFirst card state.playerOne.hand <;> simp [hRemove] at hStep
+      cases hActive : state.playerOne.active <;> simp [hActive] at hStep
+      cases hStep
+      have hCards : playerCardCount
+          { state.playerOne with
+            hand := _
+            active := some { hActive with damage := _ }
+            discard := card :: state.playerOne.discard } =
+          playerCardCount state.playerOne := by
+        simp [playerCardCount, bench_card_count, hActive]
+      simpa using (totalCardCount_setPlayerState state .playerOne _ (by simpa [getPlayerState] using hCards))
+    · cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+      cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
+      cases hStep
+      have hCards : playerCardCount
+          { state.playerTwo with
+            hand := _
+            active := some { hActive with damage := _ }
+            discard := card :: state.playerTwo.discard } =
+          playerCardCount state.playerTwo := by
+        simp [playerCardCount, bench_card_count, hActive]
       simpa using (totalCardCount_setPlayerState state .playerTwo _ (by simpa [getPlayerState] using hCards))
   | attack attackIndex =>
     cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
