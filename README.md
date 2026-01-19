@@ -28,6 +28,33 @@ This project bridges formal verification and game theory by building a verified 
 - Verified outputs: Pikachu→Charmander = 20 damage, Squirtle→Charmander = 40 damage
 
 ### Phase 3: Formal Verification ✅
+Proof checklist:
+| Theorem | Location | Status |
+| --- | --- | --- |
+| `damage_nonneg` | `PokemonLean/Basic.lean` | ✅ |
+| `weakness_bounded` | `PokemonLean/Basic.lean` | ✅ |
+| `resistance_reduces` | `PokemonLean/Basic.lean` | ✅ |
+| `endTurn_preserves_cards` | `PokemonLean/Basic.lean` | ✅ |
+| `removeFirst_length` | `PokemonLean/Basic.lean` | ✅ |
+| `foldl_add_shift` | `PokemonLean/Basic.lean` | ✅ |
+| `bench_card_count` | `PokemonLean/Basic.lean` | ✅ |
+| `playCard_preserves_player_cards` | `PokemonLean/Basic.lean` | ✅ |
+| `turnActions_attachEnergyCount_le_one` | `PokemonLean/Semantics.lean` | ✅ |
+| `turnActions_supporterCount_le_one` | `PokemonLean/Semantics.lean` | ✅ |
+| `turnActions_ends_turn` | `PokemonLean/Semantics.lean` | ✅ |
+| `stepMany_activePlayer_turn` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_playSupporterDraw_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_playItemHeal_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_evolveActive_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_useAbilityHeal_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_useAbilityDraw_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `step_prizes_nonincreasing` | `PokemonLean/Semantics.lean` | ✅ |
+| `step_preserves_hasWon` | `PokemonLean/Semantics.lean` | ✅ |
+| `stepMany_preserves_hasWon` | `PokemonLean/Semantics.lean` | ✅ |
+| `no_turn_one_win` | `PokemonLean/Basic.lean` | ✅ |
+| `bestAttack_sound` | `PokemonLean/Solver.lean` | ✅ |
+| `maxDamage_complete` | `PokemonLean/Solver.lean` | ✅ |
+
 Proven theorems:
 - `damage_nonneg`: Damage is always ≥ 0
 - `weakness_bounded`: Weakness multiplies damage correctly
@@ -59,6 +86,7 @@ Additional proven theorems:
 - **Verified Solver**: `solve` function finds optimal attack with damage prediction
 - **CLI Application**: Interactive demo with battle simulations
 - **Python Integration**: Card data pipeline from official API
+- **Corpus Check**: Solver runs across the sample card corpus (`PokemonLean.Cards.corpus`)
 
 ## Building & Running
 
@@ -104,5 +132,10 @@ Solver Result (Formally Verified):
 - **M2: Prize & Win Invariants** ✅ — prize counts are nonincreasing and `hasWon` is preserved by `step`/`stepMany`.
 - **M3: Rule Coverage Expansion** ✅ — trainer/ability/evolution actions are implemented with legality and preservation proofs.
 - **M4: Solver Generalization** ✅ — effect stacking semantics included in damage bounds; solver remains general across card lists.
-- **M5: Formal Proof Artifact** — compile a reproducible proof checklist and publishable theorem index.
+- **M5: Formal Proof Artifact** — compile a reproducible proof checklist + artifact guide, ensure theorem index is complete, add CI proof badge.
 - **M6: Submission Package** — finalize paper draft, artifact packaging, and CI verification for ITP/FormaliSE.
+
+### M5 Execution Plan
+1. **Proof Checklist** — enumerate all headline theorems with file/line references and status.
+2. **Artifact Guide** — reproducible steps: build, run demos, regenerate cards, and check theorem index.
+3. **CI Alignment** — verify `lake build` and add status badge to README.

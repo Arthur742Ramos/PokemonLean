@@ -85,4 +85,17 @@ def smoliv2 : Card :=
   , weakness := some { energyType := .fire }
   , resistance := none }
 
+def corpus : List Card :=
+  [ scatterbug
+  , pineco
+  , cacturne
+  , gogoat
+  , sprigatito
+  , meowscarada
+  , tarountula
+  , tarountula2
+  , smoliv
+  , smoliv2
+  ]
+
 end PokemonLean.Cards

@@ -3,6 +3,7 @@
 
 import Init.Data.List.Find
 import PokemonLean.Basic
+import PokemonLean.Cards
 
 namespace PokemonLean.Solver
 
@@ -320,6 +321,14 @@ def solve (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option SolverR
       isLethal := isKnockout damage defender.card.hp defender.damage
     }
 
+def demoDefender : PokemonInPlay :=
+  { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
+
+def corpusSolverResults : List (Card × Option SolverResult) :=
+  PokemonLean.Cards.corpus.map (fun card =>
+    let attacker : PokemonInPlay := { card := card, damage := 0, status := none, energy := [card.energyType] }
+    (card, solve attacker demoDefender))
+
 -- ============================================================================
 -- EXAMPLE USAGE
 -- ============================================================================
@@ -331,5 +340,7 @@ def solve (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option SolverR
 #eval solve { card := sampleSquirtle, damage := 0, status := none, energy := [.water] }
   { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
 -- Should return: attackIndex 0, expectedDamage 40 (weakness), isLethal false
+
+#eval corpusSolverResults
 
 end PokemonLean.Solver
