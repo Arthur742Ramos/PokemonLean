@@ -26,6 +26,85 @@ inductive StepError
   | emptyDeck
   deriving Repr, BEq, DecidableEq
 
+-- Turn structure: at most one energy attachment, and the turn ends with attack or endTurn.
+inductive TurnActionsAux : Bool → List Action → Prop
+  | endTurn (energyAttached : Bool) : TurnActionsAux energyAttached [.endTurn]
+  | attack (energyAttached : Bool) (attackIndex : Nat) : TurnActionsAux energyAttached [.attack attackIndex]
+  | playPokemon {energyAttached : Bool} {card : Card} {actions : List Action}
+      (h : TurnActionsAux energyAttached actions) :
+      TurnActionsAux energyAttached (.playPokemonToBench card :: actions)
+  | attachEnergy {energyType : EnergyType} {actions : List Action}
+      (h : TurnActionsAux true actions) :
+      TurnActionsAux false (.attachEnergy energyType :: actions)
+  | retreat {energyAttached : Bool} {actions : List Action}
+      (h : TurnActionsAux energyAttached actions) :
+      TurnActionsAux energyAttached (.retreat :: actions)
+  | drawCard {energyAttached : Bool} {actions : List Action}
+      (h : TurnActionsAux energyAttached actions) :
+      TurnActionsAux energyAttached (.drawCard :: actions)
+
+def TurnActions (actions : List Action) : Prop :=
+  TurnActionsAux false actions
+
+def attachEnergyCount : List Action → Nat
+  | [] => 0
+  | .attachEnergy _ :: rest => attachEnergyCount rest + 1
+  | _ :: rest => attachEnergyCount rest
+
+def EndsTurn : List Action → Prop
+  | [] => False
+  | [.endTurn] => True
+  | [.attack _] => True
+  | _ :: rest => EndsTurn rest
+
+theorem turnActionsAux_attachEnergyCount_zero :
+    ∀ {actions : List Action}, TurnActionsAux true actions → attachEnergyCount actions = 0 := by
+  intro actions hActions
+  induction hActions with
+  | endTurn =>
+    simp [attachEnergyCount]
+  | attack =>
+    simp [attachEnergyCount]
+  | playPokemon h ih =>
+    simpa [attachEnergyCount] using ih
+  | retreat h ih =>
+    simpa [attachEnergyCount] using ih
+  | drawCard h ih =>
+    simpa [attachEnergyCount] using ih
+
+theorem turnActions_attachEnergyCount_le_one (actions : List Action) (h : TurnActions actions) :
+    attachEnergyCount actions ≤ 1 := by
+  induction h with
+  | endTurn =>
+    simp [attachEnergyCount]
+  | attack =>
+    simp [attachEnergyCount]
+  | playPokemon h ih =>
+    simpa [attachEnergyCount] using ih
+  | retreat h ih =>
+    simpa [attachEnergyCount] using ih
+  | drawCard h ih =>
+    simpa [attachEnergyCount] using ih
+  | attachEnergy h =>
+    have hZero := turnActionsAux_attachEnergyCount_zero (actions := _) h
+    simp [attachEnergyCount, hZero]
+
+theorem turnActions_ends_turn (actions : List Action) (h : TurnActions actions) :
+    EndsTurn actions := by
+  induction h with
+  | endTurn =>
+    simp [EndsTurn]
+  | attack =>
+    simp [EndsTurn]
+  | playPokemon h ih =>
+    simpa [EndsTurn] using ih
+  | retreat h ih =>
+    simpa [EndsTurn] using ih
+  | drawCard h ih =>
+    simpa [EndsTurn] using ih
+  | attachEnergy h ih =>
+    simpa [EndsTurn] using ih
+
 def step (state : GameState) (action : Action) : Except StepError GameState :=
   match action with
   | .endTurn =>
