@@ -107,6 +107,38 @@ def step (state : GameState) (action : Action) : Except StepError GameState :=
 def Legal (state : GameState) (action : Action) : Prop :=
   ∃ nextState, step state action = .ok nextState
 
+def activePlayerState (state : GameState) : PlayerState :=
+  getPlayerState state state.activePlayer
+
+def canPlayPokemonToBench (state : GameState) (card : Card) : Prop :=
+  let playerState := activePlayerState state
+  ∃ newHand, removeFirst card playerState.hand = some newHand ∧
+    playerState.bench.length < benchLimit
+
+def canAttachEnergy (state : GameState) : Prop :=
+  let playerState := activePlayerState state
+  ∃ active, playerState.active = some active
+
+def canRetreat (state : GameState) : Prop :=
+  let playerState := activePlayerState state
+  ∃ active newActive rest,
+    playerState.active = some active ∧ playerState.bench = newActive :: rest
+
+def canDrawCard (state : GameState) : Prop :=
+  let playerState := activePlayerState state
+  ∃ top rest, playerState.deck = top :: rest
+
+def canAttack (state : GameState) (attackIndex : Nat) : Prop :=
+  let attackerPlayer := state.activePlayer
+  let defenderPlayer := otherPlayer attackerPlayer
+  let attackerState := getPlayerState state attackerPlayer
+  let defenderState := getPlayerState state defenderPlayer
+  ∃ attacker defender attack,
+    attackerState.active = some attacker ∧
+      defenderState.active = some defender ∧
+      listGet? attacker.card.attacks attackIndex = some attack ∧
+      hasEnergyCost attack attacker.energy = true
+
 instance (state : GameState) (action : Action) : Decidable (Legal state action) := by
   cases h : step state action with
   | ok next =>
@@ -129,6 +161,52 @@ theorem legal_no_error (state : GameState) (action : Action) (err : StepError)
     (h : Legal state action) : step state action ≠ .error err := by
   rcases h with ⟨nextState, hStep⟩
   simp [hStep]
+
+theorem legal_endTurn (state : GameState) : Legal state .endTurn := by
+  refine ⟨{ state with activePlayer := otherPlayer state.activePlayer }, ?_⟩
+  simp [step]
+
+theorem legal_playPokemonToBench_iff (state : GameState) (card : Card) :
+    Legal state (.playPokemonToBench card) ↔ canPlayPokemonToBench state card := by
+  cases hPlayer : state.activePlayer <;>
+    simp [Legal, canPlayPokemonToBench, activePlayerState, step, hPlayer, getPlayerState, setPlayerState]
+
+theorem legal_attachEnergy_iff (state : GameState) (energyType : EnergyType) :
+    Legal state (.attachEnergy energyType) ↔ canAttachEnergy state := by
+  cases hPlayer : state.activePlayer <;>
+    cases hActive : (getPlayerState state state.activePlayer).active <;>
+    simp [Legal, canAttachEnergy, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hActive]
+
+theorem legal_retreat_iff (state : GameState) :
+    Legal state .retreat ↔ canRetreat state := by
+  cases hPlayer : state.activePlayer <;>
+    cases hActive : (getPlayerState state state.activePlayer).active <;>
+    cases hBench : (getPlayerState state state.activePlayer).bench <;>
+    simp [Legal, canRetreat, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hActive, hBench]
+
+theorem legal_drawCard_iff (state : GameState) :
+    Legal state .drawCard ↔ canDrawCard state := by
+  cases hPlayer : state.activePlayer <;>
+    cases hDeck : (getPlayerState state state.activePlayer).deck <;>
+    simp [Legal, canDrawCard, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hDeck]
+
+theorem legal_attack_iff (state : GameState) (attackIndex : Nat) :
+    Legal state (.attack attackIndex) ↔ canAttack state attackIndex := by
+  cases hPlayer : state.activePlayer <;>
+    cases hAtt : (getPlayerState state state.activePlayer).active with
+    | none =>
+      simp [Legal, canAttack, step, hPlayer, getPlayerState, setPlayerState, hAtt]
+    | some attacker =>
+      cases hDef : (getPlayerState state (otherPlayer state.activePlayer)).active with
+      | none =>
+        simp [Legal, canAttack, step, hPlayer, getPlayerState, setPlayerState, hAtt, hDef]
+      | some defender =>
+        cases hAttack : listGet? attacker.card.attacks attackIndex with
+        | none =>
+          simp [Legal, canAttack, step, hPlayer, getPlayerState, setPlayerState, hAtt, hDef, hAttack]
+        | some attack =>
+          cases hCost : hasEnergyCost attack attacker.energy <;>
+            simp [Legal, canAttack, step, hPlayer, getPlayerState, setPlayerState, hAtt, hDef, hAttack, hCost]
 
 theorem step_activePlayer_endTurn (state state' : GameState)
     (hStep : step state .endTurn = .ok state') :
