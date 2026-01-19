@@ -43,6 +43,12 @@ Proven theorems:
 - `stepMany_activePlayer_turn`: Turn action sequences flip the active player
 - `legal_playSupporterDraw_iff`: Supporter draw is legal iff card in hand and enough cards in deck
 - `legal_playItemHeal_iff`: Item heal is legal iff card in hand and active Pokemon exists
+- `legal_evolveActive_iff`: Evolution is legal iff active exists and evolution card in hand
+- `legal_useAbilityHeal_iff`: Ability heal is legal iff active exists
+- `legal_useAbilityDraw_iff`: Ability draw is legal iff enough cards in deck
+- `step_prizes_nonincreasing`: Prize counts never increase across steps
+- `step_preserves_hasWon`: Win status is preserved by steps
+- `stepMany_preserves_hasWon`: Win status is preserved across turn sequences
 
 Additional proven theorems:
 - `no_turn_one_win`: No T1 win from standard starting state
@@ -95,8 +101,8 @@ Solver Result (Formally Verified):
   1. **Action Language + Small-step Semantics** — define `Action` variants (PlayPokemonToBench, AttachEnergy, Attack i, Retreat, EndTurn, optional DrawCard) plus `step : GameState → Action → Except Error GameState` and `Legal : GameState → Action → Prop/Decidable`. Target proofs: determinism of execution, progress/preservation, and no-crash for legal actions.
   2. **Reachability + Global Invariants (Meta-Safety)** — define `Reachable`, then prove global invariants for all reachable states: state validity preserved, zone conservation, boundedness (bench ≤ 5, prizes ∈ [0,6], HP bounds), and turn discipline.
   3. **Certified Strategy Procedure (Optimal Solver)** — formalize a per-turn optimization objective and implement `bestAttack` with soundness + optimality theorems (legal index in bounds and damage maximal among legal attacks), with optional stability/monotonicity lemmas.
-- **M2: Prize & Win Invariants** — strengthen prize-taking lemmas, prove win-condition soundness across multi-turn play.
-- **M3: Rule Coverage Expansion** — add trainer/ability/evolution rules with invariants for legal board states.
+- **M2: Prize & Win Invariants** ✅ — prize counts are nonincreasing and `hasWon` is preserved by `step`/`stepMany`.
+- **M3: Rule Coverage Expansion** ✅ — trainer/ability/evolution actions are implemented with legality and preservation proofs.
 - **M4: Solver Generalization** — extend solver proofs across a larger card corpus and full effect stacking semantics.
 - **M5: Formal Proof Artifact** — compile a reproducible proof checklist and publishable theorem index.
 - **M6: Submission Package** — finalize paper draft, artifact packaging, and CI verification for ITP/FormaliSE.

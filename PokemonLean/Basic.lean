@@ -542,19 +542,19 @@ theorem turn_one_prizes_preserved (state : GameState) (actions : List Action)
           cases hRemove : removeFirst card state.playerOne.hand with
           | none =>
             simp [hRemove] at hAct
-          | some newHand =>
-            simp [hRemove] at hAct
-            cases hAct
-            simp [getPlayerState, setPlayerState]
+            | some newHand =>
+              simp [hRemove] at hAct
+              cases hAct
+              simp [getPlayerState]
         | playerTwo =>
           simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
           cases hRemove : removeFirst card state.playerTwo.hand with
           | none =>
             simp [hRemove] at hAct
-          | some newHand =>
-            simp [hRemove] at hAct
-            cases hAct
-            cases hActive : state.playerTwo.active <;> simp [getPlayerState, hActive]
+            | some newHand =>
+              simp [hRemove] at hAct
+              cases hAct
+              cases hActive : state.playerTwo.active <;> simp [getPlayerState]
       exact hEqRest.trans hEqPlay
   | attach hRest ih =>
     rename_i energyType rest
@@ -575,19 +575,19 @@ theorem turn_one_prizes_preserved (state : GameState) (actions : List Action)
           cases hActive : state.playerOne.active with
           | none =>
             simp [hActive] at hAct
-          | some active =>
-            simp [hActive] at hAct
-            cases hAct
-            simp [getPlayerState, setPlayerState]
+            | some active =>
+              simp [hActive] at hAct
+              cases hAct
+              simp [getPlayerState]
         | playerTwo =>
           simp [applyAction, getPlayerState, setPlayerState, hPlayer] at hAct
           cases hActive : state.playerTwo.active with
           | none =>
             simp [hActive] at hAct
-          | some active =>
-            simp [hActive] at hAct
-            cases hAct
-            simp [getPlayerState, setPlayerState]
+            | some active =>
+              simp [hActive] at hAct
+              cases hAct
+              simp [getPlayerState]
       exact hEqRest.trans hEqAttach
   | endTurn =>
     intro finalState hFold
@@ -618,13 +618,12 @@ theorem applyAction_attack_prizes_le (state : GameState) (attackIndex : Nat) (fi
           · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hCost, hKo,
               damage, damagedDefender, effectedDefender] at h
             cases h
-            simpa [getPlayerState, setPlayerState] using
-              (takePrize_prizes_length_le state.playerOne state.playerTwo)
+            simp [setPlayerState]
+            exact takePrize_prizes_length_le state.playerOne state.playerTwo
           · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hCost, hKo,
               damage, damagedDefender, effectedDefender] at h
             cases h
-            simpa [getPlayerState, setPlayerState] using
-              (Nat.le_succ state.playerTwo.prizes.length)
+            simp [setPlayerState]
         · simp [applyAction, hFirst, otherPlayer, getPlayerState, hAtt, hDef, hAttack, hCost] at h
 
 theorem turn_one_prizes_at_most_one (state : GameState) (actions : List Action)
@@ -635,7 +634,7 @@ theorem turn_one_prizes_at_most_one (state : GameState) (actions : List Action)
         (getPlayerState finalState .playerTwo).prizes.length + 1 := by
   intro finalState hFold
   have hEq := turn_one_prizes_preserved state actions hActions finalState hFold
-  simpa [hEq] using (Nat.le_succ (getPlayerState state .playerTwo).prizes.length)
+  simp [hEq, Nat.le_succ]
 
 -- The Turn 1 Theorem: No sequence of legal actions on Turn 1 can result in a win
 -- This states that from any valid starting state, after one turn, no player has won
@@ -652,10 +651,12 @@ theorem no_turn_one_win (state : GameState) (actions : List Action)
   have hStartPrizes : (getPlayerState state .playerTwo).prizes.length = standardPrizeCount := by
     simpa [getPlayerState] using hStart.playerTwoPrizes
   have hStateZero : (getPlayerState state .playerTwo).prizes.length = 0 := by
-    simpa [hEq] using hWon'
+    rw [hEq] at hWon'
+    exact hWon'
   have hStandardZero : standardPrizeCount = 0 := by
-    simpa [hStartPrizes] using hStateZero
-  simpa [standardPrizeCount] using hStandardZero
+    rw [hStartPrizes] at hStateZero
+    exact hStateZero
+  simp [standardPrizeCount] at hStandardZero
 
 -- ============================================================================
 -- DAMAGE CALCULATION VERIFICATION

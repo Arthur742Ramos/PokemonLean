@@ -134,8 +134,8 @@ theorem bestAttackFrom_none_no_legal (attacker : PokemonInPlay) (defender : Poke
         by_cases hCmp :
           attackDamage attacker defender head >=
             attackDamage attacker defender tailChoice.2
-        · simpa [bestAttackFrom, hCost, hTail, hCmp] using hNone
-        · simpa [bestAttackFrom, hCost, hTail, hCmp] using hNone
+        · simp [bestAttackFrom, hCost, hTail, hCmp] at hNone
+        · simp [bestAttackFrom, hCost, hTail, hCmp] at hNone
     · cases hTail : bestAttackFrom attacker defender tail with
       | none =>
         cases idx with
