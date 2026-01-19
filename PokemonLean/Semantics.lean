@@ -107,6 +107,16 @@ def step (state : GameState) (action : Action) : Except StepError GameState :=
 def Legal (state : GameState) (action : Action) : Prop :=
   ∃ nextState, step state action = .ok nextState
 
+instance (state : GameState) (action : Action) : Decidable (Legal state action) := by
+  cases h : step state action with
+  | ok next =>
+    exact isTrue ⟨next, h⟩
+  | error err =>
+    refine isFalse ?_
+    intro hLegal
+    rcases hLegal with ⟨next, hStep⟩
+    simpa [h] using hStep
+
 theorem step_deterministic (state : GameState) (action : Action) (s1 s2 : GameState)
     (h1 : step state action = .ok s1) (h2 : step state action = .ok s2) : s1 = s2 := by
   simpa [h1] using h2
@@ -114,6 +124,107 @@ theorem step_deterministic (state : GameState) (action : Action) (s1 s2 : GameSt
 theorem legal_progress (state : GameState) (action : Action) (h : Legal state action) :
     ∃ nextState, step state action = .ok nextState := by
   exact h
+
+theorem legal_no_error (state : GameState) (action : Action) (err : StepError)
+    (h : Legal state action) : step state action ≠ .error err := by
+  rcases h with ⟨nextState, hStep⟩
+  simp [hStep]
+
+theorem step_activePlayer_endTurn (state state' : GameState)
+    (hStep : step state .endTurn = .ok state') :
+    state'.activePlayer = otherPlayer state.activePlayer := by
+  simp [step] at hStep
+  cases hStep
+  rfl
+
+theorem step_activePlayer_playPokemonToBench (state : GameState) (card : Card) (state' : GameState)
+    (hStep : step state (.playPokemonToBench card) = .ok state') :
+    state'.activePlayer = state.activePlayer := by
+  cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
+  · cases hRemove : removeFirst card state.playerOne.hand <;> simp [hRemove] at hStep
+    by_cases hBench : state.playerOne.bench.length < benchLimit
+    · simp [hBench] at hStep
+      cases hStep
+      simp [setPlayerState]
+    · simp [hBench] at hStep
+      cases hStep
+  · cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
+    by_cases hBench : state.playerTwo.bench.length < benchLimit
+    · simp [hBench] at hStep
+      cases hStep
+      simp [setPlayerState]
+    · simp [hBench] at hStep
+      cases hStep
+
+theorem step_activePlayer_attachEnergy (state : GameState) (energyType : EnergyType) (state' : GameState)
+    (hStep : step state (.attachEnergy energyType) = .ok state') :
+    state'.activePlayer = state.activePlayer := by
+  cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
+  · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
+    cases hStep
+    simp [setPlayerState]
+  · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
+    cases hStep
+    simp [setPlayerState]
+
+theorem step_activePlayer_retreat (state : GameState) (state' : GameState)
+    (hStep : step state .retreat = .ok state') :
+    state'.activePlayer = state.activePlayer := by
+  cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
+  · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
+    cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+    cases hStep
+    simp [setPlayerState]
+  · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
+    cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+    cases hStep
+    simp [setPlayerState]
+
+theorem step_activePlayer_drawCard (state : GameState) (state' : GameState)
+    (hStep : step state .drawCard = .ok state') :
+    state'.activePlayer = state.activePlayer := by
+  cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
+  · cases hDeck : state.playerOne.deck <;> simp [hDeck] at hStep
+    cases hStep
+    simp [setPlayerState]
+  · cases hDeck : state.playerTwo.deck <;> simp [hDeck] at hStep
+    cases hStep
+    simp [setPlayerState]
+
+theorem step_activePlayer_attack (state : GameState) (attackIndex : Nat) (state' : GameState)
+    (hStep : step state (.attack attackIndex) = .ok state') :
+    state'.activePlayer = otherPlayer state.activePlayer := by
+  cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
+  · cases hAtt : state.playerOne.active <;> simp [hAtt] at hStep
+    cases hDef : state.playerTwo.active <;> simp [hDef] at hStep
+    cases hAttack : listGet? hAtt.card.attacks attackIndex <;> simp [hAttack] at hStep
+    cases hCost : hasEnergyCost hAttack hAtt.energy <;> simp [hCost] at hStep
+    by_cases hKo :
+      (applyAttackEffects (applyDamage hDef
+        (calculateDamage hAttack hAtt.card.energyType hDef.card)) hAttack.effects).damage >=
+        (applyAttackEffects (applyDamage hDef
+          (calculateDamage hAttack hAtt.card.energyType hDef.card)) hAttack.effects).card.hp
+    · simp [hKo] at hStep
+      cases hStep
+      rfl
+    · simp [hKo] at hStep
+      cases hStep
+      rfl
+  · cases hAtt : state.playerTwo.active <;> simp [hAtt] at hStep
+    cases hDef : state.playerOne.active <;> simp [hDef] at hStep
+    cases hAttack : listGet? hAtt.card.attacks attackIndex <;> simp [hAttack] at hStep
+    cases hCost : hasEnergyCost hAttack hAtt.energy <;> simp [hCost] at hStep
+    by_cases hKo :
+      (applyAttackEffects (applyDamage hDef
+        (calculateDamage hAttack hAtt.card.energyType hDef.card)) hAttack.effects).damage >=
+        (applyAttackEffects (applyDamage hDef
+          (calculateDamage hAttack hAtt.card.energyType hDef.card)) hAttack.effects).card.hp
+    · simp [hKo] at hStep
+      cases hStep
+      rfl
+    · simp [hKo] at hStep
+      cases hStep
+      rfl
 
 def ValidState (state : GameState) : Prop :=
   state.playerOne.bench.length ≤ benchLimit ∧
@@ -434,6 +545,30 @@ theorem reachable_valid (start : GameState) (hStart : ValidState start) :
     | intro nextState hNext =>
       cases (step_deterministic _ _ _ _ hStep hNext)
       exact step_preserves_valid _ _ _ ih hStep
+
+theorem reachable_valid_initial (state : GameState) (h : Reachable state) : ValidState state := by
+  exact reachable_valid initialState initial_valid state h
+
+theorem reachable_bench_one (state : GameState) (h : Reachable state) :
+    state.playerOne.bench.length ≤ benchLimit := by
+  exact (reachable_valid_initial state h).1
+
+theorem reachable_bench_two (state : GameState) (h : Reachable state) :
+    state.playerTwo.bench.length ≤ benchLimit := by
+  exact (reachable_valid_initial state h).2.1
+
+theorem reachable_prizes_one (state : GameState) (h : Reachable state) :
+    state.playerOne.prizes.length ≤ standardPrizeCount := by
+  exact (reachable_valid_initial state h).2.2.1
+
+theorem reachable_prizes_two (state : GameState) (h : Reachable state) :
+    state.playerTwo.prizes.length ≤ standardPrizeCount := by
+  exact (reachable_valid_initial state h).2.2.2
+
+theorem reachable_card_conservation (state : GameState) (h : Reachable state) :
+    totalCardCount state = totalCardCount initialState := by
+  have hCons := reachable_preserves_total_cards initialState state h
+  simpa [CardConservation] using hCons
 
 end PokemonLean.Semantics
 
