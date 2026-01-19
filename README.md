@@ -40,7 +40,7 @@ Proven theorems:
 
 Additional proven theorems:
 - `no_turn_one_win`: No T1 win from standard starting state
-- `bestAttackIndex_sound`: Solver returns valid indices
+- `bestAttack_sound`: Solver returns valid indices
 - `maxDamage_complete`: Solver finds true maximum
 
 ### Phase 4: Scaling, Tooling & Integration ✅

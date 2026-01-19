@@ -16,32 +16,227 @@ open PokemonLean
 def maxDamageFromAttacks (attacks : List Attack) (attackerType : EnergyType) (defender : Card) : Nat :=
   attacks.foldl (fun acc atk => max acc (calculateDamage atk attackerType defender)) 0
 
--- Find the best attack index (0-indexed) that deals maximum damage
-def bestAttackIndex (attacks : List Attack) (attackerType : EnergyType) (defender : Card) : Option Nat :=
-  match attacks with
+-- Damage from an attack with the current attacker and defender
+def attackDamage (attacker : PokemonInPlay) (defender : PokemonInPlay) (attack : Attack) : Nat :=
+  calculateDamage attack attacker.card.energyType defender.card
+
+-- Attack legality is driven by energy costs for now
+def legalAttack (attacker : PokemonInPlay) (attack : Attack) : Prop :=
+  hasEnergyCost attack attacker.energy = true
+
+def legalAttackIndex (attacker : PokemonInPlay) (attacks : List Attack) (idx : Nat) : Prop :=
+  ∃ attack, listGet? attacks idx = some attack ∧ legalAttack attacker attack
+
+-- Find the best legal attack (index + attack)
+def bestAttackFrom (attacker : PokemonInPlay) (defender : PokemonInPlay) : List Attack → Option (Nat × Attack)
   | [] => none
-  | _ =>
-    let damages := attacks.map (fun atk => calculateDamage atk attackerType defender)
-    let maxDmg := damages.foldl max 0
-    damages.findIdx? (· == maxDmg)
+  | attack :: rest =>
+      let current : Option (Nat × Attack) :=
+        if hasEnergyCost attack attacker.energy then some (0, attack) else none
+      let tail := (bestAttackFrom attacker defender rest).map (fun (idx, atk) => (idx + 1, atk))
+      match current, tail with
+      | none, none => none
+      | some c, none => some c
+      | none, some b => some b
+      | some c, some b =>
+          if attackDamage attacker defender c.2 >= attackDamage attacker defender b.2 then some c else some b
+
+def bestAttack (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option (Nat × Attack) :=
+  bestAttackFrom attacker defender attacker.card.attacks
 
 -- ============================================================================
 -- SOUNDNESS PROOFS
 -- ============================================================================
 
--- The solver only returns legal attack indices
-theorem bestAttackIndex_sound (attacks : List Attack) (attackerType : EnergyType) (defender : Card) :
-    ∀ idx, bestAttackIndex attacks attackerType defender = some idx →
-    idx < attacks.length := by
-  intro idx hIdx
-  simp only [bestAttackIndex] at hIdx
-  cases attacks with
-  | nil => simp at hIdx
-  | cons a as =>
-    simp only at hIdx
-    have hLen : idx < ((a :: as).map (fun atk => calculateDamage atk attackerType defender)).length :=
-      (List.findIdx?_eq_some_iff_findIdx_eq.mp hIdx).1
-    simpa using hLen
+theorem listGet?_lt_length {α : Type} :
+    ∀ {xs : List α} {idx : Nat} {x : α}, listGet? xs idx = some x → idx < xs.length := by
+  intro xs idx x h
+  induction xs generalizing idx with
+  | nil =>
+    cases idx <;> simp [listGet?] at h
+  | cons head tail ih =>
+    cases idx with
+    | zero =>
+      simp [listGet?] at h
+      simp [List.length]
+    | succ idx =>
+      simp [listGet?] at h
+      have h' := ih h
+      simpa [List.length] using Nat.succ_lt_succ h'
+
+theorem bestAttackFrom_sound (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ attacks idx attack,
+      bestAttackFrom attacker defender attacks = some (idx, attack) →
+      listGet? attacks idx = some attack ∧ hasEnergyCost attack attacker.energy = true := by
+  intro attacks idx attack hChoice
+  induction attacks generalizing idx attack with
+  | nil =>
+    simp [bestAttackFrom] at hChoice
+  | cons head tail ih =>
+    by_cases hCost : hasEnergyCost head attacker.energy
+    · cases hTail : bestAttackFrom attacker defender tail with
+      | none =>
+        simp [bestAttackFrom, hCost, hTail] at hChoice
+        rcases hChoice with ⟨rfl, rfl⟩
+        simp [listGet?, hCost]
+      | some tailChoice =>
+        by_cases hCmp :
+          attackDamage attacker defender head >=
+            attackDamage attacker defender tailChoice.2
+        · simp [bestAttackFrom, hCost, hTail, hCmp] at hChoice
+          rcases hChoice with ⟨rfl, rfl⟩
+          simp [listGet?, hCost]
+        · simp [bestAttackFrom, hCost, hTail, hCmp] at hChoice
+          rcases hChoice with ⟨rfl, rfl⟩
+          have hSound := ih _ _ hTail
+          rcases hSound with ⟨hGet, hLegal⟩
+          exact ⟨by simpa [listGet?] using hGet, hLegal⟩
+    · cases hTail : bestAttackFrom attacker defender tail with
+      | none =>
+        simp [bestAttackFrom, hCost, hTail] at hChoice
+      | some tailChoice =>
+        simp [bestAttackFrom, hCost, hTail] at hChoice
+        rcases hChoice with ⟨rfl, rfl⟩
+        have hSound := ih _ _ hTail
+        rcases hSound with ⟨hGet, hLegal⟩
+        exact ⟨by simpa [listGet?] using hGet, hLegal⟩
+
+theorem bestAttack_sound (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ idx attack,
+      bestAttack attacker defender = some (idx, attack) →
+      idx < attacker.card.attacks.length ∧ hasEnergyCost attack attacker.energy = true := by
+  intro idx attack hChoice
+  have hSound :=
+    bestAttackFrom_sound attacker defender attacker.card.attacks idx attack (by
+      simpa [bestAttack] using hChoice)
+  exact ⟨listGet?_lt_length hSound.1, hSound.2⟩
+
+-- ============================================================================
+-- OPTIMALITY PROOFS
+-- ============================================================================
+
+theorem bestAttackFrom_none_no_legal (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ attacks idx attack,
+      bestAttackFrom attacker defender attacks = none →
+      listGet? attacks idx = some attack →
+      hasEnergyCost attack attacker.energy = true →
+      False := by
+  intro attacks idx attack hNone hGet hLegal
+  induction attacks generalizing idx attack with
+  | nil =>
+    simp [listGet?] at hGet
+  | cons head tail ih =>
+    by_cases hCost : hasEnergyCost head attacker.energy
+    · cases hTail : bestAttackFrom attacker defender tail with
+      | none =>
+        simp [bestAttackFrom, hCost, hTail] at hNone
+      | some tailChoice =>
+        by_cases hCmp :
+          attackDamage attacker defender head >=
+            attackDamage attacker defender tailChoice.2
+        · simpa [bestAttackFrom, hCost, hTail, hCmp] using hNone
+        · simpa [bestAttackFrom, hCost, hTail, hCmp] using hNone
+    · cases hTail : bestAttackFrom attacker defender tail with
+      | none =>
+        cases idx with
+        | zero =>
+          simp [listGet?] at hGet
+          cases hGet
+          simp [hCost] at hLegal
+        | succ idx =>
+          have hGetTail : listGet? tail idx = some attack := by
+            simpa [listGet?] using hGet
+          exact ih _ _ hTail hGetTail hLegal
+      | some tailChoice =>
+        simp [bestAttackFrom, hCost, hTail] at hNone
+
+theorem bestAttackFrom_optimal (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ attacks idx attack,
+      bestAttackFrom attacker defender attacks = some (idx, attack) →
+      ∀ j attack',
+        listGet? attacks j = some attack' →
+        hasEnergyCost attack' attacker.energy = true →
+        attackDamage attacker defender attack' ≤ attackDamage attacker defender attack := by
+  intro attacks idx attack hChoice
+  induction attacks generalizing idx attack with
+  | nil =>
+    simp [bestAttackFrom] at hChoice
+  | cons head tail ih =>
+    intro j attack' hGet hLegal
+    by_cases hCost : hasEnergyCost head attacker.energy
+    · cases hTail : bestAttackFrom attacker defender tail with
+      | none =>
+        simp [bestAttackFrom, hCost, hTail] at hChoice
+        rcases hChoice with ⟨rfl, rfl⟩
+        cases j with
+        | zero =>
+          simp [listGet?] at hGet
+          cases hGet
+          exact Nat.le_refl _
+        | succ j =>
+          have hGetTail : listGet? tail j = some attack' := by
+            simpa [listGet?] using hGet
+          cases (bestAttackFrom_none_no_legal attacker defender tail j attack' hTail hGetTail hLegal)
+      | some tailChoice =>
+        by_cases hCmp :
+          attackDamage attacker defender head >=
+            attackDamage attacker defender tailChoice.2
+        · simp [bestAttackFrom, hCost, hTail, hCmp] at hChoice
+          rcases hChoice with ⟨rfl, rfl⟩
+          cases j with
+          | zero =>
+            simp [listGet?] at hGet
+            cases hGet
+            exact Nat.le_refl _
+          | succ j =>
+            have hGetTail : listGet? tail j = some attack' := by
+              simpa [listGet?] using hGet
+            have hOptimal :=
+              ih (idx := tailChoice.1) (attack := tailChoice.2) hTail j attack' hGetTail hLegal
+            exact Nat.le_trans hOptimal (by simpa using hCmp)
+        · simp [bestAttackFrom, hCost, hTail, hCmp] at hChoice
+          rcases hChoice with ⟨rfl, rfl⟩
+          cases j with
+          | zero =>
+            simp [listGet?] at hGet
+            cases hGet
+            exact Nat.le_of_lt (Nat.lt_of_not_ge hCmp)
+          | succ j =>
+            have hGetTail : listGet? tail j = some attack' := by
+              simpa [listGet?] using hGet
+            have hOptimal :=
+              ih (idx := tailChoice.1) (attack := tailChoice.2) hTail j attack' hGetTail hLegal
+            simpa using hOptimal
+    · cases hTail : bestAttackFrom attacker defender tail with
+      | none =>
+        simp [bestAttackFrom, hCost, hTail] at hChoice
+      | some tailChoice =>
+        simp [bestAttackFrom, hCost, hTail] at hChoice
+        rcases hChoice with ⟨rfl, rfl⟩
+        cases j with
+        | zero =>
+          simp [listGet?] at hGet
+          cases hGet
+          simp [hCost] at hLegal
+        | succ j =>
+          have hGetTail : listGet? tail j = some attack' := by
+            simpa [listGet?] using hGet
+          have hOptimal :=
+            ih (idx := tailChoice.1) (attack := tailChoice.2) hTail j attack' hGetTail hLegal
+          simpa using hOptimal
+
+theorem bestAttack_optimal (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ idx attack,
+      bestAttack attacker defender = some (idx, attack) →
+      ∀ j attack',
+        listGet? attacker.card.attacks j = some attack' →
+        hasEnergyCost attack' attacker.energy = true →
+        attackDamage attacker defender attack' ≤ attackDamage attacker defender attack := by
+  intro idx attack hChoice j attack' hGet hLegal
+  have hChoice' :
+      bestAttackFrom attacker defender attacker.card.attacks = some (idx, attack) := by
+    simpa [bestAttack] using hChoice
+  exact bestAttackFrom_optimal attacker defender _ _ _ hChoice' _ _ hGet hLegal
 
 -- ============================================================================
 -- COMPLETENESS PROOFS
@@ -114,28 +309,27 @@ def isKnockout (damage : Nat) (defenderHP : Nat) (currentDamage : Nat) : Bool :=
   damage + currentDamage >= defenderHP
 
 -- Main solver function
-def solve (attacker : Card) (defender : PokemonInPlay) : Option SolverResult :=
-  match bestAttackIndex attacker.attacks attacker.energyType defender.card with
+def solve (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option SolverResult :=
+  match bestAttack attacker defender with
   | none => none
-  | some idx =>
-    match listGet? attacker.attacks idx with
-    | none => none
-    | some attack =>
-      let damage := calculateDamage attack attacker.energyType defender.card
-      some {
-        attackIndex := idx
-        expectedDamage := damage
-        isLethal := isKnockout damage defender.card.hp defender.damage
-      }
+  | some (idx, attack) =>
+    let damage := attackDamage attacker defender attack
+    some {
+      attackIndex := idx
+      expectedDamage := damage
+      isLethal := isKnockout damage defender.card.hp defender.damage
+    }
 
 -- ============================================================================
 -- EXAMPLE USAGE
 -- ============================================================================
 
-#eval solve sampleCharmander { card := samplePikachu, damage := 40, status := none, energy := [.lightning] }
+#eval solve { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
+  { card := samplePikachu, damage := 40, status := none, energy := [.lightning] }
 -- Should return: attackIndex 0, expectedDamage 30, isLethal true (60 - 40 = 20 remaining, 30 >= 20)
 
-#eval solve sampleSquirtle { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
+#eval solve { card := sampleSquirtle, damage := 0, status := none, energy := [.water] }
+  { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
 -- Should return: attackIndex 0, expectedDamage 40 (weakness), isLethal false
 
 end PokemonLean.Solver

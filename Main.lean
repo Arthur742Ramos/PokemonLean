@@ -13,10 +13,11 @@ def main : IO Unit := do
   IO.println "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   
   let pikachu : PokemonInPlay := { card := samplePikachu, damage := 40, status := none, energy := [.lightning] }
+  let charmander : PokemonInPlay := { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
   IO.println s!"Pikachu: {samplePikachu.hp} HP, {40} damage taken"
   IO.println s!"Charmander: {sampleCharmander.hp} HP, Ember attack (30 base)"
   
-  match solve sampleCharmander pikachu with
+  match solve charmander pikachu with
   | none => IO.println "No valid attack found"
   | some result =>
     IO.println ""
@@ -30,11 +31,11 @@ def main : IO Unit := do
   IO.println "Battle Simulation: Squirtle (💧) vs Charmander (🔥)"
   IO.println "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   
-  let charmander : PokemonInPlay := { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
+  let squirtle : PokemonInPlay := { card := sampleSquirtle, damage := 0, status := none, energy := [.water] }
   IO.println s!"Charmander: {sampleCharmander.hp} HP, weak to Water"
   IO.println s!"Squirtle: {sampleSquirtle.hp} HP, Water Gun (20 base)"
   
-  match solve sampleSquirtle charmander with
+  match solve squirtle charmander with
   | none => IO.println "No valid attack found"
   | some result =>
     IO.println ""
