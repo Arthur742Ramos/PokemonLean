@@ -39,11 +39,14 @@ inductive StepError
 def playTrainer (state : GameState) (card : Card) : Except StepError GameState :=
   let player := state.activePlayer
   let playerState := getPlayerState state player
-  match removeFirst card playerState.hand with
-  | none => .error .cardNotInHand
-  | some newHand =>
-    let updatedPlayerState := { playerState with hand := newHand, discard := card :: playerState.discard }
-    .ok (setPlayerState state player updatedPlayerState)
+  if card.isTrainer then
+    match removeFirst card playerState.hand with
+    | none => .error .cardNotInHand
+    | some newHand =>
+      let updatedPlayerState := { playerState with hand := newHand, discard := card :: playerState.discard }
+      .ok (setPlayerState state player updatedPlayerState)
+  else
+    .error .cardNotInHand
 
 -- Turn structure: at most one energy attachment, and the turn ends with attack or endTurn.
 -- Turn structure: at most one energy attachment and one supporter, items/tools unlimited.
@@ -586,36 +589,42 @@ def drawFromDeck (playerState : PlayerState) (n : Nat) : Option (List Card × Li
 def playTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Except StepError GameState :=
   let player := state.activePlayer
   let playerState := getPlayerState state player
-  match removeFirst card playerState.hand with
-  | none => .error .cardNotInHand
-  | some newHand =>
-    match drawFromDeck playerState drawCount with
-    | none => .error .emptyDeck
-    | some (drawn, rest) =>
-      let updatedPlayerState :=
-        { playerState with
-          deck := rest
-          hand := newHand ++ drawn
-          discard := card :: playerState.discard }
-      .ok (setPlayerState state player updatedPlayerState)
+  if card.isTrainer then
+    match removeFirst card playerState.hand with
+    | none => .error .cardNotInHand
+    | some newHand =>
+      match drawFromDeck playerState drawCount with
+      | none => .error .emptyDeck
+      | some (drawn, rest) =>
+        let updatedPlayerState :=
+          { playerState with
+            deck := rest
+            hand := newHand ++ drawn
+            discard := card :: playerState.discard }
+        .ok (setPlayerState state player updatedPlayerState)
+  else
+    .error .cardNotInHand
 
 def playTrainerHeal (state : GameState) (card : Card) (healAmount : Nat) : Except StepError GameState :=
   let player := state.activePlayer
   let playerState := getPlayerState state player
-  match removeFirst card playerState.hand with
-  | none => .error .cardNotInHand
-  | some newHand =>
-    match playerState.active with
-    | none => .error .noActivePokemon
-    | some active =>
-      let newDamage := Nat.sub active.damage healAmount
-      let updatedActive := { active with damage := newDamage }
-      let updatedPlayerState :=
-        { playerState with
-          hand := newHand
-          active := some updatedActive
-          discard := card :: playerState.discard }
-      .ok (setPlayerState state player updatedPlayerState)
+  if card.isTrainer then
+    match removeFirst card playerState.hand with
+    | none => .error .cardNotInHand
+    | some newHand =>
+      match playerState.active with
+      | none => .error .noActivePokemon
+      | some active =>
+        let newDamage := Nat.sub active.damage healAmount
+        let updatedActive := { active with damage := newDamage }
+        let updatedPlayerState :=
+          { playerState with
+            hand := newHand
+            active := some updatedActive
+            discard := card :: playerState.discard }
+        .ok (setPlayerState state player updatedPlayerState)
+  else
+    .error .cardNotInHand
 
 def canPlayTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Prop :=
   let playerState := activePlayerState state
