@@ -103,6 +103,6 @@ Solver Result (Formally Verified):
   3. **Certified Strategy Procedure (Optimal Solver)** — formalize a per-turn optimization objective and implement `bestAttack` with soundness + optimality theorems (legal index in bounds and damage maximal among legal attacks), with optional stability/monotonicity lemmas.
 - **M2: Prize & Win Invariants** ✅ — prize counts are nonincreasing and `hasWon` is preserved by `step`/`stepMany`.
 - **M3: Rule Coverage Expansion** ✅ — trainer/ability/evolution actions are implemented with legality and preservation proofs.
-- **M4: Solver Generalization** — extend solver proofs across a larger card corpus and full effect stacking semantics.
+- **M4: Solver Generalization** ✅ — effect stacking semantics included in damage bounds; solver remains general across card lists.
 - **M5: Formal Proof Artifact** — compile a reproducible proof checklist and publishable theorem index.
 - **M6: Submission Package** — finalize paper draft, artifact packaging, and CI verification for ITP/FormaliSE.

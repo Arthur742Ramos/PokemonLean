@@ -291,7 +291,7 @@ def minPossibleDamage (attack : Attack) : Nat :=
 
 -- Maximum possible damage from an attack (considering weakness)
 def maxPossibleDamage (attack : Attack) : Nat :=
-  (attack.baseDamage + damageBonus attack.effects + attackBonus attack.effects) * 2
+  (attack.baseDamage + attackBonus attack.effects) * 2
 
 -- ============================================================================
 -- SOLVER INTERFACE

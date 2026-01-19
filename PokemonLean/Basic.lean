@@ -195,14 +195,6 @@ theorem takePrize_hand_length_eq (attacker defender : PlayerState) :
   | nil => simp [takePrize, h]
   | cons prize rest => simp [takePrize, h]
 
-def damageBonus (effects : List AttackEffect) : Nat :=
-  effects.foldl
-    (fun acc effect =>
-      match effect with
-      | .addDamage amount => acc + amount
-      | _ => acc)
-    0
-
 def applyWeakness (damage : Nat) (attackerType : EnergyType) (weakness : Option Weakness) : Nat :=
   match weakness with
   | some w => if w.energyType == attackerType then damage * w.multiplier else damage
@@ -214,7 +206,7 @@ def applyResistance (damage : Nat) (attackerType : EnergyType) (resistance : Opt
   | none => damage
 
 def calculateDamage (attack : Attack) (attackerType : EnergyType) (defender : Card) : Nat :=
-  let base := attack.baseDamage + damageBonus attack.effects + attackBonus attack.effects
+  let base := attack.baseDamage + attackBonus attack.effects
   let afterWeakness := applyWeakness base attackerType defender.weakness
   let afterResistance := applyResistance afterWeakness attackerType defender.resistance
   afterResistance
