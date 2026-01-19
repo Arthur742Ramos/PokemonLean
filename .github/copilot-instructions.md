@@ -15,6 +15,7 @@ You are working on PokemonLean, a Lean 4 project that formalizes Pokemon TCG mec
 - Keep proofs small and local; avoid heavyweight tactics unless necessary.
 - Match the current style: `simp`/`simp [..]` proofs and explicit pattern matches.
 - Update examples in `Main.lean` when function signatures change.
+- Work autonomously end-to-end without stopping to announce next steps; only summarize when results are complete.
 
 ## Verification
 - Build with `lake build`.

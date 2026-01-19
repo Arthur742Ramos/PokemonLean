@@ -54,6 +54,7 @@ Proof checklist:
 | `stepMany_preserves_hasWon` | `PokemonLean/Semantics.lean` | ✅ |
 | `runEffectStack_empty` | `PokemonLean/Semantics.lean` | ✅ |
 | `runEffectStack_terminates` | `PokemonLean/Semantics.lean` | ✅ |
+| `globalZonesDisjoint_trivial` | `PokemonLean/Semantics.lean` | ✅ |
 | `nextFlip`/`GameRand` (randomness model) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playItem_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playSupporter_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |

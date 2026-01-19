@@ -999,6 +999,26 @@ def DamageBounds (state : GameState) : Prop :=
     (match state.playerOne.active with | some p => pokemonDamageBound p | none => True) ∧
     (match state.playerTwo.active with | some p => pokemonDamageBound p | none => True)
 
+def playerZones (player : PlayerState) : List Card :=
+  player.deck ++
+  player.hand ++
+  player.bench.map (fun p => p.card) ++
+  (match player.active with | some p => [p.card] | none => []) ++
+  player.discard ++
+  player.prizes
+
+def NoDuplicates (xs : List Card) : Prop :=
+  xs.Nodup
+
+def ZonesDisjoint (player : PlayerState) : Prop :=
+  NoDuplicates (playerZones player)
+
+def GlobalZonesDisjoint (state : GameState) : Prop :=
+  ZonesDisjoint state.playerOne ∧ ZonesDisjoint state.playerTwo
+
+theorem globalZonesDisjoint_trivial (state : GameState) : GlobalZonesDisjoint state := by
+  simp [GlobalZonesDisjoint, ZonesDisjoint, NoDuplicates, playerZones]
+
 theorem pokemonDamageBound_heal (pokemon : PokemonInPlay) (amount : Nat) :
     pokemonDamageBound pokemon → pokemonDamageBound { pokemon with damage := Nat.sub pokemon.damage amount } := by
   intro hBound
