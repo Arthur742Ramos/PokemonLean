@@ -31,6 +31,7 @@ inductive StepError
   | noDefenderPokemon
   | invalidAttackIndex
   | insufficientEnergy
+  | emptyEffectStack
   | noBenchPokemon
   | emptyDeck
   deriving Repr, BEq, DecidableEq
@@ -92,6 +93,45 @@ def TurnActions (actions : List Action) : Prop :=
 
 def stepMany (state : GameState) (actions : List Action) : Except StepError GameState :=
   actions.foldlM (fun st action => step st action) state
+
+def applyEffect (state : GameState) (effect : Effect) : GameState :=
+  match effect with
+  | .applyStatus condition =>
+    let player := state.activePlayer
+    let playerState := getPlayerState state player
+    match playerState.active with
+    | none => state
+    | some active =>
+      let updatedActive := { active with status := some condition }
+      setPlayerState state player { playerState with active := some updatedActive }
+  | .heal amount =>
+    let player := state.activePlayer
+    let playerState := getPlayerState state player
+    match playerState.active with
+    | none => state
+    | some active =>
+      let updatedActive := { active with damage := Nat.sub active.damage amount }
+      setPlayerState state player { playerState with active := some updatedActive }
+  | .addDamage amount =>
+    let player := otherPlayer state.activePlayer
+    let playerState := getPlayerState state player
+    match playerState.active with
+    | none => state
+    | some active =>
+      let updatedActive := applyDamage active amount
+      setPlayerState state player { playerState with active := some updatedActive }
+
+def runEffectStack (state : GameState) : EffectStack → GameState
+  | [] => state
+  | effect :: rest => runEffectStack (applyEffect state effect) rest
+
+theorem runEffectStack_progress (state : GameState) (stack : EffectStack) :
+    ∃ state', state' = runEffectStack state stack := by
+  exact ⟨runEffectStack state stack, rfl⟩
+
+theorem runEffectStack_empty (state : GameState) :
+    runEffectStack state ([] : EffectStack) = state := by
+  rfl
 
 def attachEnergyCount : List Action → Nat
   | [] => 0
@@ -930,6 +970,22 @@ def ValidState (state : GameState) : Prop :=
 
 def CardConservation (start state : GameState) : Prop :=
   totalCardCount state = totalCardCount start
+
+def pokemonDamageBound (pokemon : PokemonInPlay) : Prop :=
+  pokemon.damage ≤ pokemon.card.hp
+
+def DamageBounds (state : GameState) : Prop :=
+  (∀ p ∈ state.playerOne.bench, pokemonDamageBound p) ∧
+    (∀ p ∈ state.playerTwo.bench, pokemonDamageBound p) ∧
+    (match state.playerOne.active with | some p => pokemonDamageBound p | none => True) ∧
+    (match state.playerTwo.active with | some p => pokemonDamageBound p | none => True)
+
+theorem pokemonDamageBound_heal (pokemon : PokemonInPlay) (amount : Nat) :
+    pokemonDamageBound pokemon → pokemonDamageBound { pokemon with damage := Nat.sub pokemon.damage amount } := by
+  intro hBound
+  exact Nat.le_trans (Nat.sub_le _ _) hBound
+
+
 
 def initialPlayer : PlayerState :=
   standardStartingPlayer [] [] (List.replicate standardPrizeCount samplePikachu)

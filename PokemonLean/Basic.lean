@@ -80,6 +80,14 @@ structure GameState where
   activePlayer : PlayerId
   deriving Repr, BEq, DecidableEq
 
+inductive Effect
+  | applyStatus (condition : StatusCondition)
+  | heal (amount : Nat)
+  | addDamage (amount : Nat)
+  deriving Repr, BEq, DecidableEq
+
+abbrev EffectStack := List Effect
+
 inductive Action
   | endTurn
   | playCard (card : Card)

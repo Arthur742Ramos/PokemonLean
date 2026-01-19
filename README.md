@@ -52,6 +52,7 @@ Proof checklist:
 | `step_prizes_nonincreasing` | `PokemonLean/Semantics.lean` | ✅ |
 | `step_preserves_hasWon` | `PokemonLean/Semantics.lean` | ✅ |
 | `stepMany_preserves_hasWon` | `PokemonLean/Semantics.lean` | ✅ |
+| `runEffectStack_empty` | `PokemonLean/Semantics.lean` | ✅ |
 | `no_turn_one_win` | `PokemonLean/Basic.lean` | ✅ |
 | `bestAttack_sound` | `PokemonLean/Solver.lean` | ✅ |
 | `maxDamage_complete` | `PokemonLean/Solver.lean` | ✅ |
