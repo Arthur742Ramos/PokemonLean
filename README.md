@@ -37,6 +37,10 @@ Proven theorems:
 - `foldl_add_shift`: Foldl addition commutes with initialization
 - `bench_card_count`: Bench card count equals list length
 - `playCard_preserves_player_cards`: **PROVEN** - Card conservation invariant
+- `turnActions_attachEnergyCount_le_one`: At most one energy attachment per turn
+- `turnActions_supporterCount_le_one`: At most one supporter per turn
+- `turnActions_ends_turn`: Every turn ends with attack or endTurn
+- `stepMany_activePlayer_turn`: Turn action sequences flip the active player
 
 Additional proven theorems:
 - `no_turn_one_win`: No T1 win from standard starting state
@@ -88,6 +92,7 @@ Solver Result (Formally Verified):
   1. **Action Language + Small-step Semantics** — define `Action` variants (PlayPokemonToBench, AttachEnergy, Attack i, Retreat, EndTurn, optional DrawCard) plus `step : GameState → Action → Except Error GameState` and `Legal : GameState → Action → Prop/Decidable`. Target proofs: determinism of execution, progress/preservation, and no-crash for legal actions.
   2. **Reachability + Global Invariants (Meta-Safety)** — define `Reachable`, then prove global invariants for all reachable states: state validity preserved, zone conservation, boundedness (bench ≤ 5, prizes ∈ [0,6], HP bounds), and turn discipline.
   3. **Certified Strategy Procedure (Optimal Solver)** — formalize a per-turn optimization objective and implement `bestAttack` with soundness + optimality theorems (legal index in bounds and damage maximal among legal attacks), with optional stability/monotonicity lemmas.
+- **M2: Trainer Rule Coverage** — add Items/Supporters/Tools with per-turn limits (items unlimited, supporter once).
 - **M2: Prize & Win Invariants** — strengthen prize-taking lemmas, prove win-condition soundness across multi-turn play.
 - **M3: Rule Coverage Expansion** — add trainer/ability/evolution rules with invariants for legal board states.
 - **M4: Solver Generalization** — extend solver proofs across a larger card corpus and full effect stacking semantics.
