@@ -133,6 +133,21 @@ theorem runEffectStack_empty (state : GameState) :
     runEffectStack state ([] : EffectStack) = state := by
   rfl
 
+abbrev CoinFlipStream := List Bool
+
+abbrev GameRand := StateM CoinFlipStream
+
+def nextFlip : GameRand Bool := do
+  let stream ← get
+  match stream with
+  | [] => return false
+  | head :: tail =>
+    set tail
+    return head
+
+def runWithFlips {α : Type} (flips : CoinFlipStream) (action : GameRand α) : α :=
+  (action.run flips).1
+
 def attachEnergyCount : List Action → Nat
   | [] => 0
   | .attachEnergy _ :: rest => attachEnergyCount rest + 1
