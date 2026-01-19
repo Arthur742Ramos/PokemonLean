@@ -569,7 +569,7 @@ def canPlayPokemonToBench (state : GameState) (card : Card) : Prop :=
 
 def canPlayTrainer (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state
-  ∃ newHand, removeFirst card playerState.hand = some newHand
+  ∃ newHand, removeFirst card playerState.hand = some newHand ∧ card.isTrainer
 
 def drawFromDeck (playerState : PlayerState) (n : Nat) : Option (List Card × List Card) :=
   if h : n ≤ playerState.deck.length then
@@ -616,12 +616,12 @@ def playTrainerHeal (state : GameState) (card : Card) (healAmount : Nat) : Excep
 def canPlayTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Prop :=
   let playerState := activePlayerState state
   ∃ newHand, removeFirst card playerState.hand = some newHand ∧
-    drawCount ≤ playerState.deck.length
+    drawCount ≤ playerState.deck.length ∧ card.isTrainer
 
 def canPlayTrainerHeal (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state
   ∃ newHand active, removeFirst card playerState.hand = some newHand ∧
-    playerState.active = some active
+    playerState.active = some active ∧ card.isTrainer
 
 def canEvolveActive (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state

@@ -53,6 +53,9 @@ structure Card where
   resistance : Option Resistance := none
   deriving Repr, BEq, DecidableEq
 
+def isTrainer (card : Card) : Bool :=
+  card.attacks.isEmpty
+
 structure PokemonInPlay where
   card : Card
   damage : Nat
