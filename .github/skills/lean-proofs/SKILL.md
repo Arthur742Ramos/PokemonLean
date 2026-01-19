@@ -1,6 +1,6 @@
 ---
-name: Lean Proofs
-description: Add or refactor Lean theorems while keeping proofs small and robust.
+name: lean-proofs
+description: Add or refactor Lean theorems while keeping proofs small and robust, favoring local lemmas and lightweight tactics.
 ---
 
 Focus on local lemmas and avoid heavyweight automation.

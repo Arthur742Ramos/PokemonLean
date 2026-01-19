@@ -1,6 +1,6 @@
 ---
-name: Certified Solver
-description: Implement or extend the Lean solver with soundness and optimality proofs.
+name: certified-solver
+description: Implement or extend the Lean solver with soundness and optimality proofs, focusing on legal attacks and optimal damage selection.
 ---
 
 You are working in `PokemonLean/Solver.lean`.
