@@ -321,6 +321,46 @@ def solve (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option SolverR
       isLethal := isKnockout damage defender.card.hp defender.damage
     }
 
+theorem solve_sound (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ result, solve attacker defender = some result →
+      result.attackIndex < attacker.card.attacks.length ∧
+        ∃ attack,
+          listGet? attacker.card.attacks result.attackIndex = some attack ∧
+            hasEnergyCost attack attacker.energy = true ∧
+            result.expectedDamage = attackDamage attacker defender attack := by
+  intro result hSolve
+  cases hBest : bestAttack attacker defender with
+  | none =>
+    simp [solve, hBest] at hSolve
+  | some choice =>
+    cases choice with
+    | mk idx attack =>
+      simp [solve, hBest] at hSolve
+      cases hSolve
+      have hSound := bestAttack_sound attacker defender idx attack hBest
+      have hGet :=
+        (bestAttackFrom_sound attacker defender attacker.card.attacks idx attack (by
+          simpa [bestAttack] using hBest)).1
+      exact ⟨hSound.1, ⟨attack, hGet, hSound.2, rfl⟩⟩
+
+theorem solve_optimal (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ result, solve attacker defender = some result →
+      ∀ j attack',
+        listGet? attacker.card.attacks j = some attack' →
+        hasEnergyCost attack' attacker.energy = true →
+        attackDamage attacker defender attack' ≤ result.expectedDamage := by
+  intro result hSolve j attack' hGet hLegal
+  cases hBest : bestAttack attacker defender with
+  | none =>
+    simp [solve, hBest] at hSolve
+  | some choice =>
+    cases choice with
+    | mk idx attack =>
+      simp [solve, hBest] at hSolve
+      cases hSolve
+      have hOptimal := bestAttack_optimal attacker defender idx attack hBest j attack' hGet hLegal
+      simpa using hOptimal
+
 def demoDefender : PokemonInPlay :=
   { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
 

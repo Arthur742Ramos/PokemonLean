@@ -54,14 +54,25 @@ Proof checklist:
 | `stepMany_preserves_hasWon` | `PokemonLean/Semantics.lean` | ✅ |
 | `runEffectStack_empty` | `PokemonLean/Semantics.lean` | ✅ |
 | `runEffectStack_terminates` | `PokemonLean/Semantics.lean` | ✅ |
+| `runEffectStack_append` | `PokemonLean/Semantics.lean` | ✅ |
+| `runEffectStack_deterministic` | `PokemonLean/Semantics.lean` | ✅ |
 | `globalZonesDisjoint_trivial` | `PokemonLean/Semantics.lean` | ✅ |
+| `reachable_card_conservation` | `PokemonLean/Semantics.lean` | ✅ |
+| `reachable_valid_initial` | `PokemonLean/Semantics.lean` | ✅ |
+| `reachable_zones_disjoint` | `PokemonLean/Semantics.lean` | ✅ |
 | `nextFlip`/`GameRand` (randomness model) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playItem_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playSupporter_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playTool_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
+| `step_error_iff_not_legal` | `PokemonLean/Semantics.lean` | ✅ |
+| `step_total_for_legal` | `PokemonLean/Semantics.lean` | ✅ |
 | `no_turn_one_win` | `PokemonLean/Basic.lean` | ✅ |
 | `bestAttack_sound` | `PokemonLean/Solver.lean` | ✅ |
+| `bestAttack_optimal` | `PokemonLean/Solver.lean` | ✅ |
+| `solve_sound` | `PokemonLean/Solver.lean` | ✅ |
+| `solve_optimal` | `PokemonLean/Solver.lean` | ✅ |
 | `maxDamage_complete` | `PokemonLean/Solver.lean` | ✅ |
+| `hasEnergyCost_iff_consume` | `PokemonLean/Basic.lean` | ✅ |
 
 Proven theorems:
 - `damage_nonneg`: Damage is always ≥ 0
@@ -84,11 +95,22 @@ Proven theorems:
 - `step_prizes_nonincreasing`: Prize counts never increase across steps
 - `step_preserves_hasWon`: Win status is preserved by steps
 - `stepMany_preserves_hasWon`: Win status is preserved across turn sequences
+- `runEffectStack_append`: Effect resolution is compositional over stack concatenation
+- `runEffectStack_deterministic`: Effect resolution is deterministic
+- `reachable_card_conservation`: Card conservation holds for all reachable states
+- `reachable_valid_initial`: Validity invariants hold for all reachable states
+- `reachable_zones_disjoint`: Zone disjointness holds for all reachable states
+- `step_error_iff_not_legal`: Steps error iff action is illegal
+- `step_total_for_legal`: Legal actions always step successfully
 
 Additional proven theorems:
 - `no_turn_one_win`: No T1 win from standard starting state
 - `bestAttack_sound`: Solver returns valid indices
+- `bestAttack_optimal`: Solver returns damage-maximal legal attack
+- `solve_sound`: Solver result is legal and matches computed damage
+- `solve_optimal`: Solver maximizes damage among legal attacks
 - `maxDamage_complete`: Solver finds true maximum
+- `hasEnergyCost_iff_consume`: Energy cost is satisfiable iff it can be consumed from energy list
 
 ### Phase 4: Scaling, Tooling & Integration ✅
 - **Verified Solver**: `solve` function finds optimal attack with damage prediction

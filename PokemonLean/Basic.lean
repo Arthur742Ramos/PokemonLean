@@ -150,6 +150,62 @@ def energyCostSatisfied : List EnergyType -> List EnergyType -> Bool
     | some remaining => energyCostSatisfied rest remaining
     | none => false
 
+def consumeEnergyCost : List EnergyType -> List EnergyType -> Option (List EnergyType)
+  | [], energy => some energy
+  | required :: rest, energy =>
+    match removeFirstEnergy required energy with
+    | some remaining => consumeEnergyCost rest remaining
+    | none => none
+
+theorem consumeEnergyCost_sound :
+    ∀ required energy remaining,
+      consumeEnergyCost required energy = some remaining →
+      energyCostSatisfied required energy = true := by
+  intro required
+  induction required with
+  | nil =>
+    intro energy remaining h
+    simp [consumeEnergyCost] at h
+    simp [energyCostSatisfied]
+  | cons req rest ih =>
+    intro energy remaining h
+    cases hRemove : removeFirstEnergy req energy with
+    | none =>
+      simp [consumeEnergyCost, hRemove] at h
+    | some remaining' =>
+      simp [consumeEnergyCost, hRemove] at h
+      have hRest := ih remaining' remaining h
+      simp [energyCostSatisfied, hRemove, hRest]
+
+theorem energyCostSatisfied_complete :
+    ∀ required energy,
+      energyCostSatisfied required energy = true →
+      ∃ remaining, consumeEnergyCost required energy = some remaining := by
+  intro required
+  induction required with
+  | nil =>
+    intro energy h
+    exact ⟨energy, by simp [consumeEnergyCost]⟩
+  | cons req rest ih =>
+    intro energy h
+    cases hRemove : removeFirstEnergy req energy with
+    | none =>
+      simp [energyCostSatisfied, hRemove] at h
+    | some remaining' =>
+      have hRest : energyCostSatisfied rest remaining' = true := by
+        simpa [energyCostSatisfied, hRemove] using h
+      rcases ih remaining' hRest with ⟨remaining, hConsume⟩
+      exact ⟨remaining, by simp [consumeEnergyCost, hRemove, hConsume]⟩
+
+theorem energyCostSatisfied_iff_consume (required : List EnergyType) (energy : List EnergyType) :
+    energyCostSatisfied required energy = true ↔
+      ∃ remaining, consumeEnergyCost required energy = some remaining := by
+  constructor
+  · exact energyCostSatisfied_complete required energy
+  · intro h
+    rcases h with ⟨remaining, hConsume⟩
+    exact consumeEnergyCost_sound required energy remaining hConsume
+
 def listGet? {α : Type} (xs : List α) (index : Nat) : Option α :=
   match xs, index with
   | [], _ => none
@@ -224,6 +280,11 @@ def calculateDamage (attack : Attack) (attackerType : EnergyType) (defender : Ca
 
 def hasEnergyCost (attack : Attack) (energy : List EnergyType) : Bool :=
   energyCostSatisfied attack.energyCost energy
+
+theorem hasEnergyCost_iff_consume (attack : Attack) (energy : List EnergyType) :
+    hasEnergyCost attack energy = true ↔
+      ∃ remaining, consumeEnergyCost attack.energyCost energy = some remaining := by
+  simpa [hasEnergyCost] using energyCostSatisfied_iff_consume attack.energyCost energy
 
 def applyAction (state : GameState) (action : Action) : Option GameState :=
   match action with

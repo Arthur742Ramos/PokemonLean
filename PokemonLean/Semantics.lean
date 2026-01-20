@@ -140,6 +140,18 @@ theorem runEffectStack_terminates (state : GameState) (stack : EffectStack) :
     ∃ state', runEffectStack state stack = state' := by
   exact ⟨runEffectStack state stack, rfl⟩
 
+theorem runEffectStack_deterministic (state : GameState) (stack : EffectStack) (s1 s2 : GameState)
+    (h1 : runEffectStack state stack = s1) (h2 : runEffectStack state stack = s2) : s1 = s2 := by
+  simpa [h1] using h2
+
+theorem runEffectStack_append (state : GameState) (stack₁ stack₂ : EffectStack) :
+    runEffectStack state (stack₁ ++ stack₂) =
+      runEffectStack (runEffectStack state stack₁) stack₂ := by
+  induction stack₁ generalizing state with
+  | nil => simp [runEffectStack]
+  | cons effect rest ih =>
+    simp [runEffectStack, ih]
+
 abbrev CoinFlipStream := List Bool
 
 abbrev GameRand := StateM CoinFlipStream
@@ -1819,6 +1831,45 @@ theorem stepMany_preserves_hasWon (state state' : GameState) (actions : List Act
       have hWon' := step_preserves_hasWon state action next player hStep hWon
       exact ih hRun hWon'
 
+theorem step_total_for_legal (state : GameState) (action : Action) :
+    Legal state action → ∃ nextState, step state action = .ok nextState := by
+  intro hLegal
+  exact hLegal
+
+theorem step_error_implies_not_legal (state : GameState) (action : Action) (err : StepError) :
+    step state action = .error err → ¬ Legal state action := by
+  intro hError hLegal
+  rcases hLegal with ⟨nextState, hStep⟩
+  simp [hError] at hStep
+  exact hStep
+
+theorem not_legal_implies_error (state : GameState) (action : Action) :
+    ¬ Legal state action → ∃ err, step state action = .error err := by
+  intro hNotLegal
+  cases hStep : step state action with
+  | ok next =>
+    have hLegal : Legal state action := ⟨next, hStep⟩
+    exact (hNotLegal hLegal).elim
+  | error err =>
+    exact ⟨err, hStep⟩
+
+theorem step_error_iff_not_legal (state : GameState) (action : Action) :
+    (∃ err, step state action = .error err) ↔ ¬ Legal state action := by
+  constructor
+  · intro h
+    rcases h with ⟨err, hErr⟩
+    exact step_error_implies_not_legal state action err hErr
+  · exact not_legal_implies_error state action
+
+theorem step_progress_or_error (state : GameState) (action : Action) :
+    (∃ nextState, step state action = .ok nextState) ∨
+      (∃ err, step state action = .error err) := by
+  cases hStep : step state action with
+  | ok next =>
+    exact Or.inl ⟨next, hStep⟩
+  | error err =>
+    exact Or.inr ⟨err, hStep⟩
+
 -- Reachability (minimal, for now)
 inductive ReachableFrom (start : GameState) : GameState → Prop
   | initial : ReachableFrom start start
@@ -1872,6 +1923,10 @@ theorem reachable_card_conservation (state : GameState) (h : Reachable state) :
     totalCardCount state = totalCardCount initialState := by
   have hCons := reachable_preserves_total_cards initialState state h
   simpa [CardConservation] using hCons
+
+theorem reachable_zones_disjoint (state : GameState) (h : Reachable state) :
+    GlobalZonesDisjoint state := by
+  simpa using (globalZonesDisjoint_trivial state)
 
 end PokemonLean.Semantics
 
