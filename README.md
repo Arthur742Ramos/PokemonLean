@@ -61,6 +61,7 @@ Proof checklist:
 | `reachable_valid_initial` | `PokemonLean/Semantics.lean` | ✅ |
 | `reachable_zones_disjoint` | `PokemonLean/Semantics.lean` | ✅ |
 | `nextFlip`/`GameRand` (randomness model) | `PokemonLean/Semantics.lean` | ✅ |
+| `nextFlip_consumes` | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playItem_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playSupporter_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_playTool_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
@@ -73,6 +74,11 @@ Proof checklist:
 | `solve_optimal` | `PokemonLean/Solver.lean` | ✅ |
 | `maxDamage_complete` | `PokemonLean/Solver.lean` | ✅ |
 | `hasEnergyCost_iff_consume` | `PokemonLean/Basic.lean` | ✅ |
+| `canDrawCard_iff_deckNonempty` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_retreat_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `corpusWellFormed_trivial` | `PokemonLean/Corpus.lean` | ✅ |
+| `takePrize_prizes_length_succ` | `PokemonLean/Basic.lean` | ✅ |
+| `takePrize_hand_length_succ` | `PokemonLean/Basic.lean` | ✅ |
 
 Proven theorems:
 - `damage_nonneg`: Damage is always ≥ 0
@@ -102,6 +108,11 @@ Proven theorems:
 - `reachable_zones_disjoint`: Zone disjointness holds for all reachable states
 - `step_error_iff_not_legal`: Steps error iff action is illegal
 - `step_total_for_legal`: Legal actions always step successfully
+- `canDrawCard_iff_deckNonempty`: Draw legality matches non-empty deck
+- `legal_retreat_iff`: Retreat legality includes energy cost payment
+- `corpusWellFormed_trivial`: Card corpus entries are well-formed
+- `takePrize_prizes_length_succ`: Taking a prize reduces prizes by exactly 1 when nonempty
+- `takePrize_hand_length_succ`: Taking a prize increases hand by exactly 1 when nonempty
 
 Additional proven theorems:
 - `no_turn_one_win`: No T1 win from standard starting state

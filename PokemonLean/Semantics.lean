@@ -167,6 +167,14 @@ def nextFlip : GameRand Bool := do
 def runWithFlips {α : Type} (flips : CoinFlipStream) (action : GameRand α) : α :=
   (action.run flips).1
 
+theorem nextFlip_consumes (flips : CoinFlipStream) :
+    (nextFlip.run flips).2 = flips.drop 1 := by
+  cases flips with
+  | nil =>
+    simp [nextFlip, GameRand, StateM.run, List.drop]
+  | cons head tail =>
+    simp [nextFlip, GameRand, StateM.run, List.drop]
+
 def attachEnergyCount : List Action → Nat
   | [] => 0
   | .attachEnergy _ :: rest => attachEnergyCount rest + 1
@@ -563,9 +571,12 @@ def step (state : GameState) (action : Action) : Except StepError GameState :=
       match playerState.bench with
       | [] => .error .noBenchPokemon
       | newActive :: rest =>
-        let updatedBench := rest ++ [active]
-        let updatedPlayerState := { playerState with active := some newActive, bench := updatedBench }
-        .ok (setPlayerState state player updatedPlayerState)
+        match payRetreatCost active with
+        | none => .error .insufficientEnergy
+        | some paidActive =>
+          let updatedBench := rest ++ [paidActive]
+          let updatedPlayerState := { playerState with active := some newActive, bench := updatedBench }
+          .ok (setPlayerState state player updatedPlayerState)
   | .drawCard =>
     let player := state.activePlayer
     let playerState := getPlayerState state player
@@ -667,12 +678,24 @@ def canAttachEnergy (state : GameState) : Prop :=
 
 def canRetreat (state : GameState) : Prop :=
   let playerState := activePlayerState state
-  ∃ active newActive rest,
-    playerState.active = some active ∧ playerState.bench = newActive :: rest
+  ∃ active newActive rest paid,
+    playerState.active = some active ∧
+      playerState.bench = newActive :: rest ∧
+      payRetreatCost active = some paid
 
 def canDrawCard (state : GameState) : Prop :=
   let playerState := activePlayerState state
   ∃ top rest, playerState.deck = top :: rest
+
+def deckNonempty (state : GameState) : Prop :=
+  let playerState := activePlayerState state
+  playerState.deck.length > 0
+
+theorem canDrawCard_iff_deckNonempty (state : GameState) :
+    canDrawCard state ↔ deckNonempty state := by
+  cases hPlayer : state.activePlayer <;>
+    cases hDeck : (getPlayerState state state.activePlayer).deck <;>
+    simp [canDrawCard, deckNonempty, activePlayerState, getPlayerState, hPlayer, hDeck]
 
 def canAttack (state : GameState) (attackIndex : Nat) : Prop :=
   let attackerPlayer := state.activePlayer
@@ -770,10 +793,25 @@ theorem legal_attachEnergy_iff (state : GameState) (energyType : EnergyType) :
 
 theorem legal_retreat_iff (state : GameState) :
     Legal state .retreat ↔ canRetreat state := by
-  cases hPlayer : state.activePlayer <;>
-    cases hActive : (getPlayerState state state.activePlayer).active <;>
-    cases hBench : (getPlayerState state state.activePlayer).bench <;>
-    simp [Legal, canRetreat, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hActive, hBench]
+  cases hPlayer : state.activePlayer with
+  | playerOne =>
+    cases hActive : state.playerOne.active with
+    | none =>
+      cases hBench : state.playerOne.bench <;>
+      simp [Legal, canRetreat, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hActive, hBench]
+    | some active =>
+      cases hBench : state.playerOne.bench <;>
+      cases hPay : payRetreatCost active <;>
+      simp [Legal, canRetreat, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hActive, hBench, hPay]
+  | playerTwo =>
+    cases hActive : state.playerTwo.active with
+    | none =>
+      cases hBench : state.playerTwo.bench <;>
+      simp [Legal, canRetreat, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hActive, hBench]
+    | some active =>
+      cases hBench : state.playerTwo.bench <;>
+      cases hPay : payRetreatCost active <;>
+      simp [Legal, canRetreat, activePlayerState, step, hPlayer, getPlayerState, setPlayerState, hActive, hBench, hPay]
 
 theorem legal_drawCard_iff (state : GameState) :
     Legal state .drawCard ↔ canDrawCard state := by
@@ -948,13 +986,17 @@ theorem step_activePlayer_retreat (state : GameState) (state' : GameState)
     state'.activePlayer = state.activePlayer := by
   cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
   · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
-    cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
-    cases hStep
-    simp [setPlayerState]
+    · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+    · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+      cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+      cases hStep
+      simp [setPlayerState]
   · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
-    cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
-    cases hStep
-    simp [setPlayerState]
+    · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+    · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+      cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+      cases hStep
+      simp [setPlayerState]
 
 theorem step_activePlayer_drawCard (state : GameState) (state' : GameState)
     (hStep : step state .drawCard = .ok state') :
@@ -1085,8 +1127,10 @@ theorem attachEnergy_preserves_player_cards (playerState : PlayerState) (active 
 theorem retreat_preserves_player_cards (playerState : PlayerState) (active newActive : PokemonInPlay)
     (rest : List PokemonInPlay) (hActive : playerState.active = some active)
     (hBench : playerState.bench = newActive :: rest) :
-    let newState := { playerState with active := some newActive, bench := rest ++ [active] }
-    playerCardCount newState = playerCardCount playerState := by
+    ∀ paid, payRetreatCost active = some paid →
+      let newState := { playerState with active := some newActive, bench := rest ++ [paid] }
+      playerCardCount newState = playerCardCount playerState := by
+  intro paid hPay
   simp [playerCardCount, bench_card_count, hActive, hBench, List.length_append, List.length_cons, List.length_nil,
     Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] <;> omega
 
@@ -1397,17 +1441,21 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
   | retreat =>
     cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
-      cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
-      cases hStep
-      have hCards :=
-        retreat_preserves_player_cards state.playerOne _ _ _ hActive hBench
-      simpa using (totalCardCount_setPlayerState state .playerOne _ (by simpa [getPlayerState] using hCards))
+      · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+      · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+        cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+        cases hStep
+        have hCards :=
+          retreat_preserves_player_cards state.playerOne _ _ _ hActive hBench _ hPay
+        simpa using (totalCardCount_setPlayerState state .playerOne _ (by simpa [getPlayerState] using hCards))
     · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
-      cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
-      cases hStep
-      have hCards :=
-        retreat_preserves_player_cards state.playerTwo _ _ _ hActive hBench
-      simpa using (totalCardCount_setPlayerState state .playerTwo _ (by simpa [getPlayerState] using hCards))
+      · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+      · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+        cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+        cases hStep
+        have hCards :=
+          retreat_preserves_player_cards state.playerTwo _ _ _ hActive hBench _ hPay
+        simpa using (totalCardCount_setPlayerState state .playerTwo _ (by simpa [getPlayerState] using hCards))
   | drawCard =>
     cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hDeck : state.playerOne.deck <;> simp [hDeck] at hStep
@@ -1590,13 +1638,17 @@ theorem step_preserves_valid (state : GameState) (action : Action) (state' : Gam
   | retreat =>
     cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
-      cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
-      cases hStep
-      exact ⟨hBenchOne, hBenchTwo, hPrizeOne, hPrizeTwo⟩
+      · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+      · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+        cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+        cases hStep
+        exact ⟨hBenchOne, hBenchTwo, hPrizeOne, hPrizeTwo⟩
     · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
-      cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
-      cases hStep
-      exact ⟨hBenchOne, hBenchTwo, hPrizeOne, hPrizeTwo⟩
+      · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+      · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+        cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+        cases hStep
+        exact ⟨hBenchOne, hBenchTwo, hPrizeOne, hPrizeTwo⟩
   | drawCard =>
     cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hDeck : state.playerOne.deck <;> simp [hDeck] at hStep
@@ -1777,13 +1829,17 @@ theorem step_prizes_nonincreasing (state : GameState) (action : Action) (state' 
   | retreat =>
     cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
-      cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
-      cases hStep
-      exact ⟨Nat.le_refl _, Nat.le_refl _⟩
+      · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+      · cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
+        cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+        cases hStep
+        exact ⟨Nat.le_refl _, Nat.le_refl _⟩
     · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
-      cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
-      cases hStep
-      exact ⟨Nat.le_refl _, Nat.le_refl _⟩
+      · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+      · cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
+        cases hPay : payRetreatCost hActive <;> simp [hPay] at hStep
+        cases hStep
+        exact ⟨Nat.le_refl _, Nat.le_refl _⟩
   | drawCard =>
     cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
     · cases hDeck : state.playerOne.deck <;> simp [hDeck] at hStep

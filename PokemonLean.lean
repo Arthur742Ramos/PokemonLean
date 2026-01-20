@@ -2,4 +2,5 @@
 -- Import modules here that should be built as part of the library.
 import PokemonLean.Basic
 import PokemonLean.Cards
+import PokemonLean.Corpus
 import PokemonLean.Solver

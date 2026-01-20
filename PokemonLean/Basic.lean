@@ -143,6 +143,28 @@ def removeFirstEnergy (energyType : EnergyType) : List EnergyType -> Option (Lis
       | some rest => some (x :: rest)
       | none => none
 
+theorem removeFirstEnergy_length (energyType : EnergyType) (xs : List EnergyType) (ys : List EnergyType)
+    (h : removeFirstEnergy energyType xs = some ys) : ys.length + 1 = xs.length := by
+  induction xs generalizing ys with
+  | nil =>
+    simp [removeFirstEnergy] at h
+  | cons x xs ih =>
+    by_cases hColorless : energyType == .colorless
+    · simp [removeFirstEnergy, hColorless] at h
+      cases h
+      simp
+    · by_cases hEq : x == energyType
+      · simp [removeFirstEnergy, hColorless, hEq] at h
+        cases h
+        simp
+      · cases hRec : removeFirstEnergy energyType xs with
+        | none =>
+          simp [removeFirstEnergy, hColorless, hEq, hRec] at h
+        | some rest =>
+          simp [removeFirstEnergy, hColorless, hEq, hRec] at h
+          cases h
+          simp [ih rest hRec]
+
 def energyCostSatisfied : List EnergyType -> List EnergyType -> Bool
   | [], _ => true
   | required :: rest, energy =>
@@ -206,6 +228,81 @@ theorem energyCostSatisfied_iff_consume (required : List EnergyType) (energy : L
     rcases h with ⟨remaining, hConsume⟩
     exact consumeEnergyCost_sound required energy remaining hConsume
 
+def retreatCost : List EnergyType :=
+  [.colorless]
+
+def payRetreatCost (pokemon : PokemonInPlay) : Option PokemonInPlay :=
+  match consumeEnergyCost retreatCost pokemon.energy with
+  | none => none
+  | some remaining => some { pokemon with energy := remaining }
+
+theorem payRetreatCost_sound (pokemon : PokemonInPlay) (paid : PokemonInPlay)
+    (h : payRetreatCost pokemon = some paid) :
+    energyCostSatisfied retreatCost pokemon.energy = true := by
+  cases hConsume : consumeEnergyCost retreatCost pokemon.energy with
+  | none =>
+    simp [payRetreatCost, hConsume] at h
+  | some remaining =>
+    simp [payRetreatCost, hConsume] at h
+    cases h
+    exact (energyCostSatisfied_iff_consume retreatCost pokemon.energy).2 ⟨remaining, hConsume⟩
+
+theorem payRetreatCost_length (pokemon : PokemonInPlay) (paid : PokemonInPlay)
+    (h : payRetreatCost pokemon = some paid) :
+    paid.energy.length + 1 = pokemon.energy.length := by
+  simp [payRetreatCost, retreatCost] at h
+  cases hConsume : removeFirstEnergy .colorless pokemon.energy with
+  | none =>
+    simp [consumeEnergyCost, hConsume] at h
+  | some remaining =>
+    simp [consumeEnergyCost, hConsume] at h
+    cases h
+    simpa using removeFirstEnergy_length .colorless pokemon.energy remaining hConsume
+
+theorem payRetreatCost_iff (pokemon : PokemonInPlay) :
+    (∃ paid, payRetreatCost pokemon = some paid) ↔
+      energyCostSatisfied retreatCost pokemon.energy = true := by
+  constructor
+  · intro h
+    rcases h with ⟨paid, hPaid⟩
+    exact payRetreatCost_sound pokemon paid hPaid
+  · intro h
+    have hConsume : ∃ remaining, consumeEnergyCost retreatCost pokemon.energy = some remaining :=
+      (energyCostSatisfied_iff_consume retreatCost pokemon.energy).1 h
+    rcases hConsume with ⟨remaining, hConsume⟩
+    refine ⟨{ pokemon with energy := remaining }, ?_⟩
+    simp [payRetreatCost, hConsume]
+
+def statusDamage : StatusCondition -> Nat
+  | .poisoned => 10
+  | .burned => 20
+  | .asleep => 0
+  | .confused => 0
+  | .paralyzed => 0
+
+def applyStatusEndTurn (pokemon : PokemonInPlay) : PokemonInPlay :=
+  match pokemon.status with
+  | none => pokemon
+  | some condition =>
+    let newDamage := Nat.min (pokemon.damage + statusDamage condition) pokemon.card.hp
+    { pokemon with damage := newDamage }
+
+theorem applyStatusEndTurn_damage_le_hp (pokemon : PokemonInPlay) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStatusEndTurn pokemon).damage ≤ pokemon.card.hp := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simpa [applyStatusEndTurn, hStatus] using hBound
+  | some condition =>
+    simp [applyStatusEndTurn, hStatus, Nat.min_le_right]
+
+theorem applyStatusEndTurn_status (pokemon : PokemonInPlay) :
+    (applyStatusEndTurn pokemon).status = pokemon.status := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [applyStatusEndTurn, hStatus]
+  | some condition =>
+    simp [applyStatusEndTurn, hStatus]
+
 def listGet? {α : Type} (xs : List α) (index : Nat) : Option α :=
   match xs, index with
   | [], _ => none
@@ -255,12 +352,30 @@ theorem takePrize_prizes_length_eq (attacker defender : PlayerState) :
   | nil => simp [takePrize, h]
   | cons prize rest => simp [takePrize, h]
 
+theorem takePrize_prizes_length_succ (attacker defender : PlayerState)
+    (hNonempty : defender.prizes ≠ []) :
+    (takePrize attacker defender).2.prizes.length + 1 = defender.prizes.length := by
+  cases h : defender.prizes with
+  | nil =>
+    cases hNonempty h
+  | cons prize rest =>
+    simp [takePrize, h]
+
 theorem takePrize_hand_length_eq (attacker defender : PlayerState) :
     (takePrize attacker defender).1.hand.length = attacker.hand.length +
       (if defender.prizes.isEmpty then 0 else 1) := by
   cases h : defender.prizes with
   | nil => simp [takePrize, h]
   | cons prize rest => simp [takePrize, h]
+
+theorem takePrize_hand_length_succ (attacker defender : PlayerState)
+    (hNonempty : defender.prizes ≠ []) :
+    (takePrize attacker defender).1.hand.length = attacker.hand.length + 1 := by
+  cases h : defender.prizes with
+  | nil =>
+    cases hNonempty h
+  | cons prize rest =>
+    simp [takePrize, h]
 
 def applyWeakness (damage : Nat) (attackerType : EnergyType) (weakness : Option Weakness) : Nat :=
   match weakness with
