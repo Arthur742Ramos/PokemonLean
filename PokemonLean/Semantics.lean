@@ -39,7 +39,7 @@ inductive StepError
 def playTrainer (state : GameState) (card : Card) : Except StepError GameState :=
   let player := state.activePlayer
   let playerState := getPlayerState state player
-  if card.isTrainer then
+  if isTrainer card then
     match removeFirst card playerState.hand with
     | none => .error .cardNotInHand
     | some newHand =>
@@ -93,9 +93,6 @@ inductive TurnActionsAux : Bool → Bool → List Action → Prop
 
 def TurnActions (actions : List Action) : Prop :=
   TurnActionsAux false false actions
-
-def stepMany (state : GameState) (actions : List Action) : Except StepError GameState :=
-  actions.foldlM (fun st action => step st action) state
 
 def applyEffect (state : GameState) (effect : Effect) : GameState :=
   match effect with
@@ -171,9 +168,9 @@ theorem nextFlip_consumes (flips : CoinFlipStream) :
     (nextFlip.run flips).2 = flips.drop 1 := by
   cases flips with
   | nil =>
-    simp [nextFlip, GameRand, StateM.run, List.drop]
+    simp [nextFlip, List.drop]
   | cons head tail =>
-    simp [nextFlip, GameRand, StateM.run, List.drop]
+    simp [nextFlip, List.drop]
 
 def attachEnergyCount : List Action → Nat
   | [] => 0
@@ -198,7 +195,7 @@ def EndsTurn : List Action → Prop
   | _ :: rest => EndsTurn rest
 
 theorem turnActionsAux_attachEnergyCount_zero :
-    ∀ {supporterUsed actions : List Action},
+    ∀ {supporterUsed : Bool} {actions : List Action},
       TurnActionsAux true supporterUsed actions → attachEnergyCount actions = 0 := by
   intro supporterUsed actions hActions
   induction hActions with
@@ -263,7 +260,7 @@ theorem turnActions_attachEnergyCount_le_one (actions : List Action) (h : TurnAc
     simp [attachEnergyCount, hZero]
 
 theorem turnActionsAux_supporterCount_zero :
-    ∀ {energyAttached actions : List Action},
+    ∀ {energyAttached : Bool} {actions : List Action},
       TurnActionsAux energyAttached true actions → supporterCount actions = 0 := by
   intro energyAttached actions hActions
   induction hActions with
@@ -359,107 +356,6 @@ theorem turnActions_ends_turn (actions : List Action) (h : TurnActions actions) 
     simpa [EndsTurn] using ih
   | useAbilityDraw h ih =>
     simpa [EndsTurn] using ih
-
-theorem stepMany_activePlayer_turnAux :
-    ∀ {energyAttached supporterUsed actions state state'},
-      TurnActionsAux energyAttached supporterUsed actions →
-      stepMany state actions = .ok state' →
-      state'.activePlayer = otherPlayer state.activePlayer := by
-  intro energyAttached supporterUsed actions state state' hTurn hRun
-  induction hTurn generalizing state state' with
-  | endTurn energyAttached supporterUsed =>
-    simp [stepMany, List.foldlM] at hRun
-    exact step_activePlayer_endTurn _ _ hRun
-  | attack energyAttached supporterUsed attackIndex =>
-    simp [stepMany, List.foldlM] at hRun
-    exact step_activePlayer_attack _ _ _ hRun
-  | playPokemon h ih =>
-    rename_i card actions
-    cases hStep : step state (.playPokemonToBench card) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_playPokemonToBench state card _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | playItem h ih =>
-    rename_i card actions
-    cases hStep : step state (.playItem card) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_playItem state card _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | playTool h ih =>
-    rename_i card actions
-    cases hStep : step state (.playTool card) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_playTool state card _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | playSupporter h ih =>
-    rename_i card actions
-    cases hStep : step state (.playSupporter card) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_playSupporter state card _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | playSupporterDraw h ih =>
-    rename_i card count actions
-    cases hStep : step state (.playSupporterDraw card count) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_playSupporterDraw state card count _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | playItemHeal h ih =>
-    rename_i card amount actions
-    cases hStep : step state (.playItemHeal card amount) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_playItemHeal state card amount _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | evolveActive h ih =>
-    rename_i card actions
-    cases hStep : step state (.evolveActive card) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_evolveActive state card _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | useAbilityHeal h ih =>
-    rename_i amount actions
-    cases hStep : step state (.useAbilityHeal amount) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_useAbilityHeal state amount _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | useAbilityDraw h ih =>
-    rename_i count actions
-    cases hStep : step state (.useAbilityDraw count) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_useAbilityDraw state count _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | attachEnergy h ih =>
-    rename_i energyType actions
-    cases hStep : step state (.attachEnergy energyType) <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_attachEnergy state energyType _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | retreat h ih =>
-    cases hStep : step state .retreat <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_retreat state _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-  | drawCard h ih =>
-    cases hStep : step state .drawCard <;>
-      simp [stepMany, List.foldlM, hStep] at hRun
-    have hActive := step_activePlayer_drawCard state _ hStep
-    have hFinal := ih hRun
-    simpa [hActive] using hFinal
-
-theorem stepMany_activePlayer_turn (state state' : GameState) (actions : List Action)
-    (hTurn : TurnActions actions) (hRun : stepMany state actions = .ok state') :
-    state'.activePlayer = otherPlayer state.activePlayer := by
-  exact stepMany_activePlayer_turnAux hTurn hRun
 
 def step (state : GameState) (action : Action) : Except StepError GameState :=
   match action with
@@ -586,6 +482,9 @@ def step (state : GameState) (action : Action) : Except StepError GameState :=
       let updatedPlayerState := { playerState with deck := rest, hand := top :: playerState.hand }
       .ok (setPlayerState state player updatedPlayerState)
 
+def stepMany (state : GameState) (actions : List Action) : Except StepError GameState :=
+  actions.foldlM (fun st action => step st action) state
+
 def Legal (state : GameState) (action : Action) : Prop :=
   ∃ nextState, step state action = .ok nextState
 
@@ -599,7 +498,7 @@ def canPlayPokemonToBench (state : GameState) (card : Card) : Prop :=
 
 def canPlayTrainer (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state
-  ∃ newHand, removeFirst card playerState.hand = some newHand ∧ card.isTrainer
+  ∃ newHand, removeFirst card playerState.hand = some newHand ∧ isTrainer card
 
 def drawFromDeck (playerState : PlayerState) (n : Nat) : Option (List Card × List Card) :=
   if h : n ≤ playerState.deck.length then
@@ -612,7 +511,7 @@ def drawFromDeck (playerState : PlayerState) (n : Nat) : Option (List Card × Li
 def playTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Except StepError GameState :=
   let player := state.activePlayer
   let playerState := getPlayerState state player
-  if card.isTrainer then
+  if isTrainer card then
     match removeFirst card playerState.hand with
     | none => .error .cardNotInHand
     | some newHand =>
@@ -631,7 +530,7 @@ def playTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Except
 def playTrainerHeal (state : GameState) (card : Card) (healAmount : Nat) : Except StepError GameState :=
   let player := state.activePlayer
   let playerState := getPlayerState state player
-  if card.isTrainer then
+  if isTrainer card then
     match removeFirst card playerState.hand with
     | none => .error .cardNotInHand
     | some newHand =>
@@ -652,12 +551,12 @@ def playTrainerHeal (state : GameState) (card : Card) (healAmount : Nat) : Excep
 def canPlayTrainerDraw (state : GameState) (card : Card) (drawCount : Nat) : Prop :=
   let playerState := activePlayerState state
   ∃ newHand, removeFirst card playerState.hand = some newHand ∧
-    drawCount ≤ playerState.deck.length ∧ card.isTrainer
+    drawCount ≤ playerState.deck.length ∧ isTrainer card
 
 def canPlayTrainerHeal (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state
   ∃ newHand active, removeFirst card playerState.hand = some newHand ∧
-    playerState.active = some active ∧ card.isTrainer
+    playerState.active = some active ∧ isTrainer card
 
 def canEvolveActive (state : GameState) (card : Card) : Prop :=
   let playerState := activePlayerState state
@@ -1025,6 +924,107 @@ theorem step_activePlayer_attack (state : GameState) (attackIndex : Nat) (state'
     · simp [hKo] at hStep
       cases hStep
       rfl
+
+theorem stepMany_activePlayer_turnAux :
+    ∀ {energyAttached supporterUsed actions state state'},
+      TurnActionsAux energyAttached supporterUsed actions →
+      stepMany state actions = .ok state' →
+      state'.activePlayer = otherPlayer state.activePlayer := by
+  intro energyAttached supporterUsed actions state state' hTurn hRun
+  induction hTurn generalizing state state' with
+  | endTurn energyAttached supporterUsed =>
+    simp [stepMany, List.foldlM] at hRun
+    exact step_activePlayer_endTurn _ _ hRun
+  | attack energyAttached supporterUsed attackIndex =>
+    simp [stepMany, List.foldlM] at hRun
+    exact step_activePlayer_attack _ _ _ hRun
+  | playPokemon h ih =>
+    rename_i card actions
+    cases hStep : step state (.playPokemonToBench card) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playPokemonToBench state card _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | playItem h ih =>
+    rename_i card actions
+    cases hStep : step state (.playItem card) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playItem state card _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | playTool h ih =>
+    rename_i card actions
+    cases hStep : step state (.playTool card) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playTool state card _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | playSupporter h ih =>
+    rename_i card actions
+    cases hStep : step state (.playSupporter card) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playSupporter state card _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | playSupporterDraw h ih =>
+    rename_i card count actions
+    cases hStep : step state (.playSupporterDraw card count) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playSupporterDraw state card count _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | playItemHeal h ih =>
+    rename_i card amount actions
+    cases hStep : step state (.playItemHeal card amount) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_playItemHeal state card amount _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | evolveActive h ih =>
+    rename_i card actions
+    cases hStep : step state (.evolveActive card) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_evolveActive state card _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | useAbilityHeal h ih =>
+    rename_i amount actions
+    cases hStep : step state (.useAbilityHeal amount) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_useAbilityHeal state amount _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | useAbilityDraw h ih =>
+    rename_i count actions
+    cases hStep : step state (.useAbilityDraw count) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_useAbilityDraw state count _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | attachEnergy h ih =>
+    rename_i energyType actions
+    cases hStep : step state (.attachEnergy energyType) <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_attachEnergy state energyType _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | retreat h ih =>
+    cases hStep : step state .retreat <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_retreat state _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+  | drawCard h ih =>
+    cases hStep : step state .drawCard <;>
+      simp [stepMany, List.foldlM, hStep] at hRun
+    have hActive := step_activePlayer_drawCard state _ hStep
+    have hFinal := ih hRun
+    simpa [hActive] using hFinal
+
+theorem stepMany_activePlayer_turn (state state' : GameState) (actions : List Action)
+    (hTurn : TurnActions actions) (hRun : stepMany state actions = .ok state') :
+    state'.activePlayer = otherPlayer state.activePlayer := by
+  exact stepMany_activePlayer_turnAux hTurn hRun
     · simp [hKo] at hStep
       cases hStep
       rfl
