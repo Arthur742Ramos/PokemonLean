@@ -732,9 +732,33 @@ theorem legal_attack_iff (state : GameState) (attackIndex : Nat) :
         cases hAttack : listGet? attacker.card.attacks attackIndex with
         | none =>
           simp [Legal, canAttack, step, hPlayer, getPlayerState, setPlayerState, hAtt, hDef, hAttack]
-        | some attack =>
-          cases hCost : hasEnergyCost attack attacker.energy <;>
-            simp [Legal, canAttack, step, hPlayer, getPlayerState, setPlayerState, hAtt, hDef, hAttack, hCost]
+      | some attack =>
+        cases hCost : hasEnergyCost attack attacker.energy <;>
+          simp [Legal, canAttack, step, hPlayer, getPlayerState, setPlayerState, hAtt, hDef, hAttack, hCost]
+
+-- Action-language coverage: each implemented rule has a matching legality predicate.
+theorem legal_action_coverage (state : GameState) (action : Action) :
+    Legal state action ↔
+      match action with
+      | .playPokemonToBench card => canPlayPokemonToBench state card
+      | .playItem card => canPlayTrainer state card
+      | .playSupporter card => canPlayTrainer state card
+      | .playTool card => canPlayTrainer state card
+      | .playSupporterDraw card count => canPlayTrainerDraw state card count
+      | .playItemHeal card amount => canPlayTrainerHeal state card
+      | .evolveActive card => canEvolveActive state card
+      | .useAbilityHeal amount => canUseAbilityHeal state
+      | .useAbilityDraw count => canUseAbilityDraw state count
+      | .attachEnergy energyType => canAttachEnergy state
+      | .attack attackIndex => canAttack state attackIndex
+      | .retreat => canRetreat state
+      | .endTurn => True
+      | .drawCard => canDrawCard state := by
+  cases action <;>
+    simp [legal_playPokemonToBench_iff, legal_playItem_iff, legal_playSupporter_iff, legal_playTool_iff,
+      legal_playSupporterDraw_iff, legal_playItemHeal_iff, legal_evolveActive_iff, legal_useAbilityHeal_iff,
+      legal_useAbilityDraw_iff, legal_attachEnergy_iff, legal_attack_iff, legal_retreat_iff, legal_drawCard_iff,
+      legal_endTurn]
 
 theorem step_activePlayer_endTurn (state state' : GameState)
     (hStep : step state .endTurn = .ok state') :
@@ -1052,6 +1076,40 @@ def ValidState (state : GameState) : Prop :=
 
 def CardConservation (start state : GameState) : Prop :=
   totalCardCount state = totalCardCount start
+
+structure StateInvariant (start state : GameState) : Prop where
+  valid : ValidState state
+  cardConservation : CardConservation start state
+  zonesDisjoint : GlobalZonesDisjoint state
+
+theorem applyEffect_preserves_total_cards (state : GameState) (effect : Effect) :
+    totalCardCount (applyEffect state effect) = totalCardCount state := by
+  cases effect <;> cases hPlayer : state.activePlayer <;>
+    simp [applyEffect, totalCardCount, playerCardCount, getPlayerState, setPlayerState, hPlayer]
+
+theorem applyEffect_preserves_valid (state : GameState) (effect : Effect) (hValid : ValidState state) :
+    ValidState (applyEffect state effect) := by
+  cases effect <;> cases hPlayer : state.activePlayer <;>
+    simpa [applyEffect, ValidState, getPlayerState, setPlayerState, hPlayer] using hValid
+
+theorem applyEffect_preserves_invariant (start state : GameState) (effect : Effect)
+    (hInv : StateInvariant start state) :
+    StateInvariant start (applyEffect state effect) := by
+  refine ⟨?_, ?_, ?_⟩
+  · exact applyEffect_preserves_valid state effect hInv.valid
+  · simpa [CardConservation] using
+      (applyEffect_preserves_total_cards state effect).trans hInv.cardConservation
+  · simpa using (globalZonesDisjoint_trivial (applyEffect state effect))
+
+theorem runEffectStack_preserves_invariant (start state : GameState) (stack : EffectStack)
+    (hInv : StateInvariant start state) :
+    StateInvariant start (runEffectStack state stack) := by
+  induction stack generalizing state with
+  | nil =>
+    simpa [runEffectStack] using hInv
+  | cons effect rest ih =>
+    have hInv' := applyEffect_preserves_invariant start state effect hInv
+    simpa [runEffectStack] using ih (state := applyEffect state effect) hInv'
 
 def pokemonDamageBound (pokemon : PokemonInPlay) : Prop :=
   pokemon.damage ≤ pokemon.card.hp
@@ -1936,6 +1994,30 @@ inductive ReachableFrom (start : GameState) : GameState → Prop
 def Reachable : GameState → Prop :=
   ReachableFrom initialState
 
+theorem step_preserves_zones_disjoint (state : GameState) (action : Action) (state' : GameState)
+    (hStep : step state action = .ok state') :
+    GlobalZonesDisjoint state' := by
+  simpa using (globalZonesDisjoint_trivial state')
+
+theorem step_preserves_invariant (state : GameState) (action : Action) (state' : GameState)
+    (hInv : StateInvariant initialState state) (hStep : step state action = .ok state') :
+    StateInvariant initialState state' := by
+  refine ⟨?_, ?_, ?_⟩
+  · exact step_preserves_valid state action state' hInv.valid hStep
+  · simpa [CardConservation] using
+      (step_preserves_total_cards state action state' hStep).trans hInv.cardConservation
+  · exact step_preserves_zones_disjoint state action state' hStep
+
+theorem legal_progress_step (state : GameState) (action : Action) (h : Legal state action) :
+    ∃ nextState, step state action = .ok nextState := by
+  exact h
+
+theorem legal_preservation_step (state : GameState) (action : Action) (state' : GameState)
+    (hInv : StateInvariant initialState state) (hLegal : Legal state action)
+    (hStep : step state action = .ok state') :
+    StateInvariant initialState state' := by
+  exact step_preserves_invariant state action state' hInv hStep
+
 theorem reachable_preserves_total_cards (start : GameState) :
     ∀ state, ReachableFrom start state → CardConservation start state := by
   intro state hReach
@@ -1983,6 +2065,13 @@ theorem reachable_card_conservation (state : GameState) (h : Reachable state) :
 theorem reachable_zones_disjoint (state : GameState) (h : Reachable state) :
     GlobalZonesDisjoint state := by
   simpa using (globalZonesDisjoint_trivial state)
+
+theorem reachable_invariant (state : GameState) (h : Reachable state) :
+    StateInvariant initialState state := by
+  refine ⟨?_, ?_, ?_⟩
+  · exact reachable_valid_initial state h
+  · exact reachable_card_conservation state h
+  · exact reachable_zones_disjoint state h
 
 end PokemonLean.Semantics
 

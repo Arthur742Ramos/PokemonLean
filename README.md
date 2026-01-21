@@ -67,12 +67,18 @@ Proof checklist:
 | `legal_playTool_iff` (trainer typing) | `PokemonLean/Semantics.lean` | ✅ |
 | `step_error_iff_not_legal` | `PokemonLean/Semantics.lean` | ✅ |
 | `step_total_for_legal` | `PokemonLean/Semantics.lean` | ✅ |
+| `step_preserves_invariant` | `PokemonLean/Semantics.lean` | ✅ |
+| `reachable_invariant` | `PokemonLean/Semantics.lean` | ✅ |
+| `runEffectStack_preserves_invariant` | `PokemonLean/Semantics.lean` | ✅ |
+| `legal_action_coverage` | `PokemonLean/Semantics.lean` | ✅ |
 | `no_turn_one_win` | `PokemonLean/Basic.lean` | ✅ |
 | `bestAttack_sound` | `PokemonLean/Solver.lean` | ✅ |
 | `bestAttack_optimal` | `PokemonLean/Solver.lean` | ✅ |
 | `solve_sound` | `PokemonLean/Solver.lean` | ✅ |
 | `solve_optimal` | `PokemonLean/Solver.lean` | ✅ |
 | `maxDamage_complete` | `PokemonLean/Solver.lean` | ✅ |
+| `solveTurn_sound` | `PokemonLean/Solver.lean` | ✅ |
+| `solveTurn_optimal` | `PokemonLean/Solver.lean` | ✅ |
 | `hasEnergyCost_iff_consume` | `PokemonLean/Basic.lean` | ✅ |
 | `canDrawCard_iff_deckNonempty` | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_retreat_iff` | `PokemonLean/Semantics.lean` | ✅ |

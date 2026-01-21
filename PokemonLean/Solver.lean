@@ -45,6 +45,68 @@ def bestAttackFrom (attacker : PokemonInPlay) (defender : PokemonInPlay) : List 
 def bestAttack (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option (Nat × Attack) :=
   bestAttackFrom attacker defender attacker.card.attacks
 
+-- Consider one energy attachment before attacking.
+def applyAttachment (attacker : PokemonInPlay) (energyType : EnergyType) : PokemonInPlay :=
+  { attacker with energy := energyType :: attacker.energy }
+
+def bestAttackWithAttachment (attacker : PokemonInPlay) (defender : PokemonInPlay) (energyType : EnergyType) :
+    Option (Nat × Attack) :=
+  bestAttack (applyAttachment attacker energyType) defender
+
+def bestAttackIndexWithAttachment (attacker : PokemonInPlay) (defender : PokemonInPlay) (energyType : EnergyType) :
+    Option Nat :=
+  (bestAttackWithAttachment attacker defender energyType).map (fun choice => choice.1)
+
+def attachmentResultDamage (attacker : PokemonInPlay) (defender : PokemonInPlay) (energyType : EnergyType) : Nat :=
+  match bestAttackWithAttachment attacker defender energyType with
+  | none => 0
+  | some (_, attack) => attackDamage (applyAttachment attacker energyType) defender attack
+
+def bestAttachmentFrom (attacker : PokemonInPlay) (defender : PokemonInPlay) : List EnergyType → Option EnergyType
+  | [] => none
+  | energyType :: rest =>
+    let currentDamage := attachmentResultDamage attacker defender energyType
+    match bestAttachmentFrom attacker defender rest with
+    | none => some energyType
+    | some bestEnergy =>
+      if currentDamage >= attachmentResultDamage attacker defender bestEnergy then
+        some energyType
+      else
+        some bestEnergy
+
+def allEnergyTypes : List EnergyType :=
+  [.fire, .water, .grass, .lightning, .psychic, .fighting, .dark, .metal, .fairy, .dragon, .colorless]
+
+def bestAttachment (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option EnergyType :=
+  bestAttachmentFrom attacker defender allEnergyTypes
+
+theorem energyType_mem_all (energyType : EnergyType) : energyType ∈ allEnergyTypes := by
+  cases energyType <;> simp [allEnergyTypes]
+
+structure TurnSolverResult where
+  attachedEnergy : EnergyType
+  attackIndex : Nat
+  expectedDamage : Nat
+  isLethal : Bool
+  deriving Repr
+
+def solveTurn (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option TurnSolverResult :=
+  match bestAttachment attacker defender with
+  | none => none
+  | some energyType =>
+    match bestAttackWithAttachment attacker defender energyType with
+    | none => none
+    | some (idx, attack) =>
+      let updatedAttacker := applyAttachment attacker energyType
+      let damage := attackDamage updatedAttacker defender attack
+      let isLethal := damage + defender.damage >= defender.card.hp
+      some {
+        attachedEnergy := energyType
+        attackIndex := idx
+        expectedDamage := damage
+        isLethal := isLethal
+      }
+
 -- ============================================================================
 -- SOUNDNESS PROOFS
 -- ============================================================================
@@ -360,6 +422,71 @@ theorem solve_optimal (attacker : PokemonInPlay) (defender : PokemonInPlay) :
       cases hSolve
       have hOptimal := bestAttack_optimal attacker defender idx attack hBest j attack' hGet hLegal
       simpa using hOptimal
+
+theorem bestAttackWithAttachment_sound (attacker : PokemonInPlay) (defender : PokemonInPlay) (energyType : EnergyType) :
+    ∀ idx attack,
+      bestAttackWithAttachment attacker defender energyType = some (idx, attack) →
+      idx < attacker.card.attacks.length ∧
+        hasEnergyCost attack (energyType :: attacker.energy) = true := by
+  intro idx attack hChoice
+  have hSound :=
+    bestAttack_sound (applyAttachment attacker energyType) defender idx attack (by
+      simpa [bestAttackWithAttachment] using hChoice)
+  simpa [applyAttachment] using hSound
+
+theorem solveTurn_optimal (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ result, solveTurn attacker defender = some result →
+      ∀ idx attack,
+        listGet? attacker.card.attacks idx = some attack →
+        hasEnergyCost attack (result.attachedEnergy :: attacker.energy) = true →
+        attackDamage (applyAttachment attacker result.attachedEnergy) defender attack ≤ result.expectedDamage := by
+  intro result hSolve idx attack hGet hLegal
+  cases hBestEnergy : bestAttachment attacker defender with
+  | none =>
+    simp [solveTurn, hBestEnergy] at hSolve
+  | some energyType =>
+    cases hBestAttack : bestAttackWithAttachment attacker defender energyType with
+    | none =>
+      simp [solveTurn, hBestEnergy, hBestAttack] at hSolve
+    | some choice =>
+      cases choice with
+      | mk bestIdx bestAtk =>
+        simp [solveTurn, hBestEnergy, hBestAttack] at hSolve
+        cases hSolve
+        have hBest :=
+          bestAttack_optimal (applyAttachment attacker energyType) defender bestIdx bestAtk
+            (by simpa [bestAttackWithAttachment, bestAttack, applyAttachment] using hBestAttack)
+        have hGet' : listGet? (applyAttachment attacker energyType).card.attacks idx = some attack := by
+          simpa [applyAttachment] using hGet
+        have hOptimalAttack :=
+          hBest idx attack hGet' (by simpa [applyAttachment] using hLegal)
+        simpa [applyAttachment] using hOptimalAttack
+
+theorem solveTurn_sound (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ result, solveTurn attacker defender = some result →
+      ∃ energyType attack,
+        result.attachedEnergy = energyType ∧
+          listGet? attacker.card.attacks result.attackIndex = some attack ∧
+          hasEnergyCost attack (energyType :: attacker.energy) = true ∧
+          result.expectedDamage = attackDamage (applyAttachment attacker energyType) defender attack := by
+  intro result hSolve
+  cases hBestEnergy : bestAttachment attacker defender with
+  | none =>
+    simp [solveTurn, hBestEnergy] at hSolve
+  | some energyType =>
+    cases hBestAttack : bestAttackWithAttachment attacker defender energyType with
+    | none =>
+      simp [solveTurn, hBestEnergy, hBestAttack] at hSolve
+    | some choice =>
+      cases choice with
+      | mk idx attack =>
+        simp [solveTurn, hBestEnergy, hBestAttack] at hSolve
+        cases hSolve
+        have hSound := bestAttackWithAttachment_sound attacker defender energyType idx attack hBestAttack
+        refine ⟨energyType, attack, rfl, ?_, hSound.2, rfl⟩
+        simpa [bestAttackWithAttachment, applyAttachment] using
+          (bestAttackFrom_sound (applyAttachment attacker energyType) defender attacker.card.attacks idx attack
+            (by simpa [bestAttack, applyAttachment] using hBestAttack)).1
 
 def demoDefender : PokemonInPlay :=
   { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }
