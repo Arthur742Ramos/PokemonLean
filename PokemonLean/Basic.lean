@@ -313,7 +313,7 @@ def toPokemonInPlay (card : Card) : PokemonInPlay :=
   { card := card, damage := 0, status := none, energy := [] }
 
 def applyDamage (pokemon : PokemonInPlay) (amount : Nat) : PokemonInPlay :=
-  { pokemon with damage := pokemon.damage + amount }
+  { pokemon with damage := Nat.min (pokemon.damage + amount) pokemon.card.hp }
 
 def attackBonus (effects : List AttackEffect) : Nat :=
   effects.foldl

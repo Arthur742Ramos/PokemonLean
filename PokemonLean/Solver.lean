@@ -107,6 +107,14 @@ def solveTurn (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option Tur
         isLethal := isLethal
       }
 
+structure TwoPlyResult where
+  firstEnergy : EnergyType
+  secondEnergy : EnergyType
+  attackIndex : Nat
+  expectedDamage : Nat
+  isLethal : Bool
+  deriving Repr
+
 -- ============================================================================
 -- SOUNDNESS PROOFS
 -- ============================================================================
@@ -487,6 +495,58 @@ theorem solveTurn_sound (attacker : PokemonInPlay) (defender : PokemonInPlay) :
         simpa [bestAttackWithAttachment, applyAttachment] using
           (bestAttackFrom_sound (applyAttachment attacker energyType) defender attacker.card.attacks idx attack
             (by simpa [bestAttack, applyAttachment] using hBestAttack)).1
+
+def applyAttachments (attacker : PokemonInPlay) (first second : EnergyType) : PokemonInPlay :=
+  applyAttachment (applyAttachment attacker first) second
+
+def bestAttackWithAttachments (attacker : PokemonInPlay) (defender : PokemonInPlay)
+    (first second : EnergyType) : Option (Nat × Attack) :=
+  bestAttack (applyAttachments attacker first second) defender
+
+def solveTwoPly (attacker : PokemonInPlay) (defender : PokemonInPlay) : Option TwoPlyResult :=
+  match solveTurn attacker defender with
+  | none => none
+  | some firstResult =>
+    let updatedAttacker := applyAttachment attacker firstResult.attachedEnergy
+    match solveTurn updatedAttacker defender with
+    | none => none
+    | some secondResult =>
+      some {
+        firstEnergy := firstResult.attachedEnergy
+        secondEnergy := secondResult.attachedEnergy
+        attackIndex := secondResult.attackIndex
+        expectedDamage := secondResult.expectedDamage
+        isLethal := secondResult.isLethal
+      }
+
+theorem solveTwoPly_sound (attacker : PokemonInPlay) (defender : PokemonInPlay) :
+    ∀ result, solveTwoPly attacker defender = some result →
+      ∃ first second attack,
+        result.firstEnergy = first ∧
+          result.secondEnergy = second ∧
+          listGet? attacker.card.attacks result.attackIndex = some attack ∧
+          hasEnergyCost attack (second :: first :: attacker.energy) = true ∧
+          result.expectedDamage =
+            attackDamage (applyAttachment (applyAttachment attacker first) second) defender attack := by
+  intro result hSolve
+  cases hFirst : solveTurn attacker defender with
+  | none =>
+    simp [solveTwoPly, hFirst] at hSolve
+  | some firstResult =>
+    cases hSecond : solveTurn (applyAttachment attacker firstResult.attachedEnergy) defender with
+    | none =>
+      simp [solveTwoPly, hFirst, hSecond] at hSolve
+    | some secondResult =>
+      simp [solveTwoPly, hFirst, hSecond] at hSolve
+      cases hSolve
+      have hSound :=
+        solveTurn_sound (applyAttachment attacker firstResult.attachedEnergy) defender secondResult
+          (by simpa using hSecond)
+      rcases hSound with ⟨second, attack, hSecondEnergy, hGet, hLegal, hDamage⟩
+      refine ⟨firstResult.attachedEnergy, second, attack, rfl, hSecondEnergy, ?_, ?_, ?_⟩
+      · simpa [applyAttachment] using hGet
+      · simpa [applyAttachment] using hLegal
+      · simpa [applyAttachment] using hDamage
 
 def demoDefender : PokemonInPlay :=
   { card := sampleCharmander, damage := 0, status := none, energy := [.fire] }

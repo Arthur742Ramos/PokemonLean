@@ -82,6 +82,11 @@ Proof checklist:
 | `hasEnergyCost_iff_consume` | `PokemonLean/Basic.lean` | ✅ |
 | `canDrawCard_iff_deckNonempty` | `PokemonLean/Semantics.lean` | ✅ |
 | `legal_retreat_iff` | `PokemonLean/Semantics.lean` | ✅ |
+| `damageBounds` | `PokemonLean/Semantics.lean` | ✅ |
+| `stepManyRng_deterministic` | `PokemonLean/Semantics.lean` | ✅ |
+| `legalRng_iff_legal` | `PokemonLean/Semantics.lean` | ✅ |
+| `coinDamage_expected2` | `PokemonLean/Semantics.lean` | ✅ |
+| `solveTwoPly_sound` | `PokemonLean/Solver.lean` | ✅ |
 | `corpusWellFormed_trivial` | `PokemonLean/Corpus.lean` | ✅ |
 | `takePrize_prizes_length_succ` | `PokemonLean/Basic.lean` | ✅ |
 | `takePrize_hand_length_succ` | `PokemonLean/Basic.lean` | ✅ |
