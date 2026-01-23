@@ -86,6 +86,57 @@ theorem solveNPly_attackIndex_nat (attacker : PokemonInPlay) (defender : Pokemon
     result.attackIndex ≥ 0 := by
   omega
 
+/-- solveNPly at n=0 returns damage computed from bestAttack. -/
+theorem solveNPly_zero_damage (attacker : PokemonInPlay) (defender : PokemonInPlay)
+    (result : NPlyResult)
+    (h : solveNPly attacker defender 0 = some result) :
+    ∃ (idx : Nat) (attack : Attack),
+      bestAttack attacker defender = some (idx, attack) ∧
+      result.attackIndex = idx ∧
+      result.expectedDamage = attackDamage attacker defender attack := by
+  simp only [solveNPly] at h
+  match hBest : bestAttack attacker defender with
+  | none => simp [hBest] at h
+  | some (idx, atk) =>
+    simp only [hBest, Option.some.injEq] at h
+    exact ⟨idx, atk, rfl, by simp only [← h], by simp only [← h]⟩
+
+/-- solveNPly isLethal flag is correct. -/
+theorem solveNPly_zero_isLethal (attacker : PokemonInPlay) (defender : PokemonInPlay)
+    (result : NPlyResult)
+    (h : solveNPly attacker defender 0 = some result) :
+    result.isLethal ↔ (result.expectedDamage + defender.damage >= defender.card.hp) := by
+  simp only [solveNPly] at h
+  match hBest : bestAttack attacker defender with
+  | none => simp [hBest] at h
+  | some (idx, atk) =>
+    simp only [hBest, Option.some.injEq] at h
+    simp only [← h, ge_iff_le, decide_eq_true_eq]
+
+/-- Energy sequence correctness: applyEnergySequence adds energies. -/
+theorem applyEnergySequence_energy (attacker : PokemonInPlay) (energies : List EnergyType) :
+    (applyEnergySequence attacker energies).energy = energies.reverse ++ attacker.energy := by
+  induction energies generalizing attacker with
+  | nil => simp [applyEnergySequence]
+  | cons e rest ih =>
+    simp only [applyEnergySequence]
+    rw [ih]
+    simp [List.reverse_cons, List.append_assoc]
+
+/-- applyEnergySequence preserves card. -/
+theorem applyEnergySequence_card (attacker : PokemonInPlay) (energies : List EnergyType) :
+    (applyEnergySequence attacker energies).card = attacker.card := by
+  induction energies generalizing attacker with
+  | nil => rfl
+  | cons _ rest ih => simp only [applyEnergySequence]; exact ih _
+
+/-- applyEnergySequence preserves damage. -/
+theorem applyEnergySequence_damage (attacker : PokemonInPlay) (energies : List EnergyType) :
+    (applyEnergySequence attacker energies).damage = attacker.damage := by
+  induction energies generalizing attacker with
+  | nil => rfl
+  | cons _ rest ih => simp only [applyEnergySequence]; exact ih _
+
 -- ============================================================================
 -- LETHAL DETECTION (OTK FINDER)
 -- ============================================================================
@@ -144,6 +195,67 @@ theorem checkLethal_isLethal (attacker : PokemonInPlay) (defender : PokemonInPla
       cases h
       simpa using hLethal
     · simp [hLethal] at h
+
+/-- findLethalInTurns soundness: if it returns a sequence, that sequence is truly lethal. -/
+theorem findLethalInTurns_sound (attacker : PokemonInPlay) (defender : PokemonInPlay)
+    (n : Nat) (seq : LethalSequence)
+    (h : findLethalInTurns attacker defender n = some seq) :
+    seq.totalDamage + defender.damage >= defender.card.hp := by
+  induction n generalizing attacker seq with
+  | zero =>
+    -- Base case: findLethalInTurns _ _ 0 = checkLethal _ _ []
+    simp only [findLethalInTurns] at h
+    exact checkLethal_isLethal attacker defender [] seq h
+  | succ m ih =>
+    -- Inductive case
+    simp only [findLethalInTurns] at h
+    match hCheck : checkLethal attacker defender [] with
+    | some foundSeq =>
+      -- checkLethal succeeded immediately
+      simp only [hCheck, Option.some.injEq] at h
+      rw [← h]
+      exact checkLethal_isLethal attacker defender [] foundSeq hCheck
+    | none =>
+      -- Need to look at recursive results
+      simp only [hCheck] at h
+      -- h : results.head? = some seq
+      -- Prove all elements in the filterMap result satisfy the lethal condition
+      have hAllLethal : ∀ s ∈ (allEnergyTypes.filterMap (fun e =>
+          let newAttacker := { attacker with energy := e :: attacker.energy }
+          match findLethalInTurns newAttacker defender m with
+          | none => none
+          | some innerSeq => some { innerSeq with energyAttachments := e :: innerSeq.energyAttachments })),
+          s.totalDamage + defender.damage ≥ defender.card.hp := by
+        intro s hs
+        simp only [List.mem_filterMap] at hs
+        obtain ⟨e, _he, hMatch⟩ := hs
+        split at hMatch
+        · contradiction
+        · rename_i innerSeq hRec
+          simp only [Option.some.injEq] at hMatch
+          have hIHinner := ih { attacker with energy := e :: attacker.energy } innerSeq hRec
+          rw [← hMatch]
+          exact hIHinner
+      -- seq is the head of results, so seq is in results
+      cases hHead : (allEnergyTypes.filterMap (fun e =>
+          let newAttacker := { attacker with energy := e :: attacker.energy }
+          match findLethalInTurns newAttacker defender m with
+          | none => none
+          | some innerSeq => some { innerSeq with energyAttachments := e :: innerSeq.energyAttachments })) with
+      | nil =>
+        simp only [hHead, List.head?_nil] at h
+        cases h
+      | cons first rest =>
+        simp only [hHead, List.head?_cons, Option.some.injEq] at h
+        subst h
+        exact hAllLethal first (by rw [hHead]; exact List.Mem.head _)
+
+/-- findLethal soundness (convenience wrapper). -/
+theorem findLethal_sound (attacker : PokemonInPlay) (defender : PokemonInPlay)
+    (seq : LethalSequence)
+    (h : findLethal attacker defender = some seq) :
+    seq.totalDamage + defender.damage >= defender.card.hp := by
+  exact findLethalInTurns_sound attacker defender 3 seq h
 
 -- ============================================================================
 -- EXPECTED DAMAGE UNDER RNG
