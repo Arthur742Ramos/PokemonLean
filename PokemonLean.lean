@@ -5,4 +5,4 @@ import PokemonLean.Cards
 import PokemonLean.Corpus
 import PokemonLean.Solver
 import PokemonLean.GameTheory
--- import PokemonLean.Semantics  -- TODO: fix compatibility issues
+import PokemonLean.Semantics
