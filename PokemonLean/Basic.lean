@@ -377,6 +377,70 @@ theorem takePrize_hand_length_succ (attacker defender : PlayerState)
   | cons prize rest =>
     simp [takePrize, h]
 
+theorem takePrize_attacker_prizes_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).1.prizes = attacker.prizes := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+theorem takePrize_attacker_prizes_length_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).1.prizes.length = attacker.prizes.length := by
+  simp [takePrize_attacker_prizes_eq]
+
+@[simp] theorem takePrize_attacker_bench_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).1.bench = attacker.bench := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_defender_bench_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).2.bench = defender.bench := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_attacker_deck_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).1.deck = attacker.deck := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_defender_deck_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).2.deck = defender.deck := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_attacker_active_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).1.active = attacker.active := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_defender_active_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).2.active = defender.active := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_attacker_discard_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).1.discard = attacker.discard := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_defender_discard_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).2.discard = defender.discard := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
+@[simp] theorem takePrize_defender_hand_eq (attacker defender : PlayerState) :
+    (takePrize attacker defender).2.hand = defender.hand := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
 def applyWeakness (damage : Nat) (attackerType : EnergyType) (weakness : Option Weakness) : Nat :=
   match weakness with
   | some w => if w.energyType == attackerType then damage * w.multiplier else damage
@@ -470,6 +534,16 @@ def playerCardCount (player : PlayerState) : Nat :=
   (match player.active with | some _ => 1 | none => 0) +
   player.discard.length +
   player.prizes.length
+
+@[simp] theorem active_card_count_some (x : PokemonInPlay) :
+    (match (some x) with | some _ => 1 | none => 0) = 1 := rfl
+
+@[simp] theorem active_card_count_none :
+    (match (none : Option PokemonInPlay) with | some _ => 1 | none => 0) = 0 := rfl
+
+theorem active_card_count_eq_one (opt : Option PokemonInPlay) (x : PokemonInPlay) (h : opt = some x) :
+    (match opt with | some _ => 1 | none => 0) = 1 := by
+  rw [h]
 
 -- Total cards in game (both players)
 def totalCardCount (state : GameState) : Nat :=
