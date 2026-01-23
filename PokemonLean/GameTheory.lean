@@ -82,7 +82,7 @@ def solveNPly (attacker : PokemonInPlay) (defender : PokemonInPlay) (n : Nat) : 
 
 /-- Attack index from solver is a valid Nat. -/
 theorem solveNPly_attackIndex_nat (attacker : PokemonInPlay) (defender : PokemonInPlay)
-    (n : Nat) (result : NPlyResult) (h : solveNPly attacker defender n = some result) :
+    (n : Nat) (result : NPlyResult) (_h : solveNPly attacker defender n = some result) :
     result.attackIndex ≥ 0 := by
   omega
 

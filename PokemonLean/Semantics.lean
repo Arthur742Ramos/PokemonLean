@@ -50,7 +50,7 @@ def playTrainer (state : GameState) (card : Card) : Except StepError GameState :
 
 -- Helper function for drawing cards from deck
 def drawFromDeck (playerState : PlayerState) (n : Nat) : Option (List Card × List Card) :=
-  if h : n ≤ playerState.deck.length then
+  if n ≤ playerState.deck.length then
     let drawn := playerState.deck.take n
     let rest := playerState.deck.drop n
     some (drawn, rest)
@@ -246,13 +246,13 @@ theorem step_activePlayer_playPokemonToBench (state : GameState) (card : Card) (
     by_cases hBench : state.playerOne.bench.length < benchLimit
     · simp [hBench] at hStep
       cases hStep
-      simp [setPlayerState]
+      rfl
     · simp [hBench] at hStep
   · cases hRemove : removeFirst card state.playerTwo.hand <;> simp [hRemove] at hStep
     by_cases hBench : state.playerTwo.bench.length < benchLimit
     · simp [hBench] at hStep
       cases hStep
-      simp [setPlayerState]
+      rfl
     · simp [hBench] at hStep
 
 theorem step_activePlayer_playItem (state : GameState) (card : Card) (state' : GameState)
@@ -389,10 +389,10 @@ theorem step_activePlayer_attachEnergy (state : GameState) (energyType : EnergyT
   cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
   · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
     cases hStep
-    simp [setPlayerState]
+    rfl
   · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
     cases hStep
-    simp [setPlayerState]
+    rfl
 
 theorem step_activePlayer_retreat (state : GameState) (state' : GameState)
     (hStep : step state .retreat = .ok state') :
@@ -401,11 +401,11 @@ theorem step_activePlayer_retreat (state : GameState) (state' : GameState)
   · cases hActive : state.playerOne.active <;> simp [hActive] at hStep
     cases hBench : state.playerOne.bench <;> simp [hBench] at hStep
     cases hStep
-    simp [setPlayerState]
+    rfl
   · cases hActive : state.playerTwo.active <;> simp [hActive] at hStep
     cases hBench : state.playerTwo.bench <;> simp [hBench] at hStep
     cases hStep
-    simp [setPlayerState]
+    rfl
 
 theorem step_activePlayer_drawCard (state : GameState) (state' : GameState)
     (hStep : step state .drawCard = .ok state') :
@@ -413,10 +413,10 @@ theorem step_activePlayer_drawCard (state : GameState) (state' : GameState)
   cases hPlayer : state.activePlayer <;> simp [step, hPlayer, getPlayerState, setPlayerState] at hStep
   · cases hDeck : state.playerOne.deck <;> simp [hDeck] at hStep
     cases hStep
-    simp [setPlayerState]
+    rfl
   · cases hDeck : state.playerTwo.deck <;> simp [hDeck] at hStep
     cases hStep
-    simp [setPlayerState]
+    rfl
 
 theorem step_activePlayer_attack (state : GameState) (attackIndex : Nat) (state' : GameState)
     (hStep : step state (.attack attackIndex) = .ok state') :
@@ -618,8 +618,8 @@ theorem turnActionsAux_attachEnergyCount_le_one :
   | playPokemon _ ih => exact ih
   | playItem _ ih => exact ih
   | playTool _ ih => exact ih
-  | playSupporter _ ih => simp only [ite_eq_left_iff, Nat.lt_irrefl, imp_false] at ih ⊢; exact ih
-  | playSupporterDraw _ ih => simp only [ite_eq_left_iff, Nat.lt_irrefl, imp_false] at ih ⊢; exact ih
+  | playSupporter _ ih => exact ih
+  | playSupporterDraw _ ih => exact ih
   | playItemHeal _ ih => exact ih
   | evolveActive _ ih => exact ih
   | useAbilityHeal _ ih => exact ih
@@ -689,7 +689,7 @@ theorem turnActionsAux_supporterCount_le_one :
   | evolveActive _ ih => exact ih
   | useAbilityHeal _ ih => exact ih
   | useAbilityDraw _ ih => exact ih
-  | attachEnergy _ ih => simp only [ite_eq_left_iff, Nat.lt_irrefl, imp_false] at ih ⊢; exact ih
+  | attachEnergy _ ih => exact ih
   | retreat _ ih => exact ih
   | drawCard _ ih => exact ih
 
@@ -755,7 +755,7 @@ theorem stepMany_activePlayer_turnAux :
             simp only [hAtk] at hRun
             split at hRun
             case isTrue =>
-              split at hRun <;> (cases hRun; simp only [setPlayerState, hPlayer, otherPlayer])
+              split at hRun <;> (cases hRun; rfl)
             case isFalse => exact (nomatch hRun)
     -- Handle playerTwo case
     · cases hA2 : state.playerTwo.active with
@@ -772,7 +772,7 @@ theorem stepMany_activePlayer_turnAux :
             simp only [hAtk] at hRun
             split at hRun
             case isTrue =>
-              split at hRun <;> (cases hRun; simp only [setPlayerState, hPlayer, otherPlayer])
+              split at hRun <;> (cases hRun; rfl)
             case isFalse => exact (nomatch hRun)
   | playPokemon _ ih =>
     simp only [stepMany, List.foldlM_cons, bind, Except.bind] at hRun
@@ -946,7 +946,7 @@ instance (state : GameState) (action : Action) : Decidable (Legal state action) 
     refine isFalse ?_
     intro hLegal
     rcases hLegal with ⟨next, hStep⟩
-    simpa [h] using hStep
+    simp [h] at hStep
 
 theorem step_deterministic (state : GameState) (action : Action) (s1 s2 : GameState)
     (h1 : step state action = .ok s1) (h2 : step state action = .ok s2) : s1 = s2 := by
@@ -1061,7 +1061,7 @@ theorem legal_playSupporterDraw_iff (state : GameState) (card : Card) (count : N
     split
     case isTrue hT =>
       simp only [hRemove]
-      simp only [drawFromDeck, hLen, ↓reduceDIte]
+      simp only [drawFromDeck, hLen, ↓reduceIte]
       exact ⟨_, rfl⟩
     case isFalse hT =>
       exact absurd hTrainer hT
@@ -1152,7 +1152,7 @@ theorem legal_useAbilityDraw_iff (state : GameState) (count : Nat) :
     have hDraw : drawFromDeck (getPlayerState state state.activePlayer) count =
       some ((getPlayerState state state.activePlayer).deck.take count,
             (getPlayerState state state.activePlayer).deck.drop count) := by
-      simp only [drawFromDeck, hLen, ↓reduceDIte]
+      simp only [drawFromDeck, hLen, ↓reduceIte]
     simp only [hDraw]
     exact ⟨_, rfl⟩
 
@@ -1420,7 +1420,7 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
             subst hDrawn hRest
             simp only [playerCardCount, bench_card_count]
             simp only [List.length_append, List.length_drop, List.length_take, List.length_cons,
-              Nat.min_eq_left hDeckLen, Nat.add_sub_cancel' hDeckLen]
+              Nat.min_eq_left hDeckLen]
             omega
           case isFalse => simp at hDraw
     case isFalse => simp at hStep
@@ -1463,8 +1463,8 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
           -- deck + newHand.length + bench + 1 + (discard.length + 1) + prizes =
           -- deck + hand.length + bench + 1 + discard.length + prizes
           -- Using hLen: newHand.length + 1 = hand.length
-          simp only [playerCardCount, bench_card_count, active_card_count_some]
-          simp only [hActive, active_card_count_some, List.length_cons]
+          simp only [playerCardCount, bench_card_count]
+          simp only [hActive, List.length_cons]
           omega
         case isFalse => simp at hStep
   | useAbilityHeal amount =>
@@ -1496,8 +1496,8 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
         -- The active match expressions are the same on both sides
         -- Split by active to reduce the matches
         cases hActive : (getPlayerState state state.activePlayer).active with
-        | none => simp only [hActive, active_card_count_none]; omega
-        | some act => simp only [hActive, active_card_count_some]; omega
+        | none => omega
+        | some act => omega
       case isFalse => simp at hDraw
   | attachEnergy energyType =>
     simp only [step] at hStep
@@ -1557,8 +1557,8 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
               | playerOne =>
                 simp only [totalCardCount, hPlayer, getPlayerState, setPlayerState, otherPlayer] at *
                 have hPrize := takePrize_preserves_total_cards state.playerOne state.playerTwo
-                simp only [playerCardCount, hAttacker, hDefender, active_card_count_some,
-                  active_card_count_none, bench_card_count,
+                simp only [playerCardCount, hAttacker, hDefender,
+                  bench_card_count,
                   takePrize_attacker_deck_eq, takePrize_defender_deck_eq,
                   takePrize_attacker_bench_eq, takePrize_defender_bench_eq,
                   takePrize_attacker_active_eq, takePrize_defender_active_eq,
@@ -1568,8 +1568,8 @@ theorem step_preserves_total_cards (state : GameState) (action : Action) (state'
               | playerTwo =>
                 simp only [totalCardCount, hPlayer, getPlayerState, setPlayerState, otherPlayer] at *
                 have hPrize := takePrize_preserves_total_cards state.playerTwo state.playerOne
-                simp only [playerCardCount, hAttacker, hDefender, active_card_count_some,
-                  active_card_count_none, bench_card_count,
+                simp only [playerCardCount, hAttacker, hDefender,
+                  bench_card_count,
                   takePrize_attacker_deck_eq, takePrize_defender_deck_eq,
                   takePrize_attacker_bench_eq, takePrize_defender_bench_eq,
                   takePrize_attacker_active_eq, takePrize_defender_active_eq,
