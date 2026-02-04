@@ -10,7 +10,7 @@ inductive EnergyType
   | fairy
   | dragon
   | colorless
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 inductive StatusCondition
   | asleep
@@ -18,7 +18,7 @@ inductive StatusCondition
   | confused
   | paralyzed
   | poisoned
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 inductive Weather
   | clear
@@ -26,31 +26,31 @@ inductive Weather
   | rain
   | sandstorm
   | hail
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 inductive AttackEffect
   | applyStatus (condition : StatusCondition)
   | heal (amount : Nat)
   | drawCards (count : Nat)
   | addDamage (amount : Nat)
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 structure Attack where
   name : String
   baseDamage : Nat
   effects : List AttackEffect
   energyCost : List EnergyType := []
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 structure Weakness where
   energyType : EnergyType
   multiplier : Nat := 2
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 structure Resistance where
   energyType : EnergyType
   amount : Nat := 30
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 structure Card where
   name : String
@@ -59,7 +59,7 @@ structure Card where
   attacks : List Attack
   weakness : Option Weakness := none
   resistance : Option Resistance := none
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
 
 def isTrainer (card : Card) : Bool :=
   card.attacks.isEmpty

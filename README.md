@@ -13,6 +13,13 @@ This project bridges formal verification and game theory by building a verified 
 - `PokemonLean/Solver.lean` - Verified damage optimization solver
 - `PokemonLean/GameTheory.lean` - Advanced strategy: N-ply solver, lethal detection, expected damage
 - `PokemonLean/Semantics.lean` - Small-step semantics, legality, reachability
+- `PokemonLean/Switching.lean` - Switch/retreat mechanics with cost proofs
+- `PokemonLean/Abilities.lean` - Ability/power model and usage proofs
+- `PokemonLean/TrainerCards.lean` - Trainer card effects and legality helpers
+- `PokemonLean/Decks.lean` - Deck validity, setup, and prize dealing
+- `PokemonLean/Prizes.lean` - Prize tiers, win conditions, and progress metrics
+- `PokemonLean/Tournament.lean` - Tournament scoring, standings, ratings
+- `PokemonLean/MixedStrategy.lean` - Mixed strategy payoffs and Nash structure
 - `Main.lean` - CLI demo application
 - `scripts/fetch_cards.py` - Python scraper for Pokémon TCG API
 
