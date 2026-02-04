@@ -32,12 +32,12 @@ theorem pokemonCount_cons (card : Card) (deck : List Card) :
     pokemonCount (card :: deck) =
       (if isPokemon card then 1 else 0) + pokemonCount deck := by
   -- `countP` is tail-recursive, so the cons-case is easy.
-  simp [pokemonCount, List.countP_cons, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+  simp [pokemonCount, List.countP_cons, Nat.add_comm]
 
 theorem trainerCount_cons (card : Card) (deck : List Card) :
     trainerCount (card :: deck) =
       (if isTrainer card then 1 else 0) + trainerCount deck := by
-  simp [trainerCount, List.countP_cons, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+  simp [trainerCount, List.countP_cons, Nat.add_comm]
 
 theorem pokemonCount_le_length (deck : List Card) :
     pokemonCount deck ≤ deck.length := by
@@ -55,17 +55,17 @@ theorem pokemonCount_add_trainerCount (deck : List Card) :
   -- Rearrange the resulting equality.
   have h' : trainerCount deck + pokemonCount deck = deck.length := by
     -- `length = countP isTrainer + countP (fun c => ¬isTrainer c)`
-    simpa [trainerCount, pokemonCount, isPokemon, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using h.symm
+    simpa [trainerCount, pokemonCount, isPokemon, Nat.add_comm] using h.symm
   simpa [Nat.add_comm] using h'
 
 theorem pokemonCount_zero_iff_all_trainers (deck : List Card) :
     pokemonCount deck = 0 ↔ (∀ card ∈ deck, isTrainer card = true) := by
   -- `countP p = 0` iff `p` is false everywhere.
-  simpa [pokemonCount, isPokemon] using (List.countP_eq_zero (p := isPokemon) (l := deck))
+  simp [pokemonCount, isPokemon]
 
 theorem trainerCount_zero_iff_all_pokemon (deck : List Card) :
     trainerCount deck = 0 ↔ (∀ card ∈ deck, isTrainer card = false) := by
-  simpa [trainerCount] using (List.countP_eq_zero (p := isTrainer) (l := deck))
+  simp [trainerCount]
 
 def countCardName (name : String) (deck : List Card) : Nat :=
   deck.filter (fun c => c.name == name) |>.length
@@ -167,7 +167,7 @@ theorem drawFromDeck_length (deck : List Card) (n : Nat) (drawn rest : List Card
     · simp [List.length_take, Nat.min_eq_left hLe]
     · simp [List.length_drop, Nat.sub_add_cancel hLe]
   · have : False := by
-      simpa [hLe] using h
+      simp [hLe] at h
     exact False.elim this
 
 theorem drawFromDeck_none_of_gt (deck : List Card) (n : Nat)

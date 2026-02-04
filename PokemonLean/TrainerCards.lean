@@ -76,7 +76,7 @@ theorem supporterCount_le_length (ts : List TrainerCard) :
   induction ts with
   | nil => simp [supporterCount]
   | cons t rest ih =>
-      simp [supporterCount, ih]
+      simp [supporterCount]
       split <;> omega
 
 theorem itemCount_le_length (ts : List TrainerCard) :
@@ -84,7 +84,7 @@ theorem itemCount_le_length (ts : List TrainerCard) :
   induction ts with
   | nil => simp [itemCount]
   | cons t rest ih =>
-      simp [itemCount, ih]
+      simp [itemCount]
       split <;> omega
 
 theorem toolCount_le_length (ts : List TrainerCard) :
@@ -92,7 +92,7 @@ theorem toolCount_le_length (ts : List TrainerCard) :
   induction ts with
   | nil => simp [toolCount]
   | cons t rest ih =>
-      simp [toolCount, ih]
+      simp [toolCount]
       split <;> omega
 
 theorem stadiumCount_le_length (ts : List TrainerCard) :
@@ -100,7 +100,7 @@ theorem stadiumCount_le_length (ts : List TrainerCard) :
   induction ts with
   | nil => simp [stadiumCount]
   | cons t rest ih =>
-      simp [stadiumCount, ih]
+      simp [stadiumCount]
       split <;> omega
 
 theorem supporterCount_zero_of_all_non_supporter (ts : List TrainerCard)
@@ -160,7 +160,7 @@ theorem removeFirstByName_length (name : String) :
             have hLen := ih found' rest' hRec
             rcases h with ⟨_, hRest⟩
             cases hRest
-            simp [List.length_cons, hLen, Nat.add_assoc]
+            simp [List.length_cons, hLen]
 
 theorem removeFirstByName_mem (name : String) :
     ∀ (deck : List Card) (found : Card) (rest : List Card),
@@ -230,7 +230,7 @@ theorem drawFromDeck_length (deck : List Card) (n : Nat) (drawn rest : List Card
     · simp [List.length_take, Nat.min_eq_left hLe]
     · simp [List.length_drop, Nat.sub_add_cancel hLe]
   · have : False := by
-      simpa [hLe] using h
+      simp [hLe] at h
     exact False.elim this
 
 theorem drawFromDeck_none_of_gt (deck : List Card) (n : Nat)
@@ -259,7 +259,7 @@ theorem discardTop_length (hand : List Card) (n : Nat) (discarded rest : List Ca
     · simp [List.length_take, Nat.min_eq_left hLe]
     · simp [List.length_drop, Nat.sub_add_cancel hLe]
   · have : False := by
-      simpa [hLe] using h
+      simp [hLe] at h
     exact False.elim this
 
 theorem discardTop_none_of_gt (hand : List Card) (n : Nat)

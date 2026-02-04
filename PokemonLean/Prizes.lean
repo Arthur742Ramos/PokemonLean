@@ -198,9 +198,9 @@ theorem prizeWin_iff (state : GameState) (player : PlayerId) :
   unfold prizeWin prizesEmpty opponentPrizes
   cases h : (getPlayerState state (otherPlayer player)).prizes with
   | nil =>
-      simp [h]
+      simp
   | cons prize rest =>
-      simp [h]
+      simp
 
 theorem prizeWin_implies_hasWon (state : GameState) (player : PlayerId) :
     prizeWin state player → hasWon state player := by
@@ -208,7 +208,7 @@ theorem prizeWin_implies_hasWon (state : GameState) (player : PlayerId) :
   unfold prizeWin at hWin
   unfold hasWon
   -- opponent prizes are empty, so length is 0
-  simpa [hWin]
+  simp [hWin]
 
 def knockoutWin (state : GameState) (player : PlayerId) : Prop :=
   (getPlayerState state (otherPlayer player)).active = none

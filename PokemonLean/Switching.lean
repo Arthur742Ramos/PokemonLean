@@ -45,7 +45,7 @@ theorem removeAt?_length {α : Type} :
               subst hrest
               have hLen : ys.length + 1 = tail.length := ih idx y ys hRec
               -- goal: (head :: ys).length + 1 = (head :: tail).length
-              simp [List.length_cons, hLen, Nat.add_assoc]
+              simp [List.length_cons, hLen]
 
 theorem removeAt?_mem {α : Type} :
     ∀ (xs : List α) (idx : Nat) (x : α) (rest : List α),
@@ -115,8 +115,8 @@ theorem switchWithBenchIndex_some_iff (playerState : PlayerState) (index : Nat) 
           simp [hRemove] at h
           cases h
           refine ⟨active, newActive, newBench, ?_, ?_, rfl⟩
-          · simpa [hActive]
-          · simpa [hRemove]
+          · simp
+          · simp
   · rintro ⟨active, newActive, newBench, hActive, hRemove, rfl⟩
     simp [switchWithBenchIndex, hActive, hRemove]
 
@@ -126,7 +126,7 @@ theorem switchWithBenchIndex_bench_length (playerState : PlayerState) (index : N
   rcases (switchWithBenchIndex_some_iff playerState index newState).1 h with
     ⟨active, newActive, newBench, hActive, hRemove, rfl⟩
   have hLen := removeAt?_length playerState.bench index newActive newBench hRemove
-  simp [List.length_append, hLen, Nat.add_assoc]
+  simp [List.length_append, hLen]
 
 theorem switchWithBenchIndex_active_some (playerState : PlayerState) (index : Nat) (newState : PlayerState)
     (h : switchWithBenchIndex playerState index = some newState) :
@@ -230,9 +230,9 @@ theorem retreatWithCost_some_iff (playerState : PlayerState) (newState : PlayerS
           simp [hBench] at h
           cases h
           refine ⟨active, paid, newActive, rest, ?_, ?_, ?_, rfl⟩
-          · simpa [hActive]
-          · simpa [hPaid]
-          · simpa [hBench]
+          · simp
+          · simp [hPaid]
+          · simp
   · rintro ⟨active, paid, newActive, rest, hActive, hPaid, hBench, rfl⟩
     simp [retreatWithCost, hActive, hPaid, hBench]
 
@@ -241,7 +241,7 @@ theorem retreatWithCost_bench_length (playerState : PlayerState) (newState : Pla
     newState.bench.length = playerState.bench.length := by
   rcases (retreatWithCost_some_iff playerState newState).1 h with
     ⟨active, paid, newActive, rest, hActive, hPaid, hBench, rfl⟩
-  simp [hBench, List.length_append, Nat.add_assoc]
+  simp [hBench, List.length_append]
 
 theorem retreatWithCost_preserves_player_cards (playerState : PlayerState) (newState : PlayerState)
     (h : retreatWithCost playerState = some newState) :
@@ -290,9 +290,9 @@ theorem switchActive_preserves_total_cards (state : GameState) (index : Nat) (st
       cases hPlayer : state.activePlayer <;>
         simp [totalCardCount, getPlayerState, setPlayerState, hPlayer] at hSwitch ⊢
       · have hCards := switchWithBenchIndex_preserves_player_cards state.playerOne index playerState hSwitch
-        simp [totalCardCount, setPlayerState, hPlayer, hCards]
+        simp [hCards]
       · have hCards := switchWithBenchIndex_preserves_player_cards state.playerTwo index playerState hSwitch
-        simp [totalCardCount, setPlayerState, hPlayer, hCards]
+        simp [hCards]
 
 theorem switchActive_preserves_prizes (state : GameState) (index : Nat) (state' : GameState)
     (h : switchActive state index = some state') :
@@ -323,9 +323,9 @@ theorem retreatActive_preserves_total_cards (state : GameState) (state' : GameSt
       cases hPlayer : state.activePlayer <;>
         simp [totalCardCount, getPlayerState, setPlayerState, hPlayer] at hRetreat ⊢
       · have hCards := retreatWithCost_preserves_player_cards state.playerOne playerState hRetreat
-        simp [totalCardCount, setPlayerState, hPlayer, hCards]
+        simp [hCards]
       · have hCards := retreatWithCost_preserves_player_cards state.playerTwo playerState hRetreat
-        simp [totalCardCount, setPlayerState, hPlayer, hCards]
+        simp [hCards]
 
 theorem retreatWithCost_preserves_prizes (playerState : PlayerState) (newState : PlayerState)
     (h : retreatWithCost playerState = some newState) :

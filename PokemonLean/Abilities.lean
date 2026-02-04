@@ -79,7 +79,7 @@ theorem payAbilityCost_energy_length (ability : Ability) (pokemon paid : Pokemon
                     _ = (remaining.length + rest.length) + 1 := by
                         simp [Nat.add_assoc]
                     _ = remaining'.length + 1 := by simp [hRec]
-                    _ = pokemon.energy.length := by simpa [hLen]
+                    _ = pokemon.energy.length := by simp [hLen]
 
 def applyAbilityEffect (state : GameState) (ability : Ability) : GameState :=
   match ability.effect with
@@ -118,18 +118,18 @@ theorem applyAbilityEffect_preserves_prizes (state : GameState) (ability : Abili
       cases hPlayer : state.activePlayer with
       | playerOne =>
         cases hAct : state.playerOne.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer, hPlayer, hAct]
+          simp [applyAbilityEffect, getPlayerState, setPlayerState, hPlayer, hAct]
       | playerTwo =>
         cases hAct : state.playerTwo.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer, hPlayer, hAct]
+          simp [applyAbilityEffect, getPlayerState, setPlayerState, hPlayer, hAct]
     | heal amount =>
       cases hPlayer : state.activePlayer with
       | playerOne =>
         cases hAct : state.playerOne.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer, hPlayer, hAct]
+          simp [applyAbilityEffect, getPlayerState, setPlayerState, hPlayer, hAct]
       | playerTwo =>
         cases hAct : state.playerTwo.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer, hPlayer, hAct]
+          simp [applyAbilityEffect, getPlayerState, setPlayerState, hPlayer, hAct]
     | addDamage amount =>
       cases hPlayer : state.activePlayer with
       | playerOne =>
@@ -148,34 +148,34 @@ theorem applyAbilityEffect_preserves_totalCardCount (state : GameState) (ability
     cases effect with
     | applyStatus condition =>
       cases hPlayer : state.activePlayer with
-      | playerOne =>
-        cases hAct : state.playerOne.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
-            totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
-      | playerTwo =>
-        cases hAct : state.playerTwo.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
-            totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
+       | playerOne =>
+         cases hAct : state.playerOne.active <;>
+           simp [applyAbilityEffect, getPlayerState, setPlayerState,
+             totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
+       | playerTwo =>
+         cases hAct : state.playerTwo.active <;>
+           simp [applyAbilityEffect, getPlayerState, setPlayerState,
+             totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
     | heal amount =>
-      cases hPlayer : state.activePlayer with
-      | playerOne =>
-        cases hAct : state.playerOne.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
-            totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
-      | playerTwo =>
-        cases hAct : state.playerTwo.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
-            totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
+       cases hPlayer : state.activePlayer with
+       | playerOne =>
+         cases hAct : state.playerOne.active <;>
+           simp [applyAbilityEffect, getPlayerState, setPlayerState,
+             totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
+       | playerTwo =>
+         cases hAct : state.playerTwo.active <;>
+           simp [applyAbilityEffect, getPlayerState, setPlayerState,
+             totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
     | addDamage amount =>
-      cases hPlayer : state.activePlayer with
-      | playerOne =>
-        cases hAct : state.playerTwo.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
-            totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
-      | playerTwo =>
-        cases hAct : state.playerOne.active <;>
-          simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
-            totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
+       cases hPlayer : state.activePlayer with
+       | playerOne =>
+         cases hAct : state.playerTwo.active <;>
+           simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
+             totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
+       | playerTwo =>
+         cases hAct : state.playerOne.active <;>
+           simp [applyAbilityEffect, getPlayerState, setPlayerState, otherPlayer,
+             totalCardCount, playerCardCount, bench_card_count, hPlayer, hAct]
 
 def applyAbility (state : GameState) (abilityState : AbilityState) : Option (GameState × AbilityState) :=
   let player := state.activePlayer

@@ -129,10 +129,10 @@ theorem ratingDelta_add_swap_zero (p1 p2 : PlayerProfile) :
   let b : Int := Int.ofNat (p2.rating + 10)
   have hab : (a - b) + (b - a) = 0 := by
     -- normalize to a cancellative form
-    simp [Int.sub_eq_add_neg, Int.add_assoc, Int.add_left_comm, Int.add_comm]
-    -- goal is `a + (b + (-a + -b)) = 0`
     calc
-      a + (b + (-a + -b)) = a + (-a + (b + -b)) := by
+      (a - b) + (b - a) = (a + -b) + (b + -a) := by
+        simp [Int.sub_eq_add_neg, Int.add_assoc]
+      _ = a + (-a + (b + -b)) := by
         simp [Int.add_assoc, Int.add_left_comm, Int.add_comm]
       _ = b + -b := by
         simpa using (Int.add_neg_cancel_left a (b + -b))
@@ -149,7 +149,7 @@ theorem ratingDelta_add_swap (p1 p2 : PlayerProfile) :
   have hR :
       (Int.ofNat (p1.rating + 10) - Int.ofNat (p1.rating + 10)) +
         (Int.ofNat (p2.rating + 10) - Int.ofNat (p2.rating + 10)) = 0 := by
-    simp [Int.sub_eq_add_neg, Int.add_assoc, Int.add_left_neg, Int.add_right_neg]
+    simp
   exact hL.trans hR.symm
 
 def expectedScore (ratingA ratingB : Nat) : Nat :=

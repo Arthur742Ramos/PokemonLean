@@ -69,7 +69,7 @@ theorem pureBestResponse_mem (s : MixedStrategy) (best : PureStrategy)
     induction support generalizing best with
     | nil =>
         have : False := by
-          simpa [pureBestResponse] using h
+          simp [pureBestResponse] at h
         contradiction
     | cons strat rest ih =>
         cases hRest : pureBestResponse rest with
