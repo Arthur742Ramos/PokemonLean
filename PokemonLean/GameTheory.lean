@@ -324,6 +324,233 @@ theorem evolution_preserves_energy (pokemon : PokemonInPlay) (evolved : Card)
     evolvedPokemon.energy = pokemon.energy := by
   rfl
 
+theorem EvolvesFrom_refl (card : Card) : EvolvesFrom card card := by
+  simp [EvolvesFrom]
+
+theorem EvolvesFrom_trans (a b c : Card) :
+    EvolvesFrom a b → EvolvesFrom b c → EvolvesFrom a c := by
+  intro h1 h2
+  dsimp [EvolvesFrom] at h1 h2
+  exact Nat.le_trans h2 h1
+
+theorem evolutionChain_tail (evolved base : Card) (chain : List Card)
+    (h : EvolutionChain (evolved :: base :: chain)) :
+    EvolutionChain (base :: chain) := by
+  cases h with
+  | evolve evolved' chain' base' hChain hEvolves =>
+    simpa using hChain
+
+theorem evolutionChain_head_evolves (evolved base : Card) (chain : List Card)
+    (h : EvolutionChain (evolved :: base :: chain)) :
+    EvolvesFrom evolved base := by
+  cases h with
+  | evolve evolved' chain' base' hChain hEvolves =>
+    simpa using hEvolves
+
+theorem evolutionChain_length_pos (chain : List Card) (h : EvolutionChain chain) :
+    0 < chain.length := by
+  cases h with
+  | single card => simp
+  | evolve evolved chain base hChain hEvolves => simp
+
+theorem evolution_preserves_status (pokemon : PokemonInPlay) (evolved : Card)
+    (_hEvolves : EvolvesFrom evolved pokemon.card) :
+    let evolvedPokemon := { pokemon with card := evolved }
+    evolvedPokemon.status = pokemon.status := by
+  rfl
+
+theorem evolution_preserves_damage_le (pokemon : PokemonInPlay) (evolved : Card)
+    (hEvolves : EvolvesFrom evolved pokemon.card)
+    (hDamage : pokemon.damage ≤ pokemon.card.hp) :
+    pokemon.damage ≤ evolved.hp := by
+  dsimp [EvolvesFrom] at hEvolves
+  exact Nat.le_trans hDamage hEvolves
+
+-- ============================================================================
+-- EV/IV AND LEVEL-UP MECHANICS
+-- ============================================================================
+
+structure BaseStats where
+  hp : Nat
+  attack : Nat
+  defense : Nat
+  spAttack : Nat
+  spDefense : Nat
+  speed : Nat
+  deriving Repr, BEq, DecidableEq
+
+structure EVs where
+  hp : Nat
+  attack : Nat
+  defense : Nat
+  spAttack : Nat
+  spDefense : Nat
+  speed : Nat
+  deriving Repr, BEq, DecidableEq
+
+structure IVs where
+  hp : Nat
+  attack : Nat
+  defense : Nat
+  spAttack : Nat
+  spDefense : Nat
+  speed : Nat
+  deriving Repr, BEq, DecidableEq
+
+def totalEV (evs : EVs) : Nat :=
+  evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed
+
+def validEVs (evs : EVs) : Prop :=
+  totalEV evs ≤ 510 ∧
+  evs.hp ≤ 252 ∧ evs.attack ≤ 252 ∧ evs.defense ≤ 252 ∧
+  evs.spAttack ≤ 252 ∧ evs.spDefense ≤ 252 ∧ evs.speed ≤ 252
+
+def validIVs (ivs : IVs) : Prop :=
+  ivs.hp ≤ 31 ∧ ivs.attack ≤ 31 ∧ ivs.defense ≤ 31 ∧
+  ivs.spAttack ≤ 31 ∧ ivs.spDefense ≤ 31 ∧ ivs.speed ≤ 31
+
+def levelMultiplier (level : Nat) : Nat :=
+  level + 5
+
+def calcStat (base iv ev level : Nat) : Nat :=
+  (2 * base + iv + ev / 4) * levelMultiplier level / 100 + 5
+
+def calcHP (base iv ev level : Nat) : Nat :=
+  (2 * base + iv + ev / 4) * levelMultiplier level / 100 + level + 10
+
+theorem totalEV_nonneg (evs : EVs) : 0 ≤ totalEV evs := by
+  simp [totalEV]
+
+theorem totalEV_add_hp (evs : EVs) (n : Nat) :
+    totalEV { evs with hp := evs.hp + n } = totalEV evs + n := by
+  calc
+    totalEV { evs with hp := evs.hp + n } =
+        (evs.hp + n) + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed := by
+          simp [totalEV]
+    _ = (evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed) + n := by
+          simp [Nat.add_left_comm, Nat.add_comm]
+    _ = totalEV evs + n := by
+          simp [totalEV]
+
+theorem totalEV_add_attack (evs : EVs) (n : Nat) :
+    totalEV { evs with attack := evs.attack + n } = totalEV evs + n := by
+  calc
+    totalEV { evs with attack := evs.attack + n } =
+        evs.hp + (evs.attack + n) + evs.defense + evs.spAttack + evs.spDefense + evs.speed := by
+          simp [totalEV]
+    _ = (evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed) + n := by
+          simp [Nat.add_left_comm, Nat.add_comm]
+    _ = totalEV evs + n := by
+          simp [totalEV]
+
+theorem totalEV_add_defense (evs : EVs) (n : Nat) :
+    totalEV { evs with defense := evs.defense + n } = totalEV evs + n := by
+  calc
+    totalEV { evs with defense := evs.defense + n } =
+        evs.hp + evs.attack + (evs.defense + n) + evs.spAttack + evs.spDefense + evs.speed := by
+          simp [totalEV]
+    _ = (evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed) + n := by
+          simp [Nat.add_left_comm, Nat.add_comm]
+    _ = totalEV evs + n := by
+          simp [totalEV]
+
+theorem totalEV_add_spAttack (evs : EVs) (n : Nat) :
+    totalEV { evs with spAttack := evs.spAttack + n } = totalEV evs + n := by
+  calc
+    totalEV { evs with spAttack := evs.spAttack + n } =
+        evs.hp + evs.attack + evs.defense + (evs.spAttack + n) + evs.spDefense + evs.speed := by
+          simp [totalEV]
+    _ = (evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed) + n := by
+          simp [Nat.add_left_comm, Nat.add_comm]
+    _ = totalEV evs + n := by
+          simp [totalEV]
+
+theorem totalEV_add_spDefense (evs : EVs) (n : Nat) :
+    totalEV { evs with spDefense := evs.spDefense + n } = totalEV evs + n := by
+  calc
+    totalEV { evs with spDefense := evs.spDefense + n } =
+        evs.hp + evs.attack + evs.defense + evs.spAttack + (evs.spDefense + n) + evs.speed := by
+          simp [totalEV]
+    _ = (evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed) + n := by
+          simp [Nat.add_left_comm, Nat.add_comm]
+    _ = totalEV evs + n := by
+          simp [totalEV]
+
+theorem totalEV_add_speed (evs : EVs) (n : Nat) :
+    totalEV { evs with speed := evs.speed + n } = totalEV evs + n := by
+  calc
+    totalEV { evs with speed := evs.speed + n } =
+        evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + (evs.speed + n) := by
+          simp [totalEV]
+    _ = (evs.hp + evs.attack + evs.defense + evs.spAttack + evs.spDefense + evs.speed) + n := by
+          simp [Nat.add_left_comm, Nat.add_comm]
+    _ = totalEV evs + n := by
+          simp [totalEV]
+
+theorem validEVs_total (evs : EVs) (h : validEVs evs) : totalEV evs ≤ 510 := by
+  exact h.1
+
+theorem validEVs_attack (evs : EVs) (h : validEVs evs) : evs.attack ≤ 252 := by
+  exact h.2.2.1
+
+theorem validEVs_hp (evs : EVs) (h : validEVs evs) : evs.hp ≤ 252 := by
+  exact h.2.1
+
+theorem validEVs_defense (evs : EVs) (h : validEVs evs) : evs.defense ≤ 252 := by
+  exact h.2.2.2.1
+
+theorem validEVs_spAttack (evs : EVs) (h : validEVs evs) : evs.spAttack ≤ 252 := by
+  exact h.2.2.2.2.1
+
+theorem validEVs_spDefense (evs : EVs) (h : validEVs evs) : evs.spDefense ≤ 252 := by
+  exact h.2.2.2.2.2.1
+
+theorem validEVs_speed (evs : EVs) (h : validEVs evs) : evs.speed ≤ 252 := by
+  exact h.2.2.2.2.2.2
+
+theorem validIVs_bounds (ivs : IVs) (h : validIVs ivs) : ivs.hp ≤ 31 := by
+  exact h.1
+
+theorem validIVs_attack (ivs : IVs) (h : validIVs ivs) : ivs.attack ≤ 31 := by
+  exact h.2.1
+
+theorem validIVs_defense (ivs : IVs) (h : validIVs ivs) : ivs.defense ≤ 31 := by
+  exact h.2.2.1
+
+theorem validIVs_spAttack (ivs : IVs) (h : validIVs ivs) : ivs.spAttack ≤ 31 := by
+  exact h.2.2.2.1
+
+theorem validIVs_spDefense (ivs : IVs) (h : validIVs ivs) : ivs.spDefense ≤ 31 := by
+  exact h.2.2.2.2.1
+
+theorem validIVs_speed (ivs : IVs) (h : validIVs ivs) : ivs.speed ≤ 31 := by
+  exact h.2.2.2.2.2
+
+theorem levelMultiplier_pos (level : Nat) : levelMultiplier level ≥ 5 := by
+  simp [levelMultiplier]
+
+theorem levelMultiplier_mono (level level' : Nat) (h : level ≤ level') :
+    levelMultiplier level ≤ levelMultiplier level' := by
+  simpa [levelMultiplier] using Nat.add_le_add_right h 5
+
+theorem calcStat_ge_five (base iv ev level : Nat) :
+    5 ≤ calcStat base iv ev level := by
+  simp [calcStat, Nat.le_add_left]
+
+theorem calcStat_zero (level : Nat) : calcStat 0 0 0 level = 5 := by
+  simp [calcStat, levelMultiplier]
+
+theorem calcHP_ge_level (base iv ev level : Nat) :
+    level ≤ calcHP base iv ev level := by
+  have h1 : level ≤ level + 10 := Nat.le_add_right _ _
+  have h2 : level + 10 ≤ (2 * base + iv + ev / 4) * levelMultiplier level / 100 + (level + 10) :=
+    Nat.le_add_left _ _
+  have h3 : level ≤ (2 * base + iv + ev / 4) * levelMultiplier level / 100 + (level + 10) :=
+    Nat.le_trans h1 h2
+  simpa [calcHP] using h3
+
+theorem calcHP_zero (level : Nat) : calcHP 0 0 0 level = level + 10 := by
+  simp [calcHP, levelMultiplier]
 -- ============================================================================
 -- CARD WELL-FORMEDNESS
 -- ============================================================================
@@ -410,6 +637,45 @@ def applyStadiumEffect (stadium : Stadium) (state : GameState) : GameState :=
   | .modifyRetreatCost _ => state
   | .drawOnAttach _ => state
 
+theorem applyStadiumEffect_modifyRetreatCost (state : GameState) (delta : Int) :
+    applyStadiumEffect { name := "", effect := .modifyRetreatCost delta } state = state := by
+  rfl
+
+theorem applyStadiumEffect_drawOnAttach (state : GameState) (count : Nat) :
+    applyStadiumEffect { name := "", effect := .drawOnAttach count } state = state := by
+  rfl
+
+theorem applyStadiumEffect_healAll_active_none (state : GameState) (amount : Nat)
+    (hNone : state.playerOne.active = none) :
+    (applyStadiumEffect { name := "", effect := .healAllPokemon amount } state).playerOne.active = none := by
+  simp [applyStadiumEffect, hNone]
+
+theorem applyStadiumEffect_damageAll_active_none (state : GameState) (amount : Nat)
+    (hNone : state.playerOne.active = none) :
+    (applyStadiumEffect { name := "", effect := .damageAllPokemon amount } state).playerOne.active = none := by
+  simp [applyStadiumEffect, hNone]
+
+theorem applyStadiumEffect_healAll_preserves_bench_length (state : GameState) (amount : Nat) :
+    (applyStadiumEffect { name := "", effect := .healAllPokemon amount } state).playerOne.bench.length =
+      state.playerOne.bench.length := by
+  simp [applyStadiumEffect, List.length_map]
+
+theorem applyStadiumEffect_damageAll_preserves_bench_length (state : GameState) (amount : Nat) :
+    (applyStadiumEffect { name := "", effect := .damageAllPokemon amount } state).playerOne.bench.length =
+      state.playerOne.bench.length := by
+  simp [applyStadiumEffect, List.length_map]
+
+
+
+theorem applyStadiumEffect_healAll_preserves_active_none (state : GameState) (amount : Nat)
+    (hNone : state.playerTwo.active = none) :
+    (applyStadiumEffect { name := "", effect := .healAllPokemon amount } state).playerTwo.active = none := by
+  simp [applyStadiumEffect, hNone]
+
+theorem applyStadiumEffect_damageAll_preserves_active_none (state : GameState) (amount : Nat)
+    (hNone : state.playerTwo.active = none) :
+    (applyStadiumEffect { name := "", effect := .damageAllPokemon amount } state).playerTwo.active = none := by
+  simp [applyStadiumEffect, hNone]
 -- ============================================================================
 -- PROGRESS METRICS
 -- ============================================================================
@@ -424,6 +690,53 @@ def progressMetric (player : PlayerId) (state : GameState) : Nat :=
     | some p => p.card.hp - p.damage
   prizesRemaining * 1000 + activeHp
 
+theorem progressMetric_zero_of_no_prizes_no_active (player : PlayerId) (state : GameState)
+    (hPrizes : (getPlayerState state (otherPlayer player)).prizes = [])
+    (hActive : (getPlayerState state (otherPlayer player)).active = none) :
+    progressMetric player state = 0 := by
+  simp [progressMetric, hPrizes, hActive]
+
+theorem progressMetric_zero_of_no_prizes_active_none (player : PlayerId) (state : GameState)
+    (hPrizes : (getPlayerState state (otherPlayer player)).prizes.isEmpty = true)
+    (hActive : (getPlayerState state (otherPlayer player)).active = none) :
+    progressMetric player state = 0 := by
+  have hPrizes' : (getPlayerState state (otherPlayer player)).prizes = [] := by
+    cases h : (getPlayerState state (otherPlayer player)).prizes with
+    | nil =>
+      rfl
+    | cons prize rest =>
+      simp [h] at hPrizes
+  simp [progressMetric, hPrizes', hActive]
+
+theorem progressMetric_pos_of_prizes (player : PlayerId) (state : GameState)
+    (hPrizes : (getPlayerState state (otherPlayer player)).prizes ≠ []) :
+    0 < progressMetric player state := by
+  cases h : (getPlayerState state (otherPlayer player)).prizes with
+  | nil =>
+    cases hPrizes (by simp [h])
+  | cons prize rest =>
+    have hPos : 0 < (rest.length + 1) * 1000 := by
+      have h1 : 0 < rest.length + 1 := Nat.succ_pos _
+      exact Nat.mul_pos h1 (by decide : 0 < (1000:Nat))
+    have hSum : 0 <
+        (rest.length + 1) * 1000 +
+        match (getPlayerState state (otherPlayer player)).active with
+        | none => 0
+        | some p => p.card.hp - p.damage := by
+      exact Nat.lt_of_lt_of_le hPos (Nat.le_add_right _ _)
+    simpa [progressMetric, h] using hSum
+
+
+
+theorem progressMetric_ge_active_hp (player : PlayerId) (state : GameState) :
+    match (getPlayerState state (otherPlayer player)).active with
+    | none => 0 ≤ progressMetric player state
+    | some p => p.card.hp - p.damage ≤ progressMetric player state := by
+  cases h : (getPlayerState state (otherPlayer player)).active with
+  | none =>
+    simp [progressMetric, h]
+  | some p =>
+    simp [progressMetric, h]
 /-- Game complexity bound by total cards in play. -/
 def gameComplexityBound (state : GameState) : Nat :=
   state.playerOne.deck.length + state.playerTwo.deck.length +
@@ -435,6 +748,20 @@ def hasWonGame (player : PlayerId) (state : GameState) : Prop :=
   let opponent := otherPlayer player
   let opponentState := getPlayerState state opponent
   opponentState.prizes.isEmpty ∨ opponentState.active.isNone
+
+theorem hasWonGame_prizes_empty (player : PlayerId) (state : GameState)
+    (hEmpty : (getPlayerState state (otherPlayer player)).prizes = []) :
+    hasWonGame player state := by
+  unfold hasWonGame
+  left
+  simp [hEmpty]
+
+theorem hasWonGame_no_active (player : PlayerId) (state : GameState)
+    (hNone : (getPlayerState state (otherPlayer player)).active = none) :
+    hasWonGame player state := by
+  unfold hasWonGame
+  right
+  simp [hNone]
 
 -- ============================================================================
 -- MULTI-PRIZE KNOCKOUTS (EX/V/VMAX Pokemon)
@@ -555,6 +882,1029 @@ def countWellFormed (corpus : List Card) : Nat :=
   corpus.filter checkWellFormed |>.length
 
 -- ============================================================================
+-- TYPE SYSTEM THEORY
+-- ============================================================================
+
+/-- Base effectiveness multiplier for attacker vs defender. -/
+def typeMultiplier (attacker defender : EnergyType) : Nat :=
+  match attacker, defender with
+  | .fire, .grass => 2
+  | .water, .fire => 2
+  | .grass, .water => 2
+  | .lightning, .water => 2
+  | .fighting, .colorless => 2
+  | .psychic, .fighting => 2
+  | .dark, .psychic => 2
+  | .metal, .fairy => 2
+  | .fairy, .dragon => 2
+  | .dragon, .dark => 2
+  | .colorless, .fighting => 2
+  | _, _ => 1
+
+/-- Type effectiveness as a proposition. -/
+def TypeEffective (attacker defender : EnergyType) : Prop :=
+  typeMultiplier attacker defender = 2
+
+/-- A list of defending types is covered if some type is effective. -/
+def TypeCoverage (attacker : EnergyType) (defenders : List EnergyType) : Prop :=
+  ∃ d ∈ defenders, TypeEffective attacker d
+
+/-- Dual-type effectiveness: either component gives effectiveness. -/
+def DualTypeEffective (attacker : EnergyType) (def1 def2 : EnergyType) : Prop :=
+  TypeEffective attacker def1 ∨ TypeEffective attacker def2
+
+/-- All types a single attacker hits for effectiveness. -/
+def typeCoverageList (attacker : EnergyType) : List EnergyType :=
+  allEnergyTypes.filter (fun defender => decide (typeMultiplier attacker defender = 2))
+
+theorem typeMultiplier_pos (attacker defender : EnergyType) : typeMultiplier attacker defender ≥ 1 := by
+  cases attacker <;> cases defender <;> simp [typeMultiplier]
+
+theorem typeMultiplier_self (t : EnergyType) : typeMultiplier t t = 1 := by
+  cases t <;> simp [typeMultiplier]
+
+theorem typeMultiplier_le_two (attacker defender : EnergyType) : typeMultiplier attacker defender ≤ 2 := by
+  cases attacker <;> cases defender <;> simp [typeMultiplier]
+
+theorem typeMultiplier_eq_one_or_two (attacker defender : EnergyType) :
+    typeMultiplier attacker defender = 1 ∨ typeMultiplier attacker defender = 2 := by
+  cases attacker <;> cases defender <;> simp [typeMultiplier]
+
+theorem typeEffective_iff (attacker defender : EnergyType) :
+    TypeEffective attacker defender ↔ typeMultiplier attacker defender = 2 := by
+  rfl
+
+theorem typeEffective_not_self (t : EnergyType) : ¬ TypeEffective t t := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_fire_grass : TypeEffective .fire .grass := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_water_fire : TypeEffective .water .fire := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_grass_water : TypeEffective .grass .water := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_lightning_water : TypeEffective .lightning .water := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_fighting_colorless : TypeEffective .fighting .colorless := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_psychic_fighting : TypeEffective .psychic .fighting := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_dark_psychic : TypeEffective .dark .psychic := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_metal_fairy : TypeEffective .metal .fairy := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_fairy_dragon : TypeEffective .fairy .dragon := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_dragon_dark : TypeEffective .dragon .dark := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_colorless_fighting : TypeEffective .colorless .fighting := by
+  simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_fire_iff (defender : EnergyType) :
+    TypeEffective .fire defender ↔ defender = .grass := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_water_iff (defender : EnergyType) :
+    TypeEffective .water defender ↔ defender = .fire := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_grass_iff (defender : EnergyType) :
+    TypeEffective .grass defender ↔ defender = .water := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_lightning_iff (defender : EnergyType) :
+    TypeEffective .lightning defender ↔ defender = .water := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_psychic_iff (defender : EnergyType) :
+    TypeEffective .psychic defender ↔ defender = .fighting := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_fighting_iff (defender : EnergyType) :
+    TypeEffective .fighting defender ↔ defender = .colorless := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_dark_iff (defender : EnergyType) :
+    TypeEffective .dark defender ↔ defender = .psychic := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_metal_iff (defender : EnergyType) :
+    TypeEffective .metal defender ↔ defender = .fairy := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_fairy_iff (defender : EnergyType) :
+    TypeEffective .fairy defender ↔ defender = .dragon := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_dragon_iff (defender : EnergyType) :
+    TypeEffective .dragon defender ↔ defender = .dark := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeEffective_colorless_iff (defender : EnergyType) :
+    TypeEffective .colorless defender ↔ defender = .fighting := by
+  cases defender <;> simp [TypeEffective, typeMultiplier]
+
+theorem typeCoverageList_mem_iff (attacker defender : EnergyType) :
+    defender ∈ typeCoverageList attacker ↔ TypeEffective attacker defender := by
+  constructor
+  · intro h
+    have h' := (List.mem_filter.mp h).2
+    simpa [TypeEffective] using h'
+  · intro h
+    have hMem : defender ∈ allEnergyTypes := by
+      cases defender <;> simp [allEnergyTypes]
+    exact (List.mem_filter.mpr ⟨hMem, by simpa [TypeEffective] using h⟩)
+
+theorem typeCoverageList_sound (attacker defender : EnergyType) :
+    defender ∈ typeCoverageList attacker → TypeEffective attacker defender := by
+  intro h
+  have h' := (List.mem_filter.mp h).2
+  simpa [TypeEffective] using h'
+
+theorem typeCoverageList_subset_all (attacker defender : EnergyType) :
+    defender ∈ typeCoverageList attacker → defender ∈ allEnergyTypes := by
+  intro h
+  exact (List.mem_filter.mp h).1
+
+theorem typeCoverageList_complete (attacker defender : EnergyType) :
+    TypeEffective attacker defender → defender ∈ typeCoverageList attacker := by
+  intro h
+  have hMem : defender ∈ allEnergyTypes := by
+    cases defender <;> simp [allEnergyTypes]
+  exact (List.mem_filter.mpr ⟨hMem, by simpa [TypeEffective] using h⟩)
+
+theorem typeCoverageList_iff (attacker defender : EnergyType) :
+    defender ∈ typeCoverageList attacker ↔ TypeEffective attacker defender := by
+  constructor
+  · exact typeCoverageList_sound attacker defender
+  · exact typeCoverageList_complete attacker defender
+
+theorem typeEffective_exists (attacker : EnergyType) : ∃ defender, TypeEffective attacker defender := by
+  cases attacker with
+  | fire =>
+    refine ⟨.grass, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | water =>
+    refine ⟨.fire, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | grass =>
+    refine ⟨.water, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | lightning =>
+    refine ⟨.water, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | psychic =>
+    refine ⟨.fighting, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | fighting =>
+    refine ⟨.colorless, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | dark =>
+    refine ⟨.psychic, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | metal =>
+    refine ⟨.fairy, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | fairy =>
+    refine ⟨.dragon, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | dragon =>
+    refine ⟨.dark, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+  | colorless =>
+    refine ⟨.fighting, ?_⟩
+    simp [TypeEffective, typeMultiplier]
+
+theorem typeCoverageList_nonempty (attacker : EnergyType) :
+    typeCoverageList attacker ≠ [] := by
+  intro hEmpty
+  have ⟨defender, hEff⟩ := typeEffective_exists attacker
+  have hMem : defender ∈ typeCoverageList attacker := typeCoverageList_complete attacker defender hEff
+  exact (List.ne_nil_of_mem hMem) hEmpty
+
+theorem typeCoverageList_length_pos (attacker : EnergyType) :
+    0 < (typeCoverageList attacker).length := by
+  cases h : typeCoverageList attacker with
+  | nil =>
+    cases (typeCoverageList_nonempty attacker) (by simp [h])
+  | cons d rest =>
+    simp
+
+theorem typeCoverageList_no_self (t : EnergyType) : t ∉ typeCoverageList t := by
+  intro h
+  exact typeEffective_not_self t (typeCoverageList_sound t t h)
+
+theorem typeCoverage_mem (attacker defender : EnergyType) :
+    TypeEffective attacker defender → TypeCoverage attacker [defender] := by
+  intro h
+  exact ⟨defender, by simp, h⟩
+
+theorem typeCoverage_singleton (attacker defender : EnergyType) :
+    TypeCoverage attacker [defender] ↔ TypeEffective attacker defender := by
+  constructor
+  · intro h
+    rcases h with ⟨d, hMem, hEff⟩
+    have hEq : d = defender := by simpa using hMem
+    simpa [hEq] using hEff
+  · intro h
+    exact typeCoverage_mem attacker defender h
+
+theorem typeCoverage_cons (attacker : EnergyType) (defender : EnergyType) (defenders : List EnergyType) :
+    TypeCoverage attacker (defender :: defenders) ↔
+      TypeEffective attacker defender ∨ TypeCoverage attacker defenders := by
+  constructor
+  · intro h
+    rcases h with ⟨d, hMem, hEff⟩
+    have hMem' : d = defender ∨ d ∈ defenders := by
+      simpa using hMem
+    cases hMem' with
+    | inl hEq =>
+      left
+      simpa [hEq] using hEff
+    | inr hIn =>
+      right
+      exact ⟨d, hIn, hEff⟩
+  · intro h
+    cases h with
+    | inl hEff =>
+      exact ⟨defender, by simp, hEff⟩
+    | inr hCov =>
+      rcases hCov with ⟨d, hIn, hEff⟩
+      exact ⟨d, by simp [hIn], hEff⟩
+
+theorem typeCoverage_pair (attacker : EnergyType) (d1 d2 : EnergyType) :
+    TypeCoverage attacker [d1, d2] ↔ TypeEffective attacker d1 ∨ TypeEffective attacker d2 := by
+  simpa [typeCoverage_singleton] using (typeCoverage_cons attacker d1 [d2])
+
+theorem typeCoverage_append (attacker : EnergyType) (defenders1 defenders2 : List EnergyType) :
+    TypeCoverage attacker (defenders1 ++ defenders2) ↔
+      TypeCoverage attacker defenders1 ∨ TypeCoverage attacker defenders2 := by
+  constructor
+  · intro h
+    rcases h with ⟨d, hMem, hEff⟩
+    have hMem' : d ∈ defenders1 ∨ d ∈ defenders2 := by
+      simpa [List.mem_append] using hMem
+    cases hMem' with
+    | inl hIn =>
+      exact Or.inl ⟨d, hIn, hEff⟩
+    | inr hIn =>
+      exact Or.inr ⟨d, hIn, hEff⟩
+  · intro h
+    cases h with
+    | inl hCov =>
+      rcases hCov with ⟨d, hIn, hEff⟩
+      exact ⟨d, by simp [hIn], hEff⟩
+    | inr hCov =>
+      rcases hCov with ⟨d, hIn, hEff⟩
+      exact ⟨d, by simp [hIn], hEff⟩
+
+theorem typeCoverage_append_left (attacker : EnergyType) (defenders1 defenders2 : List EnergyType) :
+    TypeCoverage attacker defenders1 → TypeCoverage attacker (defenders1 ++ defenders2) := by
+  intro h
+  exact (typeCoverage_append attacker defenders1 defenders2).2 (Or.inl h)
+
+theorem typeCoverage_append_right (attacker : EnergyType) (defenders1 defenders2 : List EnergyType) :
+    TypeCoverage attacker defenders2 → TypeCoverage attacker (defenders1 ++ defenders2) := by
+  intro h
+  exact (typeCoverage_append attacker defenders1 defenders2).2 (Or.inr h)
+
+theorem dualTypeEffective_symm (attacker : EnergyType) (d1 d2 : EnergyType) :
+    DualTypeEffective attacker d1 d2 ↔ DualTypeEffective attacker d2 d1 := by
+  constructor <;> intro h <;> cases h with
+  | inl h1 => exact Or.inr h1
+  | inr h2 => exact Or.inl h2
+
+theorem dualTypeEffective_left (attacker : EnergyType) (d1 d2 : EnergyType) :
+    TypeEffective attacker d1 → DualTypeEffective attacker d1 d2 := by
+  intro h
+  exact Or.inl h
+
+theorem dualTypeEffective_right (attacker : EnergyType) (d1 d2 : EnergyType) :
+    TypeEffective attacker d2 → DualTypeEffective attacker d1 d2 := by
+  intro h
+  exact Or.inr h
+
+-- ============================================================================
+-- TYPE COMBINATIONS
+-- ============================================================================
+
+/-- Coverage list for a pair of attacking types. -/
+def typePairCoverageList (attacker1 attacker2 : EnergyType) : List EnergyType :=
+  allEnergyTypes.filter (fun defender =>
+    (typeMultiplier attacker1 defender == 2) || (typeMultiplier attacker2 defender == 2))
+
+def typePairCovers (attacker1 attacker2 defender : EnergyType) : Bool :=
+  (typeMultiplier attacker1 defender == 2) || (typeMultiplier attacker2 defender == 2)
+
+theorem typePairCoverageList_iff (attacker1 attacker2 defender : EnergyType) :
+    defender ∈ typePairCoverageList attacker1 attacker2 ↔ typePairCovers attacker1 attacker2 defender = true := by
+  constructor
+  · intro h
+    have h' := (List.mem_filter.mp h).2
+    simpa [typePairCovers] using h'
+  · intro h
+    have hMem : defender ∈ allEnergyTypes := by
+      cases defender <;> simp [allEnergyTypes]
+    exact (List.mem_filter.mpr ⟨hMem, by simpa [typePairCovers] using h⟩)
+
+theorem typePairCoverageList_subset_all (attacker1 attacker2 defender : EnergyType) :
+    defender ∈ typePairCoverageList attacker1 attacker2 → defender ∈ allEnergyTypes := by
+  intro h
+  exact (List.mem_filter.mp h).1
+theorem typePairCovers_comm (attacker1 attacker2 defender : EnergyType) :
+    typePairCovers attacker1 attacker2 defender = typePairCovers attacker2 attacker1 defender := by
+  simp [typePairCovers, Bool.or_comm]
+
+theorem typePairCovers_self (attacker defender : EnergyType) :
+    typePairCovers attacker attacker defender = (typeMultiplier attacker defender == 2) := by
+  simp [typePairCovers, Bool.or_self]
+
+theorem typePairCoverage_member (attacker1 attacker2 defender : EnergyType) :
+    TypeEffective attacker1 defender ∨ TypeEffective attacker2 defender →
+    defender ∈ typePairCoverageList attacker1 attacker2 := by
+  intro h
+  have hMem : defender ∈ allEnergyTypes := by
+    cases defender <;> simp [allEnergyTypes]
+  have hCovers : typePairCovers attacker1 attacker2 defender = true := by
+    cases h with
+    | inl h1 =>
+      have hOr : typeMultiplier attacker1 defender = 2 ∨ typeMultiplier attacker2 defender = 2 := by
+        left
+        simpa [TypeEffective] using h1
+      simpa [typePairCovers] using hOr
+    | inr h2 =>
+      have hOr : typeMultiplier attacker1 defender = 2 ∨ typeMultiplier attacker2 defender = 2 := by
+        right
+        simpa [TypeEffective] using h2
+      simpa [typePairCovers] using hOr
+  exact (List.mem_filter.mpr ⟨hMem, by simpa [typePairCovers] using hCovers⟩)
+
+theorem typePairCoverageList_nonempty (attacker1 attacker2 : EnergyType) :
+    typePairCoverageList attacker1 attacker2 ≠ [] := by
+  intro hEmpty
+  have ⟨defender, hEff⟩ := typeEffective_exists attacker1
+  have hMem := typePairCoverage_member attacker1 attacker2 defender (Or.inl hEff)
+  exact (List.ne_nil_of_mem hMem) hEmpty
+
+theorem typePairCoverageList_length_pos (attacker1 attacker2 : EnergyType) :
+    0 < (typePairCoverageList attacker1 attacker2).length := by
+  cases h : typePairCoverageList attacker1 attacker2 with
+  | nil =>
+    cases (typePairCoverageList_nonempty attacker1 attacker2) (by simp [h])
+  | cons d rest =>
+    simp
+
+theorem typePairCoverageList_self_length_pos (attacker : EnergyType) :
+    0 < (typePairCoverageList attacker attacker).length := by
+  cases h : typePairCoverageList attacker attacker with
+  | nil =>
+    cases (typePairCoverageList_nonempty attacker attacker) (by simp [h])
+  | cons d rest =>
+    simp
+
+-- ============================================================================
+-- TEAM THEORY
+-- ============================================================================
+
+def DeckSubset (deck1 deck2 : List Card) : Prop :=
+  ∀ card ∈ deck1, card ∈ deck2
+
+theorem deckSubset_nil_left (deck : List Card) : DeckSubset [] deck := by
+  intro card hMem
+  cases hMem
+
+theorem deckSubset_refl (deck : List Card) : DeckSubset deck deck := by
+  intro card hMem
+  exact hMem
+
+theorem deckSubset_trans (deck1 deck2 deck3 : List Card)
+    (h12 : DeckSubset deck1 deck2) (h23 : DeckSubset deck2 deck3) :
+    DeckSubset deck1 deck3 := by
+  intro card hMem
+  exact h23 card (h12 card hMem)
+
+theorem deckSubset_append_left (deck1 deck2 : List Card) :
+    DeckSubset deck1 (deck1 ++ deck2) := by
+  intro card hMem
+  exact (List.mem_append.mpr (Or.inl hMem))
+
+theorem deckSubset_append_right (deck1 deck2 : List Card) :
+    DeckSubset deck2 (deck1 ++ deck2) := by
+  intro card hMem
+  exact (List.mem_append.mpr (Or.inr hMem))
+
+theorem deckSubset_cons_iff (card : Card) (deck1 deck2 : List Card) :
+    DeckSubset (card :: deck1) deck2 ↔ card ∈ deck2 ∧ DeckSubset deck1 deck2 := by
+  constructor
+  · intro h
+    have hCard : card ∈ deck2 := h card (by simp)
+    have hRest : DeckSubset deck1 deck2 := by
+      intro c hMem
+      exact h c (by simp [hMem])
+    exact ⟨hCard, hRest⟩
+  · intro h
+    rcases h with ⟨hCard, hRest⟩
+    intro c hMem
+    have hMem' : c = card ∨ c ∈ deck1 := by simpa using hMem
+    cases hMem' with
+    | inl hEq =>
+      simpa [hEq] using hCard
+    | inr hIn =>
+      exact hRest c hIn
+
+def TeamCoverage (deck : List Card) (defender : EnergyType) : Prop :=
+  ∃ card ∈ deck, TypeEffective card.energyType defender
+
+theorem teamCoverage_of_mem (card : Card) (deck : List Card) (defender : EnergyType)
+    (hMem : card ∈ deck) (hEff : TypeEffective card.energyType defender) :
+    TeamCoverage deck defender := by
+  exact ⟨card, hMem, hEff⟩
+
+theorem teamCoverage_singleton (card : Card) (defender : EnergyType) :
+    TeamCoverage [card] defender ↔ TypeEffective card.energyType defender := by
+  constructor
+  · intro h
+    rcases h with ⟨c, hMem, hEff⟩
+    have hEq : c = card := by simpa using hMem
+    simpa [hEq] using hEff
+  · intro h
+    exact ⟨card, by simp, h⟩
+
+theorem teamCoverage_cons (card : Card) (deck : List Card) (defender : EnergyType) :
+    TeamCoverage (card :: deck) defender ↔
+      TypeEffective card.energyType defender ∨ TeamCoverage deck defender := by
+  constructor
+  · intro h
+    rcases h with ⟨c, hMem, hEff⟩
+    have hMem' : c = card ∨ c ∈ deck := by simpa using hMem
+    cases hMem' with
+    | inl hEq =>
+      left
+      simpa [hEq] using hEff
+    | inr hIn =>
+      right
+      exact ⟨c, hIn, hEff⟩
+  · intro h
+    cases h with
+    | inl hEff =>
+      exact ⟨card, by simp, hEff⟩
+    | inr hCov =>
+      rcases hCov with ⟨c, hIn, hEff⟩
+      exact ⟨c, by simp [hIn], hEff⟩
+
+theorem teamCoverage_append (deck1 deck2 : List Card) (defender : EnergyType) :
+    TeamCoverage (deck1 ++ deck2) defender ↔
+      TeamCoverage deck1 defender ∨ TeamCoverage deck2 defender := by
+  constructor
+  · intro h
+    rcases h with ⟨c, hMem, hEff⟩
+    have hMem' : c ∈ deck1 ∨ c ∈ deck2 := by
+      simpa [List.mem_append] using hMem
+    cases hMem' with
+    | inl hIn =>
+      exact Or.inl ⟨c, hIn, hEff⟩
+    | inr hIn =>
+      exact Or.inr ⟨c, hIn, hEff⟩
+  · intro h
+    cases h with
+    | inl hCov =>
+      rcases hCov with ⟨c, hIn, hEff⟩
+      exact ⟨c, by simp [hIn], hEff⟩
+    | inr hCov =>
+      rcases hCov with ⟨c, hIn, hEff⟩
+      exact ⟨c, by simp [hIn], hEff⟩
+
+theorem teamCoverage_append_iff_left (deck1 deck2 : List Card) (defender : EnergyType) :
+    TeamCoverage (deck1 ++ deck2) defender → deck2 = [] → TeamCoverage deck1 defender := by
+  intro h hEmpty
+  simpa [hEmpty] using h
+
+theorem teamCoverage_append_left (deck1 deck2 : List Card) (defender : EnergyType) :
+    TeamCoverage deck1 defender → TeamCoverage (deck1 ++ deck2) defender := by
+  intro h
+  exact (teamCoverage_append deck1 deck2 defender).2 (Or.inl h)
+
+theorem teamCoverage_append_right (deck1 deck2 : List Card) (defender : EnergyType) :
+    TeamCoverage deck2 defender → TeamCoverage (deck1 ++ deck2) defender := by
+  intro h
+  exact (teamCoverage_append deck1 deck2 defender).2 (Or.inr h)
+
+theorem teamCoverage_pair (c1 c2 : Card) (defender : EnergyType) :
+    TeamCoverage [c1, c2] defender ↔
+      TypeEffective c1.energyType defender ∨ TypeEffective c2.energyType defender := by
+  constructor
+  · intro h
+    have h' := (teamCoverage_cons c1 [c2] defender).1 h
+    cases h' with
+    | inl h1 => exact Or.inl h1
+    | inr h2 =>
+      exact Or.inr ((teamCoverage_singleton c2 defender).1 h2)
+  · intro h
+    cases h with
+    | inl h1 =>
+      exact (teamCoverage_cons c1 [c2] defender).2 (Or.inl h1)
+    | inr h2 =>
+      have h2' := (teamCoverage_singleton c2 defender).2 h2
+      exact (teamCoverage_cons c1 [c2] defender).2 (Or.inr h2')
+
+theorem teamCoverage_mono (deck1 deck2 : List Card) (defender : EnergyType)
+    (hSub : DeckSubset deck1 deck2) :
+    TeamCoverage deck1 defender → TeamCoverage deck2 defender := by
+  intro h
+  rcases h with ⟨card, hIn, hEff⟩
+  exact ⟨card, hSub card hIn, hEff⟩
+
+theorem teamCoverage_exists (deck : List Card) (hNonempty : deck ≠ []) :
+    ∃ defender, TeamCoverage deck defender := by
+  cases hDeck : deck with
+  | nil =>
+    cases hNonempty (by simp [hDeck])
+  | cons card rest =>
+    have ⟨defender, hEff⟩ := typeEffective_exists card.energyType
+    exact ⟨defender, ⟨card, by simp, hEff⟩⟩
+
+theorem teamCoverage_nonempty (deck : List Card) (defender : EnergyType) :
+    TeamCoverage deck defender → deck ≠ [] := by
+  intro hCov hEmpty
+  rcases hCov with ⟨card, hMem, _⟩
+  have : card ∈ ([] : List Card) := by simp [hEmpty] at hMem
+  cases this
+
+theorem teamCoverage_pair_symm (c1 c2 : Card) (defender : EnergyType) :
+    TeamCoverage [c1, c2] defender ↔ TeamCoverage [c2, c1] defender := by
+  constructor
+  · intro h
+    have h' := (teamCoverage_pair c1 c2 defender).1 h
+    have h'' : TypeEffective c2.energyType defender ∨ TypeEffective c1.energyType defender := by
+      simpa [Or.comm] using h'
+    exact (teamCoverage_pair c2 c1 defender).2 h''
+  · intro h
+    have h' := (teamCoverage_pair c2 c1 defender).1 h
+    have h'' : TypeEffective c1.energyType defender ∨ TypeEffective c2.energyType defender := by
+      simpa [Or.comm] using h'
+    exact (teamCoverage_pair c1 c2 defender).2 h''
+
+theorem teamCoverage_pair_left (c1 c2 : Card) (defender : EnergyType)
+    (h : TypeEffective c1.energyType defender) :
+    TeamCoverage [c1, c2] defender := by
+  exact (teamCoverage_pair c1 c2 defender).2 (Or.inl h)
+
+theorem teamCoverage_pair_right (c1 c2 : Card) (defender : EnergyType)
+    (h : TypeEffective c2.energyType defender) :
+    TeamCoverage [c1, c2] defender := by
+  exact (teamCoverage_pair c1 c2 defender).2 (Or.inr h)
+theorem typePairCoverage_symm (attacker1 attacker2 : EnergyType) :
+    typePairCoverageList attacker1 attacker2 = typePairCoverageList attacker2 attacker1 := by
+  ext defender
+  simp [typePairCoverageList, Bool.or_comm]
+
+theorem typePairCoverage_left (attacker1 attacker2 defender : EnergyType) :
+    TypeEffective attacker1 defender → defender ∈ typePairCoverageList attacker1 attacker2 := by
+  intro h
+  have hMem : defender ∈ allEnergyTypes := by
+    cases defender <;> simp [allEnergyTypes]
+  have hOr : typeMultiplier attacker1 defender = 2 ∨ typeMultiplier attacker2 defender = 2 := by
+    left
+    simpa [TypeEffective] using h
+  exact (List.mem_filter.mpr ⟨hMem, by
+    simpa [typePairCoverageList] using hOr⟩)
+
+theorem typePairCoverage_right (attacker1 attacker2 defender : EnergyType) :
+    TypeEffective attacker2 defender → defender ∈ typePairCoverageList attacker1 attacker2 := by
+  intro h
+  have hMem : defender ∈ allEnergyTypes := by
+    cases defender <;> simp [allEnergyTypes]
+  have hOr : typeMultiplier attacker1 defender = 2 ∨ typeMultiplier attacker2 defender = 2 := by
+    right
+    simpa [TypeEffective] using h
+  exact (List.mem_filter.mpr ⟨hMem, by
+    simpa [typePairCoverageList] using hOr⟩)
+
+-- ============================================================================
+-- TURN ORDER & STAT STAGES
+-- ============================================================================
+
+/-- Action priority (higher acts first). -/
+inductive MovePriority
+  | veryLow
+  | low
+  | normal
+  | high
+  | veryHigh
+  deriving Repr, BEq, DecidableEq
+
+def priorityValue : MovePriority → Int
+  | .veryLow => -2
+  | .low => -1
+  | .normal => 0
+  | .high => 1
+  | .veryHigh => 2
+
+theorem priorityValue_ordered (p1 p2 : MovePriority) :
+    priorityValue p1 < priorityValue p2 → p1 ≠ p2 := by
+  intro h hEq
+  cases hEq
+  exact (Int.lt_irrefl _ h)
+
+def winsPriority (p1 p2 : MovePriority) : Bool :=
+  priorityValue p2 < priorityValue p1
+
+theorem winsPriority_irreflexive (p : MovePriority) : winsPriority p p = false := by
+  cases p <;> rfl
+
+theorem winsPriority_swap (p1 p2 : MovePriority) :
+    winsPriority p1 p2 = true → winsPriority p2 p1 = false := by
+  intro h
+  cases p1 <;> cases p2 <;> simp [winsPriority, priorityValue] at h ⊢
+
+
+@[simp] theorem winsPriority_high_normal : winsPriority .high .normal = true := by
+  simp [winsPriority, priorityValue]
+
+@[simp] theorem winsPriority_normal_high : winsPriority .normal .high = false := by
+  simp [winsPriority, priorityValue]
+
+@[simp] theorem winsPriority_veryHigh_high : winsPriority .veryHigh .high = true := by
+  simp [winsPriority, priorityValue]
+
+@[simp] theorem winsPriority_low_normal : winsPriority .low .normal = false := by
+  simp [winsPriority, priorityValue]
+/-- Stat stage between -6 and 6 (bounded). -/
+structure StatStage where
+  val : Int
+  lower : -6 ≤ val
+  upper : val ≤ 6
+
+def clampStage (stage : Int) : StatStage :=
+  if hLow : stage < -6 then
+    { val := -6
+      lower := by simp
+      upper := by simp }
+  else if hHigh : stage > 6 then
+    { val := 6
+      lower := by simp
+      upper := by simp }
+  else
+    { val := stage
+      lower := by
+        exact Int.le_of_not_gt hLow
+      upper := by
+        exact Int.le_of_not_gt hHigh }
+
+theorem clampStage_le (stage : Int) : (clampStage stage).val ≤ 6 := by
+  unfold clampStage
+  by_cases hLow : stage < -6
+  · simp [hLow]
+  · by_cases hHigh : stage > 6
+    · simp [hLow, hHigh]
+    · have hLe : stage ≤ 6 := Int.le_of_not_gt hHigh
+      simp [hLow, hHigh, hLe]
+
+theorem clampStage_ge (stage : Int) : -6 ≤ (clampStage stage).val := by
+  unfold clampStage
+  by_cases hLow : stage < -6
+  · simp [hLow]
+  · by_cases hHigh : stage > 6
+    · simp [hLow, hHigh]
+    · have hLe : -6 ≤ stage := Int.le_of_not_gt hLow
+      simp [hLow, hHigh, hLe]
+
+theorem clampStage_id (stage : Int) (hLow : -6 ≤ stage) (hHigh : stage ≤ 6) :
+    (clampStage stage).val = stage := by
+  unfold clampStage
+  have hLow' : ¬ stage < -6 := by
+    exact (Int.not_lt_of_ge hLow)
+  have hHigh' : ¬ stage > 6 := by
+    exact (Int.not_lt_of_ge hHigh)
+  simp [hLow', hHigh']
+
+def stageMultiplier (stage : StatStage) : Int :=
+  stage.val + 6
+
+theorem stageMultiplier_nonneg (stage : StatStage) : 0 ≤ stageMultiplier stage := by
+  unfold stageMultiplier
+  have h := Int.add_le_add_right stage.lower 6
+  simpa using h
+
+theorem stageMultiplier_le (stage : StatStage) : stageMultiplier stage ≤ 12 := by
+  unfold stageMultiplier
+  have h := Int.add_le_add_right stage.upper 6
+  simpa using h
+
+-- ============================================================================
+-- GAME THEORY ASPECTS
+-- ============================================================================
+
+def bestResponseA {α β : Type} (u : α → β → Nat) (a : α) (b : β) : Prop :=
+  ∀ a', u a' b ≤ u a b
+
+def bestResponseB {α β : Type} (u : α → β → Nat) (a : α) (b : β) : Prop :=
+  ∀ b', u a b' ≤ u a b
+
+def nashEq {α β : Type} (u1 u2 : α → β → Nat) (a : α) (b : β) : Prop :=
+  bestResponseA u1 a b ∧ bestResponseB u2 a b
+
+theorem bestResponseA_of_const {α β : Type} (u : α → β → Nat) (a : α) (b : β)
+    (hConst : ∀ a', u a' b = u a b) : bestResponseA u a b := by
+  intro a'
+  simp [hConst a']
+
+theorem bestResponseB_of_const {α β : Type} (u : α → β → Nat) (a : α) (b : β)
+    (hConst : ∀ b', u a b' = u a b) : bestResponseB u a b := by
+  intro b'
+  simp [hConst b']
+
+theorem nashEq_of_const {α β : Type} (u1 u2 : α → β → Nat) (a : α) (b : β)
+    (h1 : ∀ a', u1 a' b = u1 a b) (h2 : ∀ b', u2 a b' = u2 a b) :
+    nashEq u1 u2 a b := by
+  exact ⟨bestResponseA_of_const u1 a b h1, bestResponseB_of_const u2 a b h2⟩
+
+def symmetricPayoff {α : Type} (u : α → α → Nat) : Prop :=
+  ∀ a b, u a b = u b a
+
+def nashSymmetric {α : Type} (u : α → α → Nat) (a b : α) : Prop :=
+  bestResponseA u a b ∧ bestResponseB u a b
+
+theorem nashSymmetric_swap {α : Type} (u : α → α → Nat) (a b : α)
+    (hSym : symmetricPayoff u) :
+    nashSymmetric u a b → nashSymmetric u b a := by
+  intro h
+  rcases h with ⟨hA, hB⟩
+  constructor
+  · intro a'
+    have hB' := hB a'
+    simpa [hSym a a', hSym a b] using hB'
+  · intro b'
+    have hA' := hA b'
+    simpa [hSym b' b, hSym a b] using hA'
+
+def dominates {α β : Type} (u : α → β → Nat) (a1 a2 : α) : Prop :=
+  ∀ b, u a2 b ≤ u a1 b
+
+theorem dominates_refl {α β : Type} (u : α → β → Nat) (a : α) : dominates u a a := by
+  intro b
+  exact Nat.le_refl _
+
+theorem dominates_trans {α β : Type} (u : α → β → Nat) (a1 a2 a3 : α) :
+    dominates u a1 a2 → dominates u a2 a3 → dominates u a1 a3 := by
+  intro h12 h23 b
+  exact Nat.le_trans (h23 b) (h12 b)
+
+def riskRewardGap (reward risk : Nat) : Nat :=
+  reward - risk
+
+theorem riskRewardGap_self (reward : Nat) : riskRewardGap reward reward = 0 := by
+  simp [riskRewardGap]
+
+theorem riskRewardGap_zero_of_le (reward risk : Nat) (h : reward ≤ risk) :
+    riskRewardGap reward risk = 0 := by
+  exact Nat.sub_eq_zero_of_le h
+
+theorem riskRewardGap_pos_of_lt (reward risk : Nat) (h : risk < reward) :
+    riskRewardGap reward risk > 0 := by
+  exact Nat.sub_pos_of_lt h
+
+theorem riskRewardGap_le_reward (reward risk : Nat) : riskRewardGap reward risk ≤ reward := by
+  simp [riskRewardGap, Nat.sub_le]
+
+theorem riskRewardGap_mono_reward (reward reward' risk : Nat) (h : reward ≤ reward') :
+    riskRewardGap reward risk ≤ riskRewardGap reward' risk := by
+  simpa [riskRewardGap] using Nat.sub_le_sub_right h risk
+
+def predictionPayoff (reward penalty : Nat) (correct : Bool) : Int :=
+  if correct then Int.ofNat reward else - (Int.ofNat penalty)
+
+theorem predictionPayoff_true (reward penalty : Nat) :
+    predictionPayoff reward penalty true = Int.ofNat reward := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_false (reward penalty : Nat) :
+    predictionPayoff reward penalty false = - (Int.ofNat penalty) := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_true_nonneg (reward penalty : Nat) :
+    0 ≤ predictionPayoff reward penalty true := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_false_nonpos (reward penalty : Nat) :
+    predictionPayoff reward penalty false ≤ 0 := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_zero_reward (penalty : Nat) :
+    predictionPayoff 0 penalty true = 0 := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_zero_penalty (reward : Nat) :
+    predictionPayoff reward 0 false = 0 := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_true_le_reward (reward penalty : Nat) :
+    predictionPayoff reward penalty true ≤ Int.ofNat reward := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_false_ge_neg (reward penalty : Nat) :
+    -(Int.ofNat penalty) ≤ predictionPayoff reward penalty false := by
+  simp [predictionPayoff]
+
+theorem predictionPayoff_abs_le (reward penalty : Nat) (correct : Bool) :
+    Int.natAbs (predictionPayoff reward penalty correct) ≤ reward + penalty := by
+  cases correct <;> simp [predictionPayoff, Nat.le_add_right, Nat.le_add_left]
+
+def switchAdvantage (before after : Nat) : Nat :=
+  before - after
+
+theorem switchAdvantage_self (damage : Nat) : switchAdvantage damage damage = 0 := by
+  simp [switchAdvantage]
+
+theorem switchAdvantage_zero_of_le (before after : Nat) (h : before ≤ after) :
+    switchAdvantage before after = 0 := by
+  exact Nat.sub_eq_zero_of_le h
+
+theorem switchAdvantage_mono_before (before before' after : Nat) (h : before ≤ before') :
+    switchAdvantage before after ≤ switchAdvantage before' after := by
+  simpa [switchAdvantage] using Nat.sub_le_sub_right h after
+
+theorem switchAdvantage_le_before (before after : Nat) :
+    switchAdvantage before after ≤ before := by
+  simp [switchAdvantage, Nat.sub_le]
+
+-- ============================================================================
+-- DAMAGE CALCULATION EXTENSIONS
+-- ============================================================================
+
+/-- Same-Type Attack Bonus (STAB): 3/2 multiplier when types match. -/
+def applySTAB (damage : Nat) (attackerType attackType : EnergyType) : Nat :=
+  if attackerType = attackType then damage + damage / 2 else damage
+
+/-- Critical hit doubles damage. -/
+def applyCritical (damage : Nat) (isCrit : Bool) : Nat :=
+  if isCrit then damage * 2 else damage
+
+/-- Weather-based damage adjustment. -/
+def applyWeather (damage : Nat) (attackerType : EnergyType) (weather : Weather) : Nat :=
+  match weather with
+  | .clear => damage
+  | .sunny => if attackerType = .fire then damage * 2 else damage
+  | .rain => if attackerType = .water then damage * 2 else damage
+  | .sandstorm => if attackerType = .fighting then damage + 10 else damage
+  | .hail => if attackerType = .water then damage + 10 else damage
+
+/-- Extended damage formula with STAB, critical hits, and weather. -/
+def calculateDamageExtended (attack : Attack) (attackerType attackType : EnergyType) (defender : Card)
+    (isCrit : Bool) (weather : Weather) : Nat :=
+  let base := calculateDamage attack attackerType defender
+  let withStab := applySTAB base attackerType attackType
+  let withCrit := applyCritical withStab isCrit
+  applyWeather withCrit attackerType weather
+
+theorem applySTAB_same (damage : Nat) (t : EnergyType) :
+    applySTAB damage t t = damage + damage / 2 := by
+  simp [applySTAB]
+
+theorem applySTAB_diff (damage : Nat) (t1 t2 : EnergyType) (h : t1 ≠ t2) :
+    applySTAB damage t1 t2 = damage := by
+  simp [applySTAB, h]
+
+theorem applySTAB_zero (t1 t2 : EnergyType) : applySTAB 0 t1 t2 = 0 := by
+  simp [applySTAB]
+
+theorem applySTAB_ge (damage : Nat) (t1 t2 : EnergyType) :
+    damage ≤ applySTAB damage t1 t2 := by
+  by_cases h : t1 = t2
+  · simp [applySTAB, h, Nat.le_add_right]
+  · simp [applySTAB, h]
+
+theorem applyCritical_true (damage : Nat) : applyCritical damage true = damage * 2 := by
+  simp [applyCritical]
+
+theorem applyCritical_false (damage : Nat) : applyCritical damage false = damage := by
+  simp [applyCritical]
+
+theorem applyCritical_zero (isCrit : Bool) : applyCritical 0 isCrit = 0 := by
+  cases isCrit <;> simp [applyCritical]
+
+theorem applyCritical_ge (damage : Nat) (isCrit : Bool) :
+    damage ≤ applyCritical damage isCrit := by
+  cases isCrit with
+  | false =>
+    simp [applyCritical]
+  | true =>
+    have hPos : (0:Nat) < 2 := by decide
+    simpa [applyCritical] using Nat.le_mul_of_pos_right damage hPos
+
+theorem applyWeather_clear (damage : Nat) (t : EnergyType) :
+    applyWeather damage t .clear = damage := by
+  simp [applyWeather]
+
+theorem applyWeather_zero_cases (t : EnergyType) (w : Weather) :
+    applyWeather 0 t w = 0 ∨ applyWeather 0 t w = 10 := by
+  cases w with
+  | clear => simp [applyWeather]
+  | sunny => simp [applyWeather]
+  | rain => simp [applyWeather]
+  | sandstorm =>
+    by_cases h : t = .fighting
+    · simp [applyWeather, h]
+    · simp [applyWeather, h]
+  | hail =>
+    by_cases h : t = .water
+    · simp [applyWeather, h]
+    · simp [applyWeather, h]
+
+theorem applyWeather_sunny_fire (damage : Nat) :
+    applyWeather damage .fire .sunny = damage * 2 := by
+  simp [applyWeather]
+
+theorem applyWeather_sunny_nonfire (damage : Nat) (t : EnergyType) (h : t ≠ .fire) :
+    applyWeather damage t .sunny = damage := by
+  simp [applyWeather, h]
+
+theorem applyWeather_rain_water (damage : Nat) :
+    applyWeather damage .water .rain = damage * 2 := by
+  simp [applyWeather]
+
+theorem applyWeather_rain_nonwater (damage : Nat) (t : EnergyType) (h : t ≠ .water) :
+    applyWeather damage t .rain = damage := by
+  simp [applyWeather, h]
+
+theorem applyWeather_sandstorm_fighting (damage : Nat) :
+    applyWeather damage .fighting .sandstorm = damage + 10 := by
+  simp [applyWeather]
+
+theorem applyWeather_sandstorm_nonfighting (damage : Nat) (t : EnergyType) (h : t ≠ .fighting) :
+    applyWeather damage t .sandstorm = damage := by
+  simp [applyWeather, h]
+
+theorem applyWeather_hail_water (damage : Nat) :
+    applyWeather damage .water .hail = damage + 10 := by
+  simp [applyWeather]
+
+theorem applyWeather_hail_nonwater (damage : Nat) (t : EnergyType) (h : t ≠ .water) :
+    applyWeather damage t .hail = damage := by
+  simp [applyWeather, h]
+
+theorem applyWeather_ge (damage : Nat) (t : EnergyType) (w : Weather) :
+    damage ≤ applyWeather damage t w := by
+  cases w with
+  | clear =>
+    simp [applyWeather]
+  | sunny =>
+    by_cases h : t = .fire
+    · have hPos : (0:Nat) < 2 := by decide
+      simpa [applyWeather, h] using Nat.le_mul_of_pos_right damage hPos
+    · simp [applyWeather, h]
+  | rain =>
+    by_cases h : t = .water
+    · have hPos : (0:Nat) < 2 := by decide
+      simpa [applyWeather, h] using Nat.le_mul_of_pos_right damage hPos
+    · simp [applyWeather, h]
+  | sandstorm =>
+    by_cases h : t = .fighting
+    · simp [applyWeather, h, Nat.le_add_right]
+    · simp [applyWeather, h]
+  | hail =>
+    by_cases h : t = .water
+    · simp [applyWeather, h, Nat.le_add_right]
+    · simp [applyWeather, h]
+
+theorem calculateDamageExtended_ge_base (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) (isCrit : Bool) (weather : Weather) :
+    calculateDamage attack attackerType defender ≤
+      calculateDamageExtended attack attackerType attackType defender isCrit weather := by
+  unfold calculateDamageExtended
+  have h1 : calculateDamage attack attackerType defender ≤
+      applySTAB (calculateDamage attack attackerType defender) attackerType attackType := by
+    simpa using applySTAB_ge (calculateDamage attack attackerType defender) attackerType attackType
+  have h2 : applySTAB (calculateDamage attack attackerType defender) attackerType attackType ≤
+      applyCritical (applySTAB (calculateDamage attack attackerType defender) attackerType attackType) isCrit := by
+    simpa using applyCritical_ge
+      (applySTAB (calculateDamage attack attackerType defender) attackerType attackType) isCrit
+  have h3 : applyCritical (applySTAB (calculateDamage attack attackerType defender) attackerType attackType) isCrit ≤
+      applyWeather
+        (applyCritical (applySTAB (calculateDamage attack attackerType defender) attackerType attackType) isCrit)
+        attackerType weather := by
+    simpa using applyWeather_ge
+      (applyCritical (applySTAB (calculateDamage attack attackerType defender) attackerType attackType) isCrit)
+      attackerType weather
+  exact Nat.le_trans h1 (Nat.le_trans h2 h3)
+
+theorem calculateDamageExtended_clear (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) (isCrit : Bool) :
+    calculateDamageExtended attack attackerType attackType defender isCrit .clear =
+      applyCritical (applySTAB (calculateDamage attack attackerType defender) attackerType attackType) isCrit := by
+  simp [calculateDamageExtended, applyWeather]
+
+-- ============================================================================
 -- MATCHUP ANALYSIS FRAMEWORK
 -- ============================================================================
 
@@ -570,9 +1920,60 @@ structure MatchupStats where
 def winRate (stats : MatchupStats) (player : PlayerId) : Nat :=
   if stats.totalGames == 0 then 50
   else match player with
-    | .playerOne => (stats.player1Wins * 100) / stats.totalGames
-    | .playerTwo => (stats.player2Wins * 100) / stats.totalGames
+    | .playerOne => Nat.min 100 ((stats.player1Wins * 100) / stats.totalGames)
+    | .playerTwo => Nat.min 100 ((stats.player2Wins * 100) / stats.totalGames)
 
+theorem winRate_playerOne_zero (stats : MatchupStats) (h : stats.totalGames = 0) :
+    winRate stats .playerOne = 50 := by
+  simp [winRate, h]
+
+theorem winRate_playerTwo_zero (stats : MatchupStats) (h : stats.totalGames = 0) :
+    winRate stats .playerTwo = 50 := by
+  simp [winRate, h]
+
+theorem winRate_zero_of_no_games (stats : MatchupStats) (player : PlayerId)
+    (h : stats.totalGames = 0) :
+    winRate stats player = 50 := by
+  cases player <;> simp [winRate, h]
+
+theorem winRate_playerOne_allWins (stats : MatchupStats) (hGames : stats.totalGames > 0)
+    (hWins : stats.player1Wins = stats.totalGames) :
+    winRate stats .playerOne = 100 := by
+  have hPos : 0 < stats.totalGames := hGames
+  have hNe : stats.totalGames ≠ 0 := Nat.ne_of_gt hPos
+  have hDiv : stats.totalGames * 100 / stats.totalGames = 100 := by
+    simpa [Nat.mul_comm] using Nat.mul_div_right 100 hPos
+  simp [winRate, hWins, hNe, hDiv]
+
+
+
+theorem winRate_playerTwo_allWins (stats : MatchupStats) (hGames : stats.totalGames > 0)
+    (hWins : stats.player2Wins = stats.totalGames) :
+    winRate stats .playerTwo = 100 := by
+  have hPos : 0 < stats.totalGames := hGames
+  have hNe : stats.totalGames ≠ 0 := Nat.ne_of_gt hPos
+  have hDiv : stats.totalGames * 100 / stats.totalGames = 100 := by
+    simpa [Nat.mul_comm] using Nat.mul_div_right 100 hPos
+  simp [winRate, hWins, hNe, hDiv]
+
+theorem winRate_bounds (stats : MatchupStats) (player : PlayerId) :
+    winRate stats player ≤ 100 := by
+  cases h : stats.totalGames with
+  | zero =>
+    have h50 : (50 : Nat) ≤ 100 := by decide
+    cases player <;> simp [winRate, h, h50]
+  | succ n =>
+    cases player
+    ·
+      have hMin :
+          Nat.min 100 ((stats.player1Wins * 100) / (n + 1)) ≤ 100 := by
+        exact Nat.min_le_left _ _
+      simpa [winRate, h] using hMin
+    ·
+      have hMin :
+          Nat.min 100 ((stats.player2Wins * 100) / (n + 1)) ≤ 100 := by
+        exact Nat.min_le_left _ _
+      simpa [winRate, h] using hMin
 /-- Determine advantage based on type matchup. -/
 def typeAdvantage (attacker defender : EnergyType) : Int :=
   -- Simplified type chart
@@ -585,6 +1986,12 @@ def typeAdvantage (attacker defender : EnergyType) : Int :=
   | .psychic, .fighting => 1
   | _, _ => 0
 
+theorem typeAdvantage_self (t : EnergyType) : typeAdvantage t t = 0 := by
+  cases t <;> simp [typeAdvantage]
+
+theorem typeAdvantage_nonneg (attacker defender : EnergyType) : 0 ≤ typeAdvantage attacker defender := by
+  cases attacker <;> cases defender <;> decide
+
 /-- Estimate matchup advantage based on type chart. -/
 def estimateMatchup (deck1 deck2 : List Card) : Int :=
   let types1 := deck1.map (·.energyType)
@@ -594,6 +2001,18 @@ def estimateMatchup (deck1 deck2 : List Card) : Int :=
   let disadvantages := types2.foldl (fun acc t2 =>
     acc + types1.foldl (fun acc1 t1 => acc1 + typeAdvantage t2 t1) 0) 0
   advantages - disadvantages
+
+theorem foldl_const {α β : Type} (init : α) (xs : List β) :
+    List.foldl (fun acc _ => acc) init xs = init := by
+  induction xs generalizing init with
+  | nil => rfl
+  | cons x xs ih => simp [List.foldl, ih]
+
+theorem estimateMatchup_nil_left (deck : List Card) : estimateMatchup [] deck = 0 := by
+  simp [estimateMatchup, foldl_const]
+
+theorem estimateMatchup_nil_right (deck : List Card) : estimateMatchup deck [] = 0 := by
+  simp [estimateMatchup, foldl_const]
 
 -- ============================================================================
 -- EXAMPLE USAGE

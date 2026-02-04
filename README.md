@@ -160,20 +160,31 @@ Additional proven theorems:
 - `step_preserves_metaSafety`: Meta-safety is preserved by legal steps
 - `coinDamage_heads`/`coinDamage_tails`: RNG expected-value lemmas for coin flip effects
 - `attachTool_preserves_damage`/`attachTool_preserves_hp`: Tool attachment preservation proofs
-- `applyStatusEndTurn_damage_le_hp`: Status end-turn processing preserves damage bounds
+- `applyStatusEndTurn_damage_le_hp`/`canAttack`: Status end-turn processing preserves damage bounds + status attack gating
+- `applyDamage_*`/`applyAttackEffects_*`/`attackBonus_*`: Damage/effect application and attack bonus aggregation lemmas (incl. `applyDamage_zero`)
+- Entry hazards: `applyStealthRock` and associated damage bounds/preservation
+- `hasWonGame_prizes_empty`/`hasWonGame_no_active`: Win conditions via empty prizes or no active Pokemon
+- `progressMetric_zero_of_no_prizes_no_active`/`progressMetric_pos_of_prizes`: Progress metric bounds
 
 Game Theory & Strategy (GameTheory.lean):
 - `findLethal`: OTK finder with up to 3 turns lookahead
 - `checkLethal_isLethal`: Lethal sequences are actually lethal
 - `solveNPly`: N-ply lookahead solver for optimal energy + attack
-- `evolution_preserves_damage`/`evolution_preserves_energy`: Evolution preserves Pokemon state
+- Type system theory: `typeMultiplier`, `TypeEffective`, `TypeCoverage`, `DualTypeEffective`, `typeCoverageList`, `typePairCoverageList`, `typeCoverage_singleton`, `typeCoverage_cons`, `typeCoverage_append`, `typeCoverage_append_left`, `typeCoverage_append_right`
+- Turn order & stats: `MovePriority`, `winsPriority`, `StatStage`, `clampStage`, `stageMultiplier`
+- `evolution_preserves_damage`/`evolution_preserves_energy`/`evolution_preserves_status`: Evolution preserves Pokemon state
 - `expectedDamage_deterministic`/`expectedDamage_singleFlip`: Expected damage under RNG
+- Damage extensions: `applySTAB`, `applyCritical`, `applyWeather`, `calculateDamageExtended`, `calculateDamageExtended_ge_base`
 - `WellFormedCard`/`checkWellFormed`: Card validity checking
 - `LegalDeck`/`checkDeckLegality`: 60-card deck with ≤4 copies rule
 - `Stadium`/`applyStadiumEffect`: Stadium card effects (heal/damage all Pokemon)
+- `applyStadiumEffect_*`: Stadium no-op/active-none/bench-length lemmas
 - `CardRarity`/`prizeValue`: Multi-prize knockouts for EX/V/VMAX Pokemon
 - `bestBenchTarget`/`swapToActive`: Bench target selection for Gust effects
-- `MatchupStats`/`estimateMatchup`: Matchup analysis framework
+- `MatchupStats`/`estimateMatchup`/`winRate_zero_of_no_games`/`winRate_playerOne_allWins`: Matchup analysis framework
+- Team theory: `TeamCoverage`, `teamCoverage_cons`, `teamCoverage_append`, `teamCoverage_append_left`, `teamCoverage_append_right`, `teamCoverage_mono`
+- Game theory: `bestResponseA`, `bestResponseB`, `nashEq`, `dominates`, `riskRewardGap`, `switchAdvantage`
+- EV/IV + level-up: `BaseStats`, `EVs`, `IVs`, `calcStat`, `calcHP`
 - `allWellFormed`/`validateCorpus`: Corpus well-formedness validation
 
 ### Phase 4: Scaling, Tooling & Integration ✅

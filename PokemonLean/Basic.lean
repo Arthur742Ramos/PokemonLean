@@ -20,6 +20,14 @@ inductive StatusCondition
   | poisoned
   deriving Repr, BEq, DecidableEq
 
+inductive Weather
+  | clear
+  | sunny
+  | rain
+  | sandstorm
+  | hail
+  deriving Repr, BEq, DecidableEq
+
 inductive AttackEffect
   | applyStatus (condition : StatusCondition)
   | heal (amount : Nat)
@@ -280,6 +288,27 @@ def statusDamage : StatusCondition -> Nat
   | .confused => 0
   | .paralyzed => 0
 
+@[simp] theorem statusDamage_poisoned : statusDamage .poisoned = 10 := rfl
+@[simp] theorem statusDamage_burned : statusDamage .burned = 20 := rfl
+@[simp] theorem statusDamage_asleep : statusDamage .asleep = 0 := rfl
+@[simp] theorem statusDamage_confused : statusDamage .confused = 0 := rfl
+@[simp] theorem statusDamage_paralyzed : statusDamage .paralyzed = 0 := rfl
+
+theorem statusDamage_le_twenty (condition : StatusCondition) : statusDamage condition ≤ 20 := by
+  cases condition <;> simp [statusDamage]
+
+theorem statusDamage_ge_zero (condition : StatusCondition) : 0 ≤ statusDamage condition := by
+  cases condition <;> simp [statusDamage]
+
+theorem statusDamage_eq_zero_iff (condition : StatusCondition) :
+    statusDamage condition = 0 ↔
+      condition = .asleep ∨ condition = .confused ∨ condition = .paralyzed := by
+  cases condition <;> simp [statusDamage]
+
+theorem statusDamage_pos_iff (condition : StatusCondition) :
+    0 < statusDamage condition ↔ condition = .poisoned ∨ condition = .burned := by
+  cases condition <;> simp [statusDamage]
+
 def applyStatusEndTurn (pokemon : PokemonInPlay) : PokemonInPlay :=
   match pokemon.status with
   | none => pokemon
@@ -303,6 +332,250 @@ theorem applyStatusEndTurn_status (pokemon : PokemonInPlay) :
   | some condition =>
     simp [applyStatusEndTurn, hStatus]
 
+theorem applyStatusEndTurn_none_damage (pokemon : PokemonInPlay) (hStatus : pokemon.status = none) :
+    (applyStatusEndTurn pokemon).damage = pokemon.damage := by
+  simp [applyStatusEndTurn, hStatus]
+
+theorem applyStatusEndTurn_none (pokemon : PokemonInPlay) (hStatus : pokemon.status = none) :
+    applyStatusEndTurn pokemon = pokemon := by
+  simp [applyStatusEndTurn, hStatus]
+
+theorem applyStatusEndTurn_damage_ge (pokemon : PokemonInPlay) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    pokemon.damage ≤ (applyStatusEndTurn pokemon).damage := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [applyStatusEndTurn, hStatus]
+  | some condition =>
+    simp [applyStatusEndTurn, hStatus]
+    have h1 : pokemon.damage ≤ pokemon.damage + statusDamage condition := Nat.le_add_right _ _
+    exact (Nat.le_min).2 ⟨h1, hBound⟩
+
+theorem applyStatusEndTurn_zero_damage (pokemon : PokemonInPlay) (condition : StatusCondition)
+    (hStatus : pokemon.status = some condition) (hZero : statusDamage condition = 0)
+    (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStatusEndTurn pokemon).damage = pokemon.damage := by
+  simp [applyStatusEndTurn, hStatus, hZero, Nat.min_eq_left hBound]
+
+theorem applyStatusEndTurn_asleep_damage (pokemon : PokemonInPlay)
+    (hStatus : pokemon.status = some .asleep) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStatusEndTurn pokemon).damage = pokemon.damage := by
+  exact applyStatusEndTurn_zero_damage pokemon .asleep hStatus (by simp) hBound
+
+theorem applyStatusEndTurn_confused_damage (pokemon : PokemonInPlay)
+    (hStatus : pokemon.status = some .confused) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStatusEndTurn pokemon).damage = pokemon.damage := by
+  exact applyStatusEndTurn_zero_damage pokemon .confused hStatus (by simp) hBound
+
+theorem applyStatusEndTurn_paralyzed_damage (pokemon : PokemonInPlay)
+    (hStatus : pokemon.status = some .paralyzed) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStatusEndTurn pokemon).damage = pokemon.damage := by
+  exact applyStatusEndTurn_zero_damage pokemon .paralyzed hStatus (by simp) hBound
+
+theorem applyStatusEndTurn_poisoned_damage (pokemon : PokemonInPlay)
+    (hStatus : pokemon.status = some .poisoned) :
+    (applyStatusEndTurn pokemon).damage = Nat.min (pokemon.damage + 10) pokemon.card.hp := by
+  simp [applyStatusEndTurn, hStatus]
+
+theorem applyStatusEndTurn_burned_damage (pokemon : PokemonInPlay)
+    (hStatus : pokemon.status = some .burned) :
+    (applyStatusEndTurn pokemon).damage = Nat.min (pokemon.damage + 20) pokemon.card.hp := by
+  simp [applyStatusEndTurn, hStatus]
+
+
+
+theorem applyStatusEndTurn_damage_eq (pokemon : PokemonInPlay) :
+    (applyStatusEndTurn pokemon).damage =
+      match pokemon.status with
+      | none => pokemon.damage
+      | some condition => Nat.min (pokemon.damage + statusDamage condition) pokemon.card.hp := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [applyStatusEndTurn, hStatus]
+  | some condition =>
+    simp [applyStatusEndTurn, hStatus]
+
+theorem applyStatusEndTurn_damage_le_add (pokemon : PokemonInPlay) :
+    (applyStatusEndTurn pokemon).damage ≤
+      match pokemon.status with
+      | none => pokemon.damage
+      | some condition => pokemon.damage + statusDamage condition := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [applyStatusEndTurn, hStatus]
+  | some condition =>
+    simp [applyStatusEndTurn, hStatus, Nat.min_le_left]
+
+theorem applyStatusEndTurn_damage_eq_of_some (pokemon : PokemonInPlay) (condition : StatusCondition)
+    (hStatus : pokemon.status = some condition) :
+    (applyStatusEndTurn pokemon).damage = Nat.min (pokemon.damage + statusDamage condition) pokemon.card.hp := by
+  simp [applyStatusEndTurn, hStatus]
+
+theorem applyStatusEndTurn_damage_eq_damage_or_add_or_hp (pokemon : PokemonInPlay)
+    (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStatusEndTurn pokemon).damage = pokemon.damage ∨
+      (applyStatusEndTurn pokemon).damage = pokemon.damage + 10 ∨
+      (applyStatusEndTurn pokemon).damage = pokemon.damage + 20 ∨
+      (applyStatusEndTurn pokemon).damage = pokemon.card.hp := by
+  cases hStatus : pokemon.status with
+  | none =>
+    left
+    simp [applyStatusEndTurn, hStatus]
+  | some condition =>
+    cases condition with
+    | asleep =>
+      left
+      simp [applyStatusEndTurn, hStatus, statusDamage, Nat.min_eq_left hBound]
+    | confused =>
+      left
+      simp [applyStatusEndTurn, hStatus, statusDamage, Nat.min_eq_left hBound]
+    | paralyzed =>
+      left
+      simp [applyStatusEndTurn, hStatus, statusDamage, Nat.min_eq_left hBound]
+    | poisoned =>
+      by_cases h : pokemon.damage + 10 ≤ pokemon.card.hp
+      · right
+        left
+        simp [applyStatusEndTurn, hStatus, statusDamage, Nat.min_eq_left h]
+      · right
+        right
+        right
+        have h' : pokemon.card.hp ≤ pokemon.damage + 10 := by
+          exact Nat.le_of_lt (Nat.not_le.mp h)
+        simp [applyStatusEndTurn, hStatus, statusDamage, Nat.min_eq_right h']
+    | burned =>
+      by_cases h : pokemon.damage + 20 ≤ pokemon.card.hp
+      · right
+        right
+        left
+        simp [applyStatusEndTurn, hStatus, statusDamage, Nat.min_eq_left h]
+      · right
+        right
+        right
+        have h' : pokemon.card.hp ≤ pokemon.damage + 20 := by
+          exact Nat.le_of_lt (Nat.not_le.mp h)
+        simp [applyStatusEndTurn, hStatus, statusDamage, Nat.min_eq_right h']
+theorem applyStatusEndTurn_energy (pokemon : PokemonInPlay) :
+    (applyStatusEndTurn pokemon).energy = pokemon.energy := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [applyStatusEndTurn, hStatus]
+  | some condition =>
+    simp [applyStatusEndTurn, hStatus]
+
+def canAttack (pokemon : PokemonInPlay) : Bool :=
+  match pokemon.status with
+  | some .paralyzed => false
+  | some .asleep => false
+  | _ => true
+
+theorem canAttack_none (pokemon : PokemonInPlay) (hStatus : pokemon.status = none) :
+    canAttack pokemon = true := by
+  simp [canAttack, hStatus]
+
+theorem canAttack_paralyzed (pokemon : PokemonInPlay) (hStatus : pokemon.status = some .paralyzed) :
+    canAttack pokemon = false := by
+  simp [canAttack, hStatus]
+
+theorem canAttack_asleep (pokemon : PokemonInPlay) (hStatus : pokemon.status = some .asleep) :
+    canAttack pokemon = false := by
+  simp [canAttack, hStatus]
+
+theorem canAttack_confused (pokemon : PokemonInPlay) (hStatus : pokemon.status = some .confused) :
+    canAttack pokemon = true := by
+  simp [canAttack, hStatus]
+
+theorem canAttack_burned (pokemon : PokemonInPlay) (hStatus : pokemon.status = some .burned) :
+    canAttack pokemon = true := by
+  simp [canAttack, hStatus]
+
+theorem canAttack_poisoned (pokemon : PokemonInPlay) (hStatus : pokemon.status = some .poisoned) :
+    canAttack pokemon = true := by
+  simp [canAttack, hStatus]
+
+theorem canAttack_applyStatusEndTurn (pokemon : PokemonInPlay) :
+    canAttack (applyStatusEndTurn pokemon) = canAttack pokemon := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [applyStatusEndTurn, canAttack, hStatus]
+  | some condition =>
+    simp [applyStatusEndTurn, canAttack, hStatus]
+
+theorem canAttack_false_iff (pokemon : PokemonInPlay) :
+    canAttack pokemon = false ↔
+      pokemon.status = some .paralyzed ∨ pokemon.status = some .asleep := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [canAttack, hStatus]
+  | some condition =>
+    cases condition <;> simp [canAttack, hStatus]
+
+theorem canAttack_true_iff (pokemon : PokemonInPlay) :
+    canAttack pokemon = true ↔
+      pokemon.status = none ∨ pokemon.status = some .confused ∨
+        pokemon.status = some .burned ∨ pokemon.status = some .poisoned := by
+  cases hStatus : pokemon.status with
+  | none =>
+    simp [canAttack, hStatus]
+  | some condition =>
+    cases condition <;> simp [canAttack, hStatus]
+
+-- ============================================================================
+-- ENTRY HAZARDS (SIMPLIFIED)
+-- ============================================================================
+
+def applyStealthRock (pokemon : PokemonInPlay) : PokemonInPlay :=
+  { pokemon with damage := Nat.min (pokemon.damage + pokemon.card.hp / 8) pokemon.card.hp }
+
+theorem applyStealthRock_status (pokemon : PokemonInPlay) :
+    (applyStealthRock pokemon).status = pokemon.status := by
+  simp [applyStealthRock]
+
+theorem applyStealthRock_energy (pokemon : PokemonInPlay) :
+    (applyStealthRock pokemon).energy = pokemon.energy := by
+  simp [applyStealthRock]
+
+theorem applyStealthRock_card (pokemon : PokemonInPlay) :
+    (applyStealthRock pokemon).card = pokemon.card := by
+  simp [applyStealthRock]
+
+theorem applyStealthRock_damage_le_hp (pokemon : PokemonInPlay) :
+    (applyStealthRock pokemon).damage ≤ pokemon.card.hp := by
+  simp [applyStealthRock, Nat.min_le_right]
+
+theorem applyStealthRock_damage_ge (pokemon : PokemonInPlay)
+    (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    pokemon.damage ≤ (applyStealthRock pokemon).damage := by
+  simp [applyStealthRock]
+  exact (Nat.le_min).2 ⟨Nat.le_add_right _ _, hBound⟩
+
+
+
+theorem applyStealthRock_damage_eq (pokemon : PokemonInPlay) :
+    (applyStealthRock pokemon).damage =
+      Nat.min (pokemon.damage + pokemon.card.hp / 8) pokemon.card.hp := by
+  simp [applyStealthRock]
+
+theorem applyStealthRock_damage_eq_add (pokemon : PokemonInPlay)
+    (hBound : pokemon.damage + pokemon.card.hp / 8 ≤ pokemon.card.hp) :
+    (applyStealthRock pokemon).damage = pokemon.damage + pokemon.card.hp / 8 := by
+  simp [applyStealthRock, Nat.min_eq_left hBound]
+
+theorem applyStealthRock_damage_eq_hp (pokemon : PokemonInPlay)
+    (hBound : pokemon.card.hp ≤ pokemon.damage + pokemon.card.hp / 8) :
+    (applyStealthRock pokemon).damage = pokemon.card.hp := by
+  simp [applyStealthRock, Nat.min_eq_right hBound]
+
+theorem applyStealthRock_no_damage_of_zero_hp (pokemon : PokemonInPlay)
+    (hZero : pokemon.card.hp = 0) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStealthRock pokemon).damage = pokemon.damage := by
+  have hDiv : pokemon.card.hp / 8 = 0 := by simp [hZero]
+  simp [applyStealthRock, hDiv, Nat.min_eq_left hBound]
+theorem applyStealthRock_zero (pokemon : PokemonInPlay)
+    (hZero : pokemon.card.hp < 8) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyStealthRock pokemon).damage = pokemon.damage := by
+  have hDiv : pokemon.card.hp / 8 = 0 := Nat.div_eq_of_lt hZero
+  simp [applyStealthRock, hDiv, Nat.min_eq_left hBound]
+
 def listGet? {α : Type} (xs : List α) (index : Nat) : Option α :=
   match xs, index with
   | [], _ => none
@@ -315,13 +588,135 @@ def toPokemonInPlay (card : Card) : PokemonInPlay :=
 def applyDamage (pokemon : PokemonInPlay) (amount : Nat) : PokemonInPlay :=
   { pokemon with damage := Nat.min (pokemon.damage + amount) pokemon.card.hp }
 
+theorem applyDamage_status (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyDamage pokemon amount).status = pokemon.status := by
+  simp [applyDamage]
+
+theorem applyDamage_energy (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyDamage pokemon amount).energy = pokemon.energy := by
+  simp [applyDamage]
+
+theorem applyDamage_card (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyDamage pokemon amount).card = pokemon.card := by
+  simp [applyDamage]
+
+theorem applyDamage_damage_le_hp (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyDamage pokemon amount).damage ≤ pokemon.card.hp := by
+  simp [applyDamage, Nat.min_le_right]
+
+theorem applyDamage_damage_ge (pokemon : PokemonInPlay) (amount : Nat)
+    (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    pokemon.damage ≤ (applyDamage pokemon amount).damage := by
+  simp [applyDamage]
+  exact (Nat.le_min).2 ⟨Nat.le_add_right _ _, hBound⟩
+
+theorem applyDamage_damage_eq_add (pokemon : PokemonInPlay) (amount : Nat)
+    (hBound : pokemon.damage + amount ≤ pokemon.card.hp) :
+    (applyDamage pokemon amount).damage = pokemon.damage + amount := by
+  simp [applyDamage, Nat.min_eq_left hBound]
+
+theorem applyDamage_damage_eq_hp (pokemon : PokemonInPlay) (amount : Nat)
+    (hBound : pokemon.card.hp ≤ pokemon.damage + amount) :
+    (applyDamage pokemon amount).damage = pokemon.card.hp := by
+  simp [applyDamage, Nat.min_eq_right hBound]
+
+theorem applyDamage_damage_eq_add_or_hp (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyDamage pokemon amount).damage = pokemon.damage + amount ∨
+      (applyDamage pokemon amount).damage = pokemon.card.hp := by
+  by_cases h : pokemon.damage + amount ≤ pokemon.card.hp
+  · left
+    simp [applyDamage, Nat.min_eq_left h]
+  · right
+    have h' : pokemon.card.hp ≤ pokemon.damage + amount := by
+      exact Nat.le_of_lt (Nat.not_le.mp h)
+    simp [applyDamage, Nat.min_eq_right h']
+
+theorem applyDamage_zero (pokemon : PokemonInPlay) (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    applyDamage pokemon 0 = pokemon := by
+  cases pokemon
+  simp [applyDamage, Nat.min_eq_left hBound]
+
+def attackEffectBonus : AttackEffect → Nat
+  | .addDamage amount => amount
+  | _ => 0
+
 def attackBonus (effects : List AttackEffect) : Nat :=
-  effects.foldl
-    (fun acc effect =>
-      match effect with
-      | .addDamage amount => acc + amount
-      | _ => acc)
-    0
+  effects.foldl (fun acc effect => acc + attackEffectBonus effect) 0
+
+theorem attackBonus_foldl_acc (effects : List AttackEffect) (acc : Nat) :
+    effects.foldl (fun acc effect => acc + attackEffectBonus effect) acc =
+      acc + attackBonus effects := by
+  induction effects generalizing acc with
+  | nil =>
+    simp [attackBonus]
+  | cons effect rest ih =>
+    have h1 := ih (acc := acc + attackEffectBonus effect)
+    have h2 := ih (acc := attackEffectBonus effect)
+    have hcons :
+        attackBonus (effect :: rest) = attackEffectBonus effect + attackBonus rest := by
+      calc
+        attackBonus (effect :: rest) =
+            List.foldl (fun acc effect => acc + attackEffectBonus effect)
+              (attackEffectBonus effect) rest := by
+                simp [attackBonus, List.foldl]
+        _ = attackEffectBonus effect + attackBonus rest := h2
+    calc
+      List.foldl (fun acc effect => acc + attackEffectBonus effect) acc (effect :: rest) =
+          List.foldl (fun acc effect => acc + attackEffectBonus effect)
+            (acc + attackEffectBonus effect) rest := by
+              simp [List.foldl]
+      _ = (acc + attackEffectBonus effect) + attackBonus rest := h1
+      _ = acc + (attackEffectBonus effect + attackBonus rest) := by
+              simp [Nat.add_assoc]
+      _ = acc + attackBonus (effect :: rest) := by
+              simp [hcons]
+
+theorem attackBonus_cons (effect : AttackEffect) (effects : List AttackEffect) :
+    attackBonus (effect :: effects) = attackEffectBonus effect + attackBonus effects := by
+  simpa [attackBonus, List.foldl] using (attackBonus_foldl_acc (effects := effects)
+    (acc := attackEffectBonus effect))
+
+theorem attackBonus_nil : attackBonus [] = 0 := by
+  rfl
+
+theorem attackBonus_cons_add (effects : List AttackEffect) (amount : Nat) :
+    attackBonus (.addDamage amount :: effects) = amount + attackBonus effects := by
+  simpa [attackEffectBonus] using (attackBonus_cons (.addDamage amount) effects)
+
+theorem attackBonus_cons_other (effect : AttackEffect) (effects : List AttackEffect)
+    (h : (match effect with | .addDamage _ => False | _ => True)) :
+    attackBonus (effect :: effects) = attackBonus effects := by
+  cases effect with
+  | addDamage amount =>
+    cases h
+  | applyStatus condition =>
+    simp [attackBonus_cons, attackEffectBonus]
+  | heal amount =>
+    simp [attackBonus_cons, attackEffectBonus]
+  | drawCards count =>
+    simp [attackBonus_cons, attackEffectBonus]
+
+theorem attackBonus_ge (effects : List AttackEffect) :
+    0 ≤ attackBonus effects := by
+  simp [attackBonus]
+
+theorem attackBonus_append (effects1 effects2 : List AttackEffect) :
+    attackBonus (effects1 ++ effects2) = attackBonus effects1 + attackBonus effects2 := by
+  induction effects1 with
+  | nil =>
+    simp [attackBonus]
+  | cons effect rest ih =>
+    calc
+      attackBonus ((effect :: rest) ++ effects2) =
+          attackBonus (effect :: (rest ++ effects2)) := by simp
+      _ = attackEffectBonus effect + attackBonus (rest ++ effects2) := by
+          simpa using (attackBonus_cons effect (rest ++ effects2))
+      _ = attackEffectBonus effect + (attackBonus rest + attackBonus effects2) := by
+          simp [ih]
+      _ = (attackEffectBonus effect + attackBonus rest) + attackBonus effects2 := by
+          simp [Nat.add_assoc]
+      _ = attackBonus (effect :: rest) + attackBonus effects2 := by
+          simp [attackBonus_cons]
 
 def applyAttackEffects (pokemon : PokemonInPlay) (effects : List AttackEffect) : PokemonInPlay :=
   effects.foldl
@@ -332,6 +727,97 @@ def applyAttackEffects (pokemon : PokemonInPlay) (effects : List AttackEffect) :
       | .drawCards _ => acc
       | .addDamage _ => acc)
     pokemon
+
+theorem applyAttackEffects_nil (pokemon : PokemonInPlay) :
+    applyAttackEffects pokemon [] = pokemon := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_energy (pokemon : PokemonInPlay) (effects : List AttackEffect) :
+    (applyAttackEffects pokemon effects).energy = pokemon.energy := by
+  induction effects generalizing pokemon with
+  | nil =>
+    simp [applyAttackEffects]
+  | cons effect rest ih =>
+    cases effect with
+    | applyStatus condition =>
+      simpa [applyAttackEffects] using (ih (pokemon := { pokemon with status := some condition }))
+    | heal amount =>
+      simpa [applyAttackEffects] using (ih (pokemon := { pokemon with damage := Nat.sub pokemon.damage amount }))
+    | drawCards count =>
+      simpa [applyAttackEffects] using (ih (pokemon := pokemon))
+    | addDamage amount =>
+      simpa [applyAttackEffects] using (ih (pokemon := pokemon))
+
+theorem applyAttackEffects_card (pokemon : PokemonInPlay) (effects : List AttackEffect) :
+    (applyAttackEffects pokemon effects).card = pokemon.card := by
+  induction effects generalizing pokemon with
+  | nil =>
+    simp [applyAttackEffects]
+  | cons effect rest ih =>
+    cases effect with
+    | applyStatus condition =>
+      simpa [applyAttackEffects] using (ih (pokemon := { pokemon with status := some condition }))
+    | heal amount =>
+      simpa [applyAttackEffects] using (ih (pokemon := { pokemon with damage := Nat.sub pokemon.damage amount }))
+    | drawCards count =>
+      simpa [applyAttackEffects] using (ih (pokemon := pokemon))
+    | addDamage amount =>
+      simpa [applyAttackEffects] using (ih (pokemon := pokemon))
+
+theorem applyAttackEffects_single_status (pokemon : PokemonInPlay) (condition : StatusCondition) :
+    (applyAttackEffects pokemon [.applyStatus condition]).status = some condition := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_single_heal (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyAttackEffects pokemon [.heal amount]).damage = Nat.sub pokemon.damage amount := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_single_heal_status (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyAttackEffects pokemon [.heal amount]).status = pokemon.status := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_single_draw (pokemon : PokemonInPlay) (count : Nat) :
+    applyAttackEffects pokemon [.drawCards count] = pokemon := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_single_draw_status (pokemon : PokemonInPlay) (count : Nat) :
+    (applyAttackEffects pokemon [.drawCards count]).status = pokemon.status := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_single_addDamage (pokemon : PokemonInPlay) (amount : Nat) :
+    applyAttackEffects pokemon [.addDamage amount] = pokemon := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_single_addDamage_status (pokemon : PokemonInPlay) (amount : Nat) :
+    (applyAttackEffects pokemon [.addDamage amount]).status = pokemon.status := by
+  simp [applyAttackEffects]
+
+theorem applyAttackEffects_damage_le (pokemon : PokemonInPlay) (effects : List AttackEffect) :
+    (applyAttackEffects pokemon effects).damage ≤ pokemon.damage := by
+  induction effects generalizing pokemon with
+  | nil =>
+    simp [applyAttackEffects]
+  | cons effect rest ih =>
+    cases effect with
+    | applyStatus condition =>
+      simpa [applyAttackEffects] using (ih (pokemon := { pokemon with status := some condition }))
+    | heal amount =>
+      have h := ih (pokemon := { pokemon with damage := Nat.sub pokemon.damage amount })
+      exact Nat.le_trans h (Nat.sub_le _ _)
+    | drawCards count =>
+      simpa [applyAttackEffects] using (ih (pokemon := pokemon))
+    | addDamage amount =>
+      simpa [applyAttackEffects] using (ih (pokemon := pokemon))
+
+theorem applyAttackEffects_append (pokemon : PokemonInPlay) (effects1 effects2 : List AttackEffect) :
+    applyAttackEffects pokemon (effects1 ++ effects2) =
+      applyAttackEffects (applyAttackEffects pokemon effects1) effects2 := by
+  simp [applyAttackEffects, List.foldl_append]
+
+theorem applyAttackEffects_damage_le_hp (pokemon : PokemonInPlay) (effects : List AttackEffect)
+    (hBound : pokemon.damage ≤ pokemon.card.hp) :
+    (applyAttackEffects pokemon effects).damage ≤ pokemon.card.hp := by
+  exact Nat.le_trans (applyAttackEffects_damage_le pokemon effects) hBound
 
 def takePrize (attacker defender : PlayerState) : PlayerState × PlayerState :=
   match defender.prizes with
@@ -451,11 +937,61 @@ def applyResistance (damage : Nat) (attackerType : EnergyType) (resistance : Opt
   | some r => if r.energyType == attackerType then Nat.sub damage r.amount else damage
   | none => damage
 
+@[simp] theorem applyWeakness_none (damage : Nat) (attackerType : EnergyType) :
+    applyWeakness damage attackerType none = damage := by
+  simp [applyWeakness]
+
+theorem applyWeakness_beq_true (damage : Nat) (attackerType : EnergyType) (w : Weakness)
+    (h : (w.energyType == attackerType) = true) :
+    applyWeakness damage attackerType (some w) = damage * w.multiplier := by
+  simp [applyWeakness, h]
+
+theorem applyWeakness_beq_false (damage : Nat) (attackerType : EnergyType) (w : Weakness)
+    (h : (w.energyType == attackerType) = false) :
+    applyWeakness damage attackerType (some w) = damage := by
+  simp [applyWeakness, h]
+
+@[simp] theorem applyResistance_none (damage : Nat) (attackerType : EnergyType) :
+    applyResistance damage attackerType none = damage := by
+  simp [applyResistance]
+
+theorem applyResistance_beq_true (damage : Nat) (attackerType : EnergyType) (r : Resistance)
+    (h : (r.energyType == attackerType) = true) :
+    applyResistance damage attackerType (some r) = Nat.sub damage r.amount := by
+  simp [applyResistance, h]
+
+theorem applyResistance_beq_false (damage : Nat) (attackerType : EnergyType) (r : Resistance)
+    (h : (r.energyType == attackerType) = false) :
+    applyResistance damage attackerType (some r) = damage := by
+  simp [applyResistance, h]
+
 def calculateDamage (attack : Attack) (attackerType : EnergyType) (defender : Card) : Nat :=
   let base := attack.baseDamage + attackBonus attack.effects
   let afterWeakness := applyWeakness base attackerType defender.weakness
   let afterResistance := applyResistance afterWeakness attackerType defender.resistance
   afterResistance
+
+theorem calculateDamage_weakness_none (attack : Attack) (attackerType : EnergyType) (defender : Card)
+    (hWeak : defender.weakness = none) :
+    calculateDamage attack attackerType defender =
+      applyResistance (attack.baseDamage + attackBonus attack.effects) attackerType defender.resistance := by
+  simp [calculateDamage, hWeak]
+
+theorem calculateDamage_resistance_none (attack : Attack) (attackerType : EnergyType) (defender : Card)
+    (hRes : defender.resistance = none) :
+    calculateDamage attack attackerType defender =
+      applyWeakness (attack.baseDamage + attackBonus attack.effects) attackerType defender.weakness := by
+  simp [calculateDamage, hRes]
+
+theorem calculateDamage_no_mods (attack : Attack) (attackerType : EnergyType) (defender : Card)
+    (hWeak : defender.weakness = none) (hRes : defender.resistance = none) :
+    calculateDamage attack attackerType defender = attack.baseDamage + attackBonus attack.effects := by
+  simp [calculateDamage, hWeak, hRes]
+
+theorem calculateDamage_base_no_effects (attack : Attack) (attackerType : EnergyType) (defender : Card)
+    (hEff : attack.effects = []) (hWeak : defender.weakness = none) (hRes : defender.resistance = none) :
+    calculateDamage attack attackerType defender = attack.baseDamage := by
+  simp [calculateDamage, hEff, hWeak, hRes, attackBonus_nil]
 
 def hasEnergyCost (attack : Attack) (energy : List EnergyType) : Bool :=
   energyCostSatisfied attack.energyCost energy
