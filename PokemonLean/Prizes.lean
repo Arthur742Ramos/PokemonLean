@@ -184,11 +184,7 @@ theorem prizesEmpty_iff (state : GameState) (player : PlayerId) :
   | nil =>
       simp [prizesEmpty, opponentPrizes, h]
   | cons prize rest =>
-      constructor
-      · intro hZero
-        simp [prizesEmpty, opponentPrizes, h] at hZero
-      · intro hNil
-        cases hNil
+      simp [prizesEmpty, opponentPrizes, h]
 
 def prizeWin (state : GameState) (player : PlayerId) : Prop :=
   (getPlayerState state (otherPlayer player)).prizes = []
