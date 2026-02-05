@@ -1784,6 +1784,12 @@ theorem applySTAB_ge (damage : Nat) (t1 t2 : EnergyType) :
   · simp [applySTAB, h, Nat.le_add_right]
   · simp [applySTAB, h]
 
+theorem applySTAB_le_add_half (damage : Nat) (t1 t2 : EnergyType) :
+    applySTAB damage t1 t2 ≤ damage + damage / 2 := by
+  by_cases h : t1 = t2
+  · simp [applySTAB, h]
+  · simp [applySTAB, h, Nat.le_add_right]
+
 theorem applyCritical_true (damage : Nat) : applyCritical damage true = damage * 2 := by
   simp [applyCritical]
 
@@ -1800,7 +1806,18 @@ theorem applyCritical_ge (damage : Nat) (isCrit : Bool) :
     simp [applyCritical]
   | true =>
     have hPos : (0:Nat) < 2 := by decide
-    simpa [applyCritical] using Nat.le_mul_of_pos_right damage hPos
+    simp [applyCritical]
+    exact Nat.le_mul_of_pos_right damage hPos
+
+theorem applyCritical_le (damage : Nat) (isCrit : Bool) :
+    applyCritical damage isCrit ≤ damage * 2 := by
+  cases isCrit with
+  | false =>
+    have hPos : (0:Nat) < 2 := by decide
+    simp [applyCritical]
+    exact Nat.le_mul_of_pos_right damage hPos
+  | true =>
+    simp [applyCritical]
 
 theorem applyWeather_clear (damage : Nat) (t : EnergyType) :
     applyWeather damage t .clear = damage := by
@@ -1904,6 +1921,44 @@ theorem calculateDamageExtended_clear (attack : Attack) (attackerType attackType
       applyCritical (applySTAB (calculateDamage attack attackerType defender) attackerType attackType) isCrit := by
   simp [calculateDamageExtended, applyWeather]
 
+theorem calculateDamageExtended_clear_no_crit (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) :
+    calculateDamageExtended attack attackerType attackType defender false .clear =
+      applySTAB (calculateDamage attack attackerType defender) attackerType attackType := by
+  simp [calculateDamageExtended, applyWeather, applyCritical]
+
+theorem calculateDamageExtended_clear_crit (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) :
+    calculateDamageExtended attack attackerType attackType defender true .clear =
+      applySTAB (calculateDamage attack attackerType defender) attackerType attackType * 2 := by
+  simp [calculateDamageExtended, applyWeather, applyCritical]
+
+theorem calculateDamageExtended_clear_no_crit_same (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) (h : attackerType = attackType) :
+    calculateDamageExtended attack attackerType attackType defender false .clear =
+      calculateDamage attack attackerType defender +
+        calculateDamage attack attackerType defender / 2 := by
+  simp [calculateDamageExtended, applyWeather, applyCritical, applySTAB, h]
+
+theorem calculateDamageExtended_clear_no_crit_diff (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) (h : attackerType ≠ attackType) :
+    calculateDamageExtended attack attackerType attackType defender false .clear =
+      calculateDamage attack attackerType defender := by
+  simp [calculateDamageExtended, applyWeather, applyCritical, applySTAB, h]
+
+theorem calculateDamageExtended_clear_crit_same (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) (h : attackerType = attackType) :
+    calculateDamageExtended attack attackerType attackType defender true .clear =
+      (calculateDamage attack attackerType defender +
+          calculateDamage attack attackerType defender / 2) * 2 := by
+  simp [calculateDamageExtended, applyWeather, applyCritical, applySTAB, h]
+
+theorem calculateDamageExtended_clear_crit_diff (attack : Attack) (attackerType attackType : EnergyType)
+    (defender : Card) (h : attackerType ≠ attackType) :
+    calculateDamageExtended attack attackerType attackType defender true .clear =
+      calculateDamage attack attackerType defender * 2 := by
+  simp [calculateDamageExtended, applyWeather, applyCritical, applySTAB, h]
+
 -- ============================================================================
 -- MATCHUP ANALYSIS FRAMEWORK
 -- ============================================================================
@@ -1991,6 +2046,13 @@ theorem typeAdvantage_self (t : EnergyType) : typeAdvantage t t = 0 := by
 
 theorem typeAdvantage_nonneg (attacker defender : EnergyType) : 0 ≤ typeAdvantage attacker defender := by
   cases attacker <;> cases defender <;> decide
+
+theorem typeAdvantage_le_one (attacker defender : EnergyType) : typeAdvantage attacker defender ≤ 1 := by
+  cases attacker <;> cases defender <;> decide
+
+theorem typeAdvantage_bounds (attacker defender : EnergyType) :
+    0 ≤ typeAdvantage attacker defender ∧ typeAdvantage attacker defender ≤ 1 := by
+  exact ⟨typeAdvantage_nonneg attacker defender, typeAdvantage_le_one attacker defender⟩
 
 /-- Estimate matchup advantage based on type chart. -/
 def estimateMatchup (deck1 deck2 : List Card) : Int :=

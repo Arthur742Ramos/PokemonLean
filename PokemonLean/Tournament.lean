@@ -105,6 +105,17 @@ theorem totalPoints_cons (round : SwissRound) (rounds : List SwissRound) (player
     totalPoints (round :: rounds) player = roundPoints round player + totalPoints rounds player := by
   simp [totalPoints]
 
+theorem totalPoints_nonneg (rounds : List SwissRound) (player : PlayerProfile) :
+    0 ≤ totalPoints rounds player := by
+  simp [totalPoints]
+
+theorem totalPoints_append (rounds1 rounds2 : List SwissRound) (player : PlayerProfile) :
+    totalPoints (rounds1 ++ rounds2) player = totalPoints rounds1 player + totalPoints rounds2 player := by
+  induction rounds1 with
+  | nil => simp [totalPoints]
+  | cons round rest ih =>
+      simp [totalPoints, Nat.add_assoc]
+
 def topCutEligible (rounds : List SwissRound) (player : PlayerProfile) (threshold : Nat) : Prop :=
   totalPoints rounds player ≥ threshold
 
@@ -114,6 +125,34 @@ theorem topCutEligible_mono (rounds : List SwissRound) (player : PlayerProfile)
   intro hEligible
   -- `threshold ≤ threshold' ≤ totalPoints rounds player`
   exact Nat.le_trans h hEligible
+
+theorem topCutEligible_zero (rounds : List SwissRound) (player : PlayerProfile) :
+    topCutEligible rounds player 0 := by
+  simp [topCutEligible]
+
+theorem topCutEligible_of_append_left (rounds1 rounds2 : List SwissRound)
+    (player : PlayerProfile) (threshold : Nat) :
+    topCutEligible rounds1 player threshold → topCutEligible (rounds1 ++ rounds2) player threshold := by
+  intro hEligible
+  have hSum : totalPoints (rounds1 ++ rounds2) player =
+      totalPoints rounds1 player + totalPoints rounds2 player :=
+    totalPoints_append rounds1 rounds2 player
+  have hLe : totalPoints rounds1 player ≤ totalPoints (rounds1 ++ rounds2) player := by
+    rw [hSum]
+    exact Nat.le_add_right _ _
+  exact Nat.le_trans hEligible hLe
+
+theorem topCutEligible_of_append_right (rounds1 rounds2 : List SwissRound)
+    (player : PlayerProfile) (threshold : Nat) :
+    topCutEligible rounds2 player threshold → topCutEligible (rounds1 ++ rounds2) player threshold := by
+  intro hEligible
+  have hSum : totalPoints (rounds1 ++ rounds2) player =
+      totalPoints rounds1 player + totalPoints rounds2 player :=
+    totalPoints_append rounds1 rounds2 player
+  have hLe : totalPoints rounds2 player ≤ totalPoints (rounds1 ++ rounds2) player := by
+    rw [hSum]
+    exact Nat.le_add_left _ _
+  exact Nat.le_trans hEligible hLe
 
 def ratingDelta (winner loser : PlayerProfile) : Int :=
   Int.ofNat (winner.rating + 10) - Int.ofNat (loser.rating + 10)

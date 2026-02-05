@@ -65,6 +65,24 @@ theorem prizeValueTotal_ge_count (prizes : List PrizeCard) :
       -- rewrite the total for `pc :: rest`
       simpa [prizeCount, prizeValueTotal_cons, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using h3
 
+theorem prizeValueTotal_le_three_mul (prizes : List PrizeCard) :
+    prizeValueTotal prizes ≤ 3 * prizeCount prizes := by
+  induction prizes with
+  | nil => simp [prizeValueTotal, prizeCount]
+  | cons pc rest ih =>
+      have hpc : prizeCardValue pc ≤ 3 := by
+        simpa [prizeCardValue] using prizeTierValue_le_three pc.tier
+      calc
+        prizeValueTotal (pc :: rest)
+            = prizeCardValue pc + prizeValueTotal rest := by
+                simp [prizeValueTotal]
+        _ ≤ 3 + prizeValueTotal rest := by
+                exact Nat.add_le_add_right hpc _
+        _ ≤ 3 + (3 * prizeCount rest) := by
+                exact Nat.add_le_add_left ih _
+        _ = 3 * prizeCount (pc :: rest) := by
+                simp [prizeCount, Nat.mul_add, Nat.add_comm]
+
 def takePrizeCard (attacker defender : PlayerState) : PlayerState × PlayerState :=
   takePrize attacker defender
 
