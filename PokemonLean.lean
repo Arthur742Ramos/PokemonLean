@@ -49,3 +49,11 @@ import PokemonLean.Core.EnergySystemDeep
 import PokemonLean.Core.AbilityInteraction
 import PokemonLean.Core.ItemAndTool
 import PokemonLean.Core.BenchMechanics
+-- Matchup/resource/turn deep analysis (Armada 551)
+import PokemonLean.Core.MatchupAnalysis
+import PokemonLean.Core.ResourceManagement
+import PokemonLean.Core.TurnStructure
+-- Stadium, Supporters, Prizes (Armada 547)
+import PokemonLean.Core.StadiumCards
+import PokemonLean.Core.SupporterCards
+import PokemonLean.Core.PrizeMapping
