@@ -45,3 +45,7 @@ import PokemonLean.Core.ControlDeck
 import PokemonLean.Core.ScarletViolet
 import PokemonLean.Core.RulingEdgeCases
 import PokemonLean.Core.EnergySystemDeep
+-- Deep game systems (Armada 546)
+import PokemonLean.Core.AbilityInteraction
+import PokemonLean.Core.ItemAndTool
+import PokemonLean.Core.BenchMechanics
