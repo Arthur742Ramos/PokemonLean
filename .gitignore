@@ -1,0 +1,10 @@
+.lake/
+.DS_Store
+.git.old/
+build.log
+*.locked
+Give me a pdf with the plan.pdf
+plan.pdf
+PokemonLean-ITP2026.zip
+supplementary.zip
+supplementary/
