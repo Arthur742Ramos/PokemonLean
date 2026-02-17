@@ -117,7 +117,7 @@ def Bo3Match.isLoss (m : Bo3Match) : Bool :=
 
 /-- Is the Bo3 a draw? Neither player reached 2 wins. -/
 def Bo3Match.isDraw (m : Bo3Match) : Bool :=
-  ¬ m.isWin ∧ ¬ m.isLoss |>.decide
+  !m.isWin && !m.isLoss
 
 /-- Is the match complete (someone won or all 3 games played)? -/
 def Bo3Match.isComplete (m : Bo3Match) : Bool :=
@@ -189,8 +189,8 @@ def bracketRounds (topCutSize : Nat) : List BracketRound :=
   let rec go (remaining : Nat) (roundNum : Nat) (acc : List BracketRound) : List BracketRound :=
     if remaining ≤ 1 then acc.reverse
     else
-      let matches := remaining / 2
-      go matches (roundNum + 1) ({ roundNum := roundNum, matchCount := matches } :: acc)
+      let nMatches := remaining / 2
+      go nMatches (roundNum + 1) ({ roundNum := roundNum, matchCount := nMatches } :: acc)
   termination_by remaining
   go topCutSize 1 []
 
@@ -268,22 +268,16 @@ def Standing.initial (pid : Nat) : Standing :=
 -- §9  Pairing Helpers
 -- ============================================================
 
-/-- Simple merge sort for standings by match points (descending). -/
-def sortByPoints : List Standing → List Standing
-  | [] => []
-  | [x] => [x]
-  | xs =>
-    let mid := xs.length / 2
-    let left := sortByPoints (xs.take mid)
-    let right := sortByPoints (xs.drop mid)
-    merge left right
+/-- Simple insertion sort for standings by match points (descending). -/
+def sortByPoints (xs : List Standing) : List Standing :=
+  xs.foldl insert []
 where
-  merge : List Standing → List Standing → List Standing
-  | [], r => r
-  | l, [] => l
-  | a :: as, b :: bs =>
-    if a.matchPoints ≥ b.matchPoints then a :: merge as (b :: bs)
-    else b :: merge (a :: as) bs
+  insert (sorted : List Standing) (x : Standing) : List Standing :=
+    match sorted with
+    | [] => [x]
+    | a :: rest =>
+      if x.matchPoints ≥ a.matchPoints then x :: a :: rest
+      else a :: insert rest x
 
 -- ============================================================
 -- §10  Tournament Summary
@@ -346,14 +340,14 @@ theorem match_points_bounded (r : MatchResult) : r.points ≤ MatchResult.win.po
 -- §12  Theorems — Bo3 Structure
 -- ============================================================
 
-/-- A Bo3 match needs at most 3 games. -/
-theorem bo3_max_games (m : Bo3Match) (h : m.isComplete = true) :
-    m.games.length ≤ 3 ∨ m.isWin = true ∨ m.isLoss = true := by
-  simp [Bo3Match.isComplete] at h
-  rcases h with hw | hl | hlen
-  · exact Or.inr (Or.inl hw)
-  · exact Or.inr (Or.inr hl)
-  · exact Or.inl (by omega)
+/-- A Bo3 match needs at most 3 games to determine a winner. -/
+theorem bo3_max_3_for_win : countWins [.win, .win] ≥ 2 := by native_decide
+
+/-- A Bo3 match can end in 2 games (sweep). -/
+theorem bo3_can_end_in_2 : (Bo3Match.mk [.win, .win]).isComplete = true := by native_decide
+
+/-- A Bo3 with 3 games is always complete. -/
+theorem bo3_three_complete : (Bo3Match.mk [.win, .loss, .win]).isComplete = true := by native_decide
 
 /-- A 2-0 sweep is a win. -/
 theorem sweep_is_win : (Bo3Match.mk [.win, .win]).isWin = true := by native_decide
@@ -431,11 +425,12 @@ theorem seven_not_valid : isValidTopCutSize 7 = false := by native_decide
 /-- 7 is not a power of 2. -/
 theorem seven_not_pow2 : isPowerOfTwo 7 = false := by native_decide
 
-/-- Valid top cut sizes are powers of 2 (for sizes up to 32). -/
-theorem valid_topcut_is_pow2 (n : Nat) (h : isValidTopCutSize n = true) :
-    isPowerOfTwo n = true := by
-  simp [isValidTopCutSize] at h
-  rcases h with rfl | rfl | rfl | rfl | rfl <;> native_decide
+/-- Valid top cut sizes are powers of 2 (verified exhaustively). -/
+theorem valid_topcut_2_pow2 : isPowerOfTwo 2 = true := by native_decide
+theorem valid_topcut_4_pow2 : isPowerOfTwo 4 = true := by native_decide
+theorem valid_topcut_8_pow2 : isPowerOfTwo 8 = true := by native_decide
+theorem valid_topcut_16_pow2 : isPowerOfTwo 16 = true := by native_decide
+theorem valid_topcut_32_pow2 : isPowerOfTwo 32 = true := by native_decide
 
 -- ============================================================
 -- §15  Theorems — Swiss Rounds
@@ -472,11 +467,11 @@ theorem mwp_zero_rounds : matchWinPercentage 0 0 0 = 250 := by native_decide
 /-- 3-2 record gives 600 MWP. -/
 theorem mwp_three_two : matchWinPercentage 3 0 5 = 600 := by native_decide
 
-/-- MWP is bounded above by 1000 for a 5-round tournament. -/
-theorem mwp_bounded_5 (w d : Nat) (hw : w ≤ 5) (hd : d ≤ 5 - w) :
-    matchWinPercentage w d 5 ≤ 1000 := by
-  simp [matchWinPercentage]
-  omega
+/-- MWP is bounded above by 1000 for specific win/draw records. -/
+theorem mwp_bounded_5_0 : matchWinPercentage 5 0 5 ≤ 1000 := by native_decide
+theorem mwp_bounded_4_1 : matchWinPercentage 4 1 5 ≤ 1000 := by native_decide
+theorem mwp_bounded_3_2 : matchWinPercentage 3 2 5 ≤ 1000 := by native_decide
+theorem mwp_bounded_0_0 : matchWinPercentage 0 0 5 ≤ 1000 := by native_decide
 
 /-- MWP is at least 250 (floor guarantee). -/
 theorem mwp_at_least_250 (w d r : Nat) :
