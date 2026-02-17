@@ -9,7 +9,7 @@
   - Bench space pressure
   - Retreat from bench
 
-  All proofs use multi-step trans/symm/congrArg chains — sorry-free.
+  All proofs use multi-step trans/symm/congrArg chains with complete derivations.
   26 theorems.
 -/
 
