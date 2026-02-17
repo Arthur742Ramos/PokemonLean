@@ -108,11 +108,9 @@ def greedyKOs (b : Board) : Nat :=
 where
   go : List Nat → Nat → Nat → Nat
   | [], _, kos => kos
-  | _ :: _, acc, kos =>
+  | v :: rest, acc, kos =>
     if acc ≥ totalPrizes then kos
-    else match _ : List Nat with  -- pattern matching on the original list
-         | [] => kos
-         | v :: rest => go rest (acc + v) (kos + 1)
+    else go rest (acc + v) (kos + 1)
 
 -- Simplified greedy: just count
 /-- Simple KO count: minimum KOs from sorted prize values. -/

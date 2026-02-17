@@ -448,7 +448,6 @@ theorem add_lost_zone_increases (s : LostZoneState) (n : Nat) (hn : n > 0) :
 theorem lost_zone_monotone (s : LostZoneState) (n : Nat) :
     (addToLostZone s n).count ≥ s.count := by
   simp [addToLostZone]
-  omega
 
 /-- Comfey adds exactly 1 to Lost Zone. -/
 theorem comfey_adds_one (s : LostZoneState) :

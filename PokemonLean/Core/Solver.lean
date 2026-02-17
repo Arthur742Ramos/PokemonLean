@@ -573,7 +573,7 @@ theorem legalActions_nonempty (gs : GameState) :
   intro h
   have hmem := pass_always_legal gs
   rw [h] at hmem
-  exact List.not_mem_nil _ hmem
+  exact absurd hmem (List.not_mem_nil)
 
 -- ============================================================
 -- §12  Theorems — applyAction properties

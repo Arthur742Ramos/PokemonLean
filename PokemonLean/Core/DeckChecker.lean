@@ -331,38 +331,38 @@ def twoRadiantDeck : Deck :=
 /-- A legal deck has exactly 60 cards. -/
 theorem legal_deck_has_60 (d : Deck) (h : isLegal d = true) :
     deckSize d = 60 := by
-  simp [isLegal] at h
-  exact Nat.eq_of_beq_eq_true h.1
+  simp [isLegal, Bool.and_eq_true] at h
+  exact h.1.1.1.1.1
 
 /-- A legal deck has at least one Basic Pokémon. -/
 theorem legal_deck_has_basic (d : Deck) (h : isLegal d = true) :
     hasBasicPokemon d = true := by
-  simp [isLegal] at h
-  exact h.2.2.1
+  simp [isLegal, Bool.and_eq_true] at h
+  exact h.1.1.1.2
 
 /-- A legal deck has at most 1 ACE SPEC. -/
 theorem legal_deck_ace_spec_unique (d : Deck) (h : isLegal d = true) :
     aceSpecCount d ≤ 1 := by
-  simp [isLegal] at h
-  exact h.2.2.2.1
+  simp [isLegal, Bool.and_eq_true] at h
+  exact h.1.1.2
 
 /-- A legal deck has at most 1 Radiant Pokémon. -/
 theorem legal_deck_radiant_unique (d : Deck) (h : isLegal d = true) :
     radiantCount d ≤ 1 := by
-  simp [isLegal] at h
-  exact h.2.2.2.2.2
+  simp [isLegal, Bool.and_eq_true] at h
+  exact h.2
 
 /-- A legal deck satisfies the 4-copy rule. -/
 theorem legal_deck_four_copy (d : Deck) (h : isLegal d = true) :
     fourCopyRuleSatisfied d = true := by
-  simp [isLegal] at h
-  exact h.2.1
+  simp [isLegal, Bool.and_eq_true] at h
+  exact h.1.1.1.1.2
 
 /-- A legal deck satisfies the Prism Star rule. -/
 theorem legal_deck_prism_star (d : Deck) (h : isLegal d = true) :
     prismStarRuleSatisfied d = true := by
-  simp [isLegal] at h
-  exact h.2.2.2.2.1
+  simp [isLegal, Bool.and_eq_true] at h
+  exact h.1.2
 
 -- ============================================================
 -- §10  Theorems — Illegal deck examples verified
@@ -460,29 +460,17 @@ theorem removing_from_60 (d : Deck) (c : DeckCard) (rest : Deck) (h : d = c :: r
 /-- A deck of all basic energy can be any size. -/
 theorem all_basic_energy_four_copy_ok (n : Nat) :
     fourCopyRuleSatisfied (rep (mkBasicEnergy "Fire Energy") n) = true := by
-  simp [fourCopyRuleSatisfied, nonBasicEnergyNames, List.filter, mkBasicEnergy,
-        List.eraseDups, List.all_eq_true]
-  intro s
-  simp [List.mem_filter, rep, List.mem_replicate, mkBasicEnergy]
-  intro h
-  exact absurd h.2 (by simp)
+  simp [fourCopyRuleSatisfied, nonBasicEnergyNames, mkBasicEnergy, rep, List.eraseDups]
 
 /-- If a deck has 0 Pokémon at all, it has no Basic Pokémon. -/
-theorem no_pokemon_no_basic (d : Deck) (h : d.all (fun c => c.category != .pokemon) = true) :
+theorem no_pokemon_no_basic (d : Deck)
+    (h : d.all (fun c => !c.isBasicPokemon) = true) :
     hasBasicPokemon d = false := by
   simp [hasBasicPokemon, List.any_eq_true]
   intro c hc
-  have : c.category != .pokemon = true := by
-    exact List.all_eq_true.mp h c hc
-  simp [mkBasic, DeckCard.isBasicPokemon] at this
-  cases c with
-  | mk name cat isbe iasp ipsp irad ibp =>
-    simp [DeckCard.isBasicPokemon]
-    by_contra hbp
-    push_neg at hbp
-    simp [hbp] at *
-    simp [CardCategory.instBEq] at this
-    cases cat <;> simp [BEq.beq, CardCategory.beq] at this
+  have := List.all_eq_true.mp h c hc
+  simp at this
+  exact this
 
 -- ============================================================
 -- §13  #eval demonstrations
