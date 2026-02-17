@@ -23,3 +23,10 @@ import PokemonLean.Core.BattleStyles
 import PokemonLean.Core.Paradox
 import PokemonLean.Core.CoinFlip
 import PokemonLean.Core.AbilityTiming
+import PokemonLean.Core.Tournament
+import PokemonLean.Core.FormatChecker
+import PokemonLean.Core.CardDatabase
+-- Consolidated modules (Armada 531)
+import PokemonLean.Core.Abilities
+import PokemonLean.Core.SpecialMechanics
+import PokemonLean.Core.Strategy
