@@ -34,3 +34,7 @@ import PokemonLean.Core.Strategy
 import PokemonLean.Core.Pocket
 import PokemonLean.Core.PocketBattle
 import PokemonLean.Core.LiveFormat
+-- Competitive analysis layer (Armada 536)
+import PokemonLean.Core.Metagame
+import PokemonLean.Core.SideDeck
+import PokemonLean.Core.HistoricalFormats
