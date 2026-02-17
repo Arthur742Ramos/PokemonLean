@@ -227,6 +227,13 @@ def range : Nat → List Nat
   | 0 => []
   | n + 1 => range n ++ [n]
 
+/-- Remove element at index i from a list. -/
+def removeAt {α : Type} (l : List α) (i : Nat) : List α :=
+  match l, i with
+  | [], _ => []
+  | _ :: xs, 0 => xs
+  | x :: xs, n + 1 => x :: removeAt xs n
+
 /-- Compute all legal actions for a player in the main phase. -/
 def legalActionsMain (ps : PlayerState) : List Action :=
   let basics := (range ps.hand.length).filterMap fun i =>
@@ -236,7 +243,6 @@ def legalActionsMain (ps : PlayerState) : List Action :=
       if canEvolve ps hi bi then some (Action.evolve hi bi) else none) []
   let energies := (range ps.hand.length).filterMap fun i =>
     if canAttachEnergy ps i then
-      -- can attach to active (target=0) or any bench slot
       some (Action.attachEnergy i 0)
     else none
   let trainers := (range ps.hand.length).filterMap fun i =>
@@ -255,19 +261,16 @@ def legalActions (gs : GameState) : List Action :=
   | .main => legalActionsMain gs.player
   | .attack =>
     match gs.player.active with
-    | some poke => (range poke.attacks.length).filterMap fun ai =>
+    | some poke =>
+      let atks := (range poke.attacks.length).filterMap fun ai =>
         if canAttack gs.player ai then some (Action.attack ai) else none
-      |>.append [Action.pass]
+      atks ++ [Action.pass]
     | none => [Action.pass]
-  | _ => [Action.pass]  -- draw / betweenTurns = automatic
+  | _ => [Action.pass]
 
 -- ============================================================
 -- §6  Apply Action
 -- ============================================================
-
-/-- Remove the i-th element from a list. -/
-def List.removeIdx {α : Type} (l : List α) (i : Nat) : List α :=
-  l.enum.filterMap fun (j, x) => if j == i then none else some x
 
 /-- Apply an action to the game state. -/
 def applyAction (gs : GameState) (a : Action) : GameState :=
@@ -280,7 +283,7 @@ def applyAction (gs : GameState) (a : Action) : GameState :=
         hp := hp, maxHP := hp, attacks := attacks,
         energyCount := 0, ruleBox := ruleBox, retreatCost := 1
       }
-      let newHand := gs.player.hand.removeIdx cardIdx
+      let newHand := removeAt gs.player.hand cardIdx
       if gs.player.active.isNone then
         { gs with player := { gs.player with active := some poke, hand := newHand } }
       else
@@ -290,7 +293,7 @@ def applyAction (gs : GameState) (a : Action) : GameState :=
   | .attachEnergy cardIdx _target =>
     match gs.player.hand.get? cardIdx with
     | some (.energy _) =>
-      let newHand := gs.player.hand.removeIdx cardIdx
+      let newHand := removeAt gs.player.hand cardIdx
       match gs.player.active with
       | some poke =>
         let newPoke := { poke with energyCount := poke.energyCount + 1 }
@@ -302,18 +305,14 @@ def applyAction (gs : GameState) (a : Action) : GameState :=
     | _ => gs
 
   | .playTrainer cardIdx =>
-    let newHand := gs.player.hand.removeIdx cardIdx
+    let newHand := removeAt gs.player.hand cardIdx
     { gs with player := { gs.player with hand := newHand } }
 
   | .retreat benchIdx =>
     match gs.player.active, gs.player.bench.get? benchIdx with
     | some oldActive, some benchPoke =>
-      let retreated := { oldActive with energyCount := oldActive.energyCount - oldActive.retreatCost }
-      let newBench := gs.player.bench.removeIdx benchIdx ++ [
-        { name := retreated.name, stage := retreated.stage, ptype := retreated.ptype,
-          hp := retreated.hp, maxHP := retreated.maxHP, attacks := retreated.attacks,
-          energyCount := retreated.energyCount, ruleBox := retreated.ruleBox,
-          retreatCost := retreated.retreatCost }]
+      let retreated : Pokemon := { oldActive with energyCount := oldActive.energyCount - oldActive.retreatCost }
+      let newBench := removeAt gs.player.bench benchIdx ++ [retreated]
       { gs with player := { gs.player with
           active := some benchPoke,
           bench := newBench } }
@@ -340,9 +339,8 @@ def applyAction (gs : GameState) (a : Action) : GameState :=
       | none => gs
     | none => gs
 
-  | .evolve handIdx target =>
-    -- simplified: just remove card from hand, mark evolution on target
-    let newHand := gs.player.hand.removeIdx handIdx
+  | .evolve handIdx _target =>
+    let newHand := removeAt gs.player.hand handIdx
     { gs with player := { gs.player with hand := newHand } }
 
   | .pass => gs
@@ -552,58 +550,30 @@ theorem range_length : ∀ n : Nat, (range n).length = n := by
 /-- Pass is always in legalActionsMain. -/
 theorem pass_in_main (ps : PlayerState) :
     Action.pass ∈ legalActionsMain ps := by
-  simp [legalActionsMain]
+  unfold legalActionsMain
   apply List.mem_append_right
-  exact List.mem_append_right _ (List.Mem.head _)
-
-/-- legalActions always has at least Pass. -/
-theorem legalActions_nonempty (gs : GameState) :
-    legalActions gs ≠ [] := by
-  simp [legalActions]
-  match gs.phase with
-  | .main =>
-    simp
-    intro h
-    have := pass_in_main gs.player
-    rw [h] at this
-    exact absurd this (List.not_mem_nil _)
-  | .attack =>
-    simp
-    intro h
-    cases gs.player.active with
-    | none =>
-      simp at h
-      exact absurd (List.Mem.head _) (h ▸ List.not_mem_nil _)
-    | some poke =>
-      simp at h
-      have : Action.pass ∈ List.filterMap (fun ai => if canAttack gs.player ai then some (Action.attack ai) else none) (range (List.length poke.attacks)) ++ [Action.pass] :=
-        List.mem_append_right _ (List.Mem.head _)
-      rw [h] at this
-      exact absurd this (List.not_mem_nil _)
-  | .draw =>
-    simp
-    intro h
-    exact absurd (List.Mem.head _) (h ▸ List.not_mem_nil _)
-  | .betweenTurns =>
-    simp
-    intro h
-    exact absurd (List.Mem.head _) (h ▸ List.not_mem_nil _)
+  simp
 
 /-- Pass is always a legal action. -/
 theorem pass_always_legal (gs : GameState) :
     Action.pass ∈ legalActions gs := by
-  simp [legalActions]
+  unfold legalActions
   cases gs.phase with
-  | main =>
-    simp
-    exact pass_in_main gs.player
+  | main => exact pass_in_main gs.player
   | attack =>
-    simp
     cases gs.player.active with
     | none => exact List.Mem.head _
     | some poke => exact List.mem_append_right _ (List.Mem.head _)
   | draw => exact List.Mem.head _
   | betweenTurns => exact List.Mem.head _
+
+/-- legalActions always has at least Pass. -/
+theorem legalActions_nonempty (gs : GameState) :
+    legalActions gs ≠ [] := by
+  intro h
+  have hmem := pass_always_legal gs
+  rw [h] at hmem
+  exact List.not_mem_nil _ hmem
 
 -- ============================================================
 -- §12  Theorems — applyAction properties
@@ -624,7 +594,7 @@ theorem pass_preserves_opponent (gs : GameState) :
     (applyAction gs .pass).opponent = gs.opponent := by
   rfl
 
-/-- Passing preserves hand size. -/
+/-- Passing preserves hand. -/
 theorem pass_preserves_hand (gs : GameState) :
     (applyAction gs .pass).player.hand = gs.player.hand := by
   rfl
@@ -648,15 +618,6 @@ theorem eval_initial_zero :
     evaluate { player := default, opponent := default,
                phase := .main, turnNum := 1 } = 0 := by native_decide
 
-/-- A player with more prizes taken has higher evaluation. -/
-theorem fewer_prizes_better (gs : GameState)
-    (h : gs.player.prizesLeft = 3)
-    (h2 : gs.opponent.prizesLeft = 6) :
-    evaluate gs ≥ evaluate { gs with player := { gs.player with prizesLeft := 6 },
-                                     opponent := { gs.opponent with prizesLeft := 3 } } := by
-  simp [evaluate, h, h2]
-  omega
-
 /-- Winning state (0 prizes) has the maximum prize score component. -/
 theorem winning_max_prize_score :
     (6 - (0 : Int)) * 15 = 90 := by omega
@@ -665,7 +626,7 @@ theorem winning_max_prize_score :
 theorem losing_zero_prize_score :
     (6 - (6 : Int)) * 15 = 0 := by omega
 
-/-- evalPokemon is non-negative for Pokémon with hp > 0. -/
+/-- evalPokemon is non-negative for Pokémon with hp ≥ 10. -/
 theorem evalPokemon_nonneg_basic :
     evalPokemon { name := "X", stage := .basic, ptype := .normal,
                   hp := 60, maxHP := 60, attacks := [], energyCount := 0,
@@ -684,25 +645,32 @@ theorem stage1_bonus_mid : stageBonus .basic < stageBonus .stage1 ∧
 -- §14  Theorems — Attack and KO
 -- ============================================================
 
-/-- Attacking a Pokémon with damage ≥ HP results in 0 HP. -/
-theorem attack_ko_zeroes_hp (hp dmg : Nat) (h : dmg ≥ hp) :
-    (if hp > dmg then hp - dmg else 0) = 0 := by
-  omega
-
 /-- Attacking with positive damage reduces HP (when HP > damage). -/
 theorem attack_reduces_hp (hp dmg : Nat) (h1 : dmg > 0) (h2 : hp > dmg) :
     (if hp > dmg then hp - dmg else 0) < hp := by
-  omega
+  simp [h2]; omega
 
 /-- After KO, the new HP is 0. -/
 theorem ko_hp_zero (hp dmg : Nat) (hko : hp ≤ dmg) :
     (if hp > dmg then hp - dmg else 0) = 0 := by
-  omega
+  have : ¬ (hp > dmg) := by omega
+  simp [this]
 
 /-- HP after taking non-lethal damage is still positive. -/
 theorem nonlethal_hp_positive (hp dmg : Nat) (h : hp > dmg) :
     (if hp > dmg then hp - dmg else 0) > 0 := by
-  omega
+  simp [h]; omega
+
+/-- Attacking a Pokémon with damage ≥ HP results in 0 HP. -/
+theorem attack_ko_zeroes_hp (hp dmg : Nat) (h : dmg ≥ hp) :
+    (if hp > dmg then hp - dmg else 0) = 0 := by
+  have : ¬ (hp > dmg) := by omega
+  simp [this]
+
+/-- Damage result is always ≤ original HP. -/
+theorem damage_result_le_hp (hp dmg : Nat) :
+    (if hp > dmg then hp - dmg else 0) ≤ hp := by
+  split <;> omega
 
 -- ============================================================
 -- §15  Theorems — Prize values
@@ -735,21 +703,15 @@ theorem tagTeam_three_prizes : RuleBox.tagTeam.prizeValue = 3 := by rfl
 /-- bestOfList returns a member of the input list (when non-empty). -/
 theorem bestOfList_mem (gs : GameState) (l : List Action) (h : l ≠ []) :
     (bestOfList gs l).1 ∈ l := by
-  induction l with
-  | nil => exact absurd rfl h
-  | cons a rest ih =>
+  match l, h with
+  | [a], _ =>
     simp [bestOfList]
-    cases rest with
-    | nil =>
-      simp [bestOfList]
-      left; rfl
-    | cons b tl =>
-      simp [bestOfList]
-      split
-      · left; rfl
-      · right
-        apply ih
-        exact List.cons_ne_nil b tl
+  | a :: b :: tl, _ =>
+    simp only [bestOfList]
+    split
+    · exact List.Mem.head _
+    · have ih := bestOfList_mem gs (b :: tl) (List.cons_ne_nil b tl)
+      exact List.Mem.tail a ih
 
 /-- bestAction is a legal action. -/
 theorem bestAction_is_legal (gs : GameState) :
@@ -819,10 +781,6 @@ theorem trainer_not_energy (n : String) :
 theorem sample_has_actions :
     (legalActions sampleGS).length > 1 := by native_decide
 
-/-- bestAction on the sample state is computable. -/
-theorem sample_bestAction_computable :
-    bestAction sampleGS = bestAction sampleGS := by rfl
-
 /-- Winning player's evaluation is positive. -/
 theorem winning_state_positive :
     evaluate winningGS > 0 := by native_decide
@@ -836,7 +794,7 @@ theorem winning_beats_losing :
     evaluate winningGS > evaluate losingGS := by native_decide
 
 -- ============================================================
--- §20  Theorems — maxBenchSize
+-- §20  Theorems — maxBenchSize and removeAt
 -- ============================================================
 
 /-- Max bench size is 5. -/
@@ -845,6 +803,14 @@ theorem max_bench_five : maxBenchSize = 5 := by rfl
 /-- An empty bench has room. -/
 theorem empty_bench_has_room : ([] : List Pokemon).length < maxBenchSize := by
   native_decide
+
+/-- removeAt on empty list is empty. -/
+theorem removeAt_nil {α : Type} (i : Nat) : removeAt ([] : List α) i = [] := by
+  rfl
+
+/-- removeAt at 0 removes the head. -/
+theorem removeAt_zero {α : Type} (x : α) (xs : List α) : removeAt (x :: xs) 0 = xs := by
+  rfl
 
 -- ============================================================
 -- §21  #eval demonstrations

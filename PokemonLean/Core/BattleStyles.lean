@@ -467,7 +467,7 @@ theorem rapid_flow_total :
 
 /-- Theorem 28: G-Max One Blow base damage is 270. -/
 theorem one_blow_damage :
-    (GMaxOneBlow.mk).baseDamage = 270 := by rfl
+    (GMaxOneBlow.mk 270 true true).baseDamage = 270 := by rfl
 
 /-- Theorem 29: Power Tablet bonus stacks: 3 tablets = 90 extra damage. -/
 theorem power_tablet_stacks : powerTabletBonus 3 = 90 := by native_decide
@@ -529,7 +529,7 @@ theorem fs_energy_is_wild : fusionStrikeEnergyWild = true := by rfl
     If the energy requires style S and the Pokémon has style S, attachment is allowed. -/
 theorem style_energy_consistent (e : EnergyType) (h : e.isStyleEnergy = true) :
     canAttachStyleEnergy e e.requiredStyle = true := by
-  cases e <;> simp [EnergyType.isStyleEnergy, EnergyType.requiredStyle, canAttachStyleEnergy] at *
+  cases e <;> simp [EnergyType.isStyleEnergy, EnergyType.requiredStyle, canAttachStyleEnergy] at * <;> rfl
 
 -- ============================================================
 -- §18  Theorems — Cross-Style Interaction Summary

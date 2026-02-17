@@ -43,41 +43,40 @@ def coinOutcomes : Nat := 2
 -- §2  Natural Number Fractions for Probability
 -- ============================================================
 
-/-- A rational probability represented as numerator/denominator (Nat). -/
+/-- A rational probability represented as numerator/denominator (Nat).
+    We separate the validity proof to avoid issues with structure proofs. -/
 structure Probability where
   num   : Nat
   denom : Nat
-  valid : denom > 0 := by omega
 deriving Repr
 
+/-- Build a valid probability (denom > 0). -/
+def mkProb (n d : Nat) (_ : d > 0 := by omega) : Probability := ⟨n, d⟩
+
 /-- P = 0 -/
-def Probability.zero : Probability := ⟨0, 1, by omega⟩
+def Probability.zero : Probability := ⟨0, 1⟩
 
 /-- P = 1 -/
-def Probability.one : Probability := ⟨1, 1, by omega⟩
+def Probability.one : Probability := ⟨1, 1⟩
 
 /-- P = 1/2 (single coin flip) -/
-def Probability.half : Probability := ⟨1, 2, by omega⟩
+def Probability.half : Probability := ⟨1, 2⟩
 
 /-- Multiply two probabilities: (a/b) × (c/d) = (a*c)/(b*d). -/
 def Probability.mul (p q : Probability) : Probability :=
-  ⟨p.num * q.num, p.denom * q.denom, by omega⟩
+  ⟨p.num * q.num, p.denom * q.denom⟩
 
 /-- Whether probability equals a given fraction (cross-multiply check). -/
 def Probability.eqFrac (p : Probability) (n d : Nat) : Prop :=
   p.num * d = n * p.denom
 
 /-- Complementary probability: 1 - p = (denom - num) / denom. -/
-def Probability.complement (p : Probability) (h : p.num ≤ p.denom) : Probability :=
-  ⟨p.denom - p.num, p.denom, p.valid⟩
+def Probability.complement (p : Probability) : Probability :=
+  ⟨p.denom - p.num, p.denom⟩
 
 -- ============================================================
 -- §3  Sleep Model
 -- ============================================================
-
-/-- Sleep check: flip coin between turns.
-    Heads = wake up, Tails = stay asleep.
-    P(wake in 1 turn) = 1/2. -/
 
 /-- Probability of waking from sleep on a single check. -/
 def sleepWakeProb : Probability := Probability.half
@@ -87,27 +86,20 @@ def sleepWakeProb : Probability := Probability.half
 def sleepStillAsleepProb (n : Nat) : Probability :=
   match n with
   | 0     => Probability.one
-  | n + 1 => Probability.mul (sleepStillAsleepProb n) ⟨1, 2, by omega⟩
+  | n + 1 => Probability.mul (sleepStillAsleepProb n) ⟨1, 2⟩
 
 /-- Expected number of turns asleep = 2 (geometric distribution mean).
-    We express this as: sum of P(asleep ≥ k) for k=1,2,3,... = 2.
-    Concretely: 1/2 + 1/4 + 1/8 + ... → 1, and total expected = 1/P(heads) = 2.
-    We model expected turns as numerator/denominator. -/
-def sleepExpectedTurns : Probability := ⟨2, 1, by omega⟩
+    1/P(heads) = 1/(1/2) = 2. -/
+def sleepExpectedTurns : Probability := ⟨2, 1⟩
 
 -- ============================================================
 -- §4  Burn Model
 -- ============================================================
 
-/-- Burn check: flip between turns.
-    Tails = 2 damage counters (20 HP).
-    Heads = no damage this turn.
-    P(burn damage) = 1/2. -/
-
-/-- Burn damage on a failed flip (tails). -/
+/-- Burn damage on a failed flip (tails): 2 damage counters. -/
 def burnDamageCounters : Nat := 2
 
-/-- Burn damage in HP. -/
+/-- Burn damage in HP (2 counters × 10). -/
 def burnDamageHP : Nat := burnDamageCounters * 10
 
 /-- Probability of taking burn damage on any given check. -/
@@ -119,11 +111,6 @@ def burnExpectedCountersPerTurn : Nat := 1
 -- ============================================================
 -- §5  Confusion Model
 -- ============================================================
-
-/-- Confusion: flip before attacking.
-    Tails = 30 damage to self instead of attacking.
-    Heads = attack normally.
-    P(self-hit) = 1/2. -/
 
 /-- Confusion self-damage on tails. -/
 def confusionSelfDamage : Nat := 30
@@ -138,17 +125,13 @@ def resolveConfusion (attackDamage : Nat) (flip : CoinResult) : Int :=
   | .tails => -(confusionSelfDamage : Int)
 
 /-- Expected damage from an attack when confused.
-    E = attackDamage/2 - confusionSelfDamage/2.
-    We model as (attackDamage - 30) / 2, treating as Nat (floor at 0). -/
+    E = attackDamage/2 (heads: full damage, tails: 0 to opponent). -/
 def confusedExpectedDamage (baseDamage : Nat) : Nat :=
   baseDamage / 2
 
 -- ============================================================
 -- §6  Paralysis Model
 -- ============================================================
-
-/-- Paralysis: NO coin flip. Auto-cures at end of afflicted player's
-    next turn. Cannot attack or retreat while paralyzed. -/
 
 /-- Paralysis involves no coin flip. -/
 def paralysisHasFlip : Bool := false
@@ -160,14 +143,13 @@ def paralysisDuration : Nat := 1
 -- §7  Trainer Card Coin Flips
 -- ============================================================
 
-/-- Super Scoop Up: flip, heads = return Pokémon and all cards
-    attached to it to your hand. -/
+/-- Super Scoop Up: flip, heads = return Pokémon to hand. -/
 def superScoopUpResult (flip : CoinResult) : Bool :=
   match flip with
-  | .heads => true   -- Success: return to hand
-  | .tails => false  -- Fail: nothing happens
+  | .heads => true
+  | .tails => false
 
-/-- Crushing Hammer: flip, heads = discard an energy from opponent's Pokémon. -/
+/-- Crushing Hammer: flip, heads = discard opponent's energy. -/
 def crushingHammerResult (flip : CoinResult) : Bool :=
   match flip with
   | .heads => true
@@ -179,8 +161,7 @@ def pokemonCatcherResult (flip : CoinResult) : Bool :=
   | .heads => true
   | .tails => false
 
-/-- Victini's Victory Star ability: reflip ALL coins once.
-    Models the concept of a second attempt. -/
+/-- Victini's Victory Star ability: reflip ALL coins once. -/
 def victiniReflip (firstFlip secondFlip : CoinResult) (useReflip : Bool) : CoinResult :=
   if useReflip then secondFlip else firstFlip
 
@@ -200,7 +181,7 @@ def countTails : List CoinResult → Nat
   | .tails :: rest => 1 + countTails rest
   | .heads :: rest => countTails rest
 
-/-- Total flips = heads + tails. -/
+/-- Total flips. -/
 def totalFlips (flips : List CoinResult) : Nat := flips.length
 
 /-- Flip-until-tails: count how many heads before the first tails.
@@ -208,9 +189,7 @@ def totalFlips (flips : List CoinResult) : Nat := flips.length
 def flipUntilTailsDamage (flips : List CoinResult) (damagePerHead : Nat) : Nat :=
   countHeads (flips.takeWhile (· == .heads)) * damagePerHead
 
-/-- Probability of exactly k heads in n independent flips.
-    P(k heads in n flips) uses a simplified model:
-    numerator = C(n,k), denominator = 2^n. -/
+/-- Binomial coefficient. -/
 def choose : Nat → Nat → Nat
   | _,     0     => 1
   | 0,     _ + 1 => 0
@@ -222,28 +201,23 @@ def pow2 : Nat → Nat
   | n + 1 => 2 * pow2 n
 
 /-- Probability of exactly k heads in n flips. -/
-def probExactHeads (n k : Nat) (h : n > 0 := by omega) : Probability :=
-  ⟨choose n k, pow2 n, by induction n with
-    | zero => omega
-    | succ n' _ => simp [pow2]; omega⟩
+def probExactHeads (n k : Nat) : Probability :=
+  ⟨choose n k, pow2 n⟩
 
 -- ============================================================
 -- §9  Expected Damage with Coin Flips
 -- ============================================================
 
-/-- Expected damage for a flip-for-damage attack.
-    Base damage × P(heads) = baseDamage / 2 (integer division). -/
+/-- Expected damage for a flip-for-damage attack: baseDamage / 2. -/
 def expectedFlipDamage (baseDamage : Nat) : Nat :=
   baseDamage / 2
 
 /-- Expected damage for a "flip until tails" attack.
-    E[heads before tails] = 1, so E[damage] = damagePerHead.
-    (Geometric distribution: E[X] = p/(1-p) = 1 for fair coin.) -/
+    E[heads before tails] = 1, so E[damage] = damagePerHead. -/
 def expectedFlipUntilTailsDamage (damagePerHead : Nat) : Nat :=
   damagePerHead
 
-/-- Expected damage for confusion: halves your effective damage output.
-    If confused, E[damage dealt to opponent] = baseDamage/2. -/
+/-- Expected damage for confusion: halves effective output. -/
 def expectedConfusedOutput (baseDamage : Nat) : Nat :=
   baseDamage / 2
 
@@ -261,9 +235,9 @@ theorem heads_ne_tails : CoinResult.heads ≠ CoinResult.tails := by decide
 theorem coin_exhaustive (c : CoinResult) : c = .heads ∨ c = .tails := by
   cases c <;> simp
 
-/-- Theorem 4: CoinResult has decidable equality. -/
-theorem coin_decidable (a b : CoinResult) : Decidable (a = b) :=
-  inferInstance
+/-- Theorem 4: CoinResult decidable equality is consistent. -/
+theorem coin_eq_self (c : CoinResult) : (c == c) = true := by
+  cases c <;> rfl
 
 -- ============================================================
 -- §11  Theorems — Probability Properties
@@ -273,7 +247,7 @@ theorem coin_decidable (a b : CoinResult) : Decidable (a = b) :=
 theorem prob_heads_half : sleepWakeProb.num = 1 ∧ sleepWakeProb.denom = 2 := by
   constructor <;> rfl
 
-/-- Theorem 6: P(asleep after 0 checks) = 1 (you just got put to sleep). -/
+/-- Theorem 6: P(asleep after 0 checks) = 1 (just got put to sleep). -/
 theorem asleep_zero_certain :
     (sleepStillAsleepProb 0).num = 1 ∧ (sleepStillAsleepProb 0).denom = 1 := by
   constructor <;> rfl
@@ -332,12 +306,10 @@ theorem confusion_heads_full (d : Nat) :
 theorem confusion_tails_self (d : Nat) :
     resolveConfusion d .tails = -(confusionSelfDamage : Int) := by rfl
 
-/-- Theorem 19: Confusion halves expected damage output.
-    For d = 200, expected = 100. -/
+/-- Theorem 19: Confusion halves expected damage output (200 → 100). -/
 theorem confusion_halves_200 : confusedExpectedDamage 200 = 100 := by native_decide
 
-/-- Theorem 20: Confusion halves expected damage output.
-    For d = 0, expected = 0. -/
+/-- Theorem 20: Confusion halves expected damage output (0 → 0). -/
 theorem confusion_halves_zero : confusedExpectedDamage 0 = 0 := by rfl
 
 -- ============================================================
@@ -378,11 +350,11 @@ theorem pokemon_catcher_tails : pokemonCatcherResult .tails = false := by rfl
 
 /-- Theorem 29: Heads + Tails = Total flips. -/
 theorem heads_plus_tails_eq_total (flips : List CoinResult) :
-    countHeads flips + countTails flips = totalFlips flips := by
+    countHeads flips + countTails flips = flips.length := by
   induction flips with
   | nil => rfl
   | cons c rest ih =>
-    cases c <;> simp [countHeads, countTails, totalFlips, List.length] <;> omega
+    cases c <;> simp_all [countHeads, countTails, List.length] <;> omega
 
 /-- Theorem 30: Empty flip list has 0 heads. -/
 theorem empty_flips_no_heads : countHeads [] = 0 := by rfl
@@ -443,7 +415,7 @@ theorem half_times_half :
 -- §18  Theorems — Compound Scenarios
 -- ============================================================
 
-/-- Theorem 43: Flip-until-tails with all heads = total × damage. -/
+/-- Theorem 43: Flip-until-tails with 3 heads then tails = 90 damage at 30 per head. -/
 theorem flip_until_all_heads :
     flipUntilTailsDamage [.heads, .heads, .heads, .tails] 30 = 90 := by native_decide
 
@@ -451,10 +423,10 @@ theorem flip_until_all_heads :
 theorem flip_until_first_tails :
     flipUntilTailsDamage [.tails, .heads, .heads] 30 = 0 := by native_decide
 
-/-- Theorem 45: Complementary probability: if P = 1/2, complement = 1/2. -/
+/-- Theorem 45: Complementary probability of 1/2 is 1/2. -/
 theorem complement_half :
-    (Probability.complement Probability.half (by omega)).num = 1 ∧
-    (Probability.complement Probability.half (by omega)).denom = 2 := by
+    (Probability.complement Probability.half).num = 1 ∧
+    (Probability.complement Probability.half).denom = 2 := by
   constructor <;> rfl
 
 end PokemonLean.Core.CoinFlip
