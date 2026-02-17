@@ -9,49 +9,9 @@
   Turn state machine, phase ordering invariants, one supporter per turn,
   one attachment per turn, one retreat per turn, one VSTAR power per game.
 
-  All proofs use multi-step trans/symm/congrArg chains — sorry-free.
 -/
 
 namespace PokemonLean.TurnStructure
-
--- ============================================================
--- §1  Core Path Infrastructure
--- ============================================================
-
-/-- A rewrite step tracking game state transitions. -/
-inductive Step (α : Type) : α → α → Type where
-  | mk : (name : String) → (a b : α) → Step α a b
-
-/-- Computational path: sequence of game state transitions. -/
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-/-- Transitivity: path concatenation. -/
-def Path.trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) : Path α a c :=
-  match p with
-  | .nil _ => q
-  | .cons s rest => .cons s (rest.trans q)
-
-/-- Path length. -/
-def Path.length {α : Type} {a b : α} : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ rest => 1 + rest.length
-
-/-- Symmetry for steps. -/
-def Step.symm {α : Type} {a b : α} : Step α a b → Step α b a
-  | .mk name a b => .mk (name ++ "⁻¹") b a
-
-/-- Symmetry for paths. -/
-def Path.symm {α : Type} {a b : α} : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-/-- Single step as path. -/
-def Path.single {α : Type} {a b : α} (s : Step α a b) : Path α a b :=
-  .cons s (.nil b)
-
 -- ============================================================
 -- §2  Turn Phases
 -- ============================================================
@@ -157,36 +117,6 @@ inductive PhasePath : TurnState → TurnState → Type where
   | refl : (s : TurnState) → PhasePath s s
   | cons : {s t u : TurnState} → PhaseTransition s t → PhasePath t u → PhasePath s u
 
-/-- Theorem 7: Transitivity for phase paths. -/
-def PhasePath.trans {s t u : TurnState}
-    (p : PhasePath s t) (q : PhasePath t u) : PhasePath s u :=
-  match p with
-  | .refl _ => q
-  | .cons tr rest => .cons tr (rest.trans q)
-
-/-- Phase path length. -/
-def PhasePath.length : {s t : TurnState} → PhasePath s t → Nat
-  | _, _, .refl _ => 0
-  | _, _, .cons _ rest => 1 + rest.length
-
-/-- Theorem 8: A full turn cycle has exactly 4 phase transitions. -/
-def fullTurnCycle (s : TurnState) (hd : s.currentPhase = .drawPhase) :
-    PhasePath s
-      { currentPhase := .drawPhase
-        resources := TurnResources.fresh s.resources.vstarUsedThisGame
-        turnNumber := s.turnNumber + 1
-        isFirstTurn := false } :=
-  let s1 := { s with currentPhase := .mainPhase }
-  let s2 := { s with currentPhase := .attackPhase }
-  let s3 := { s with currentPhase := .betweenTurns }
-  .cons (.drawToMain s hd)
-    (.cons (.mainToAttack s1 rfl)
-      (.cons (.attackToBetween s2 rfl)
-        (.cons (.betweenToNextDraw s3 rfl) (.refl _))))
-
-theorem fullTurnCycle_length (s : TurnState) (hd : s.currentPhase = .drawPhase) :
-    (fullTurnCycle s hd).length = 4 := by
-  simp [fullTurnCycle, PhasePath.length]
 
 -- ============================================================
 -- §6  Main Phase Actions
@@ -224,18 +154,6 @@ inductive MainPath : TurnState → TurnState → Type where
   | done : (s : TurnState) → MainPath s s
   | act  : {s t u : TurnState} → MainAction s t → MainPath t u → MainPath s u
 
-/-- Theorem 9: Main paths are transitive. -/
-def MainPath.trans {s t u : TurnState}
-    (p : MainPath s t) (q : MainPath t u) : MainPath s u :=
-  match p with
-  | .done _ => q
-  | .act a rest => .act a (rest.trans q)
-
-/-- Main path length. -/
-def MainPath.length : {s t : TurnState} → MainPath s t → Nat
-  | _, _, .done _ => 0
-  | _, _, .act _ rest => 1 + rest.length
-
 -- ============================================================
 -- §7  One-Per-Turn Invariants
 -- ============================================================
@@ -272,13 +190,6 @@ theorem vstar_persists (s : TurnState)
 theorem main_action_preserves_phase {s t : TurnState} (a : MainAction s t) :
     t.currentPhase = .mainPhase := by
   cases a <;> simp_all [Phase]
-
-/-- Theorem 15: Main path preserves phase. -/
-theorem main_path_preserves_phase {s t : TurnState} (p : MainPath s t)
-    (h : s.currentPhase = .mainPhase) : t.currentPhase = .mainPhase := by
-  induction p with
-  | done => exact h
-  | act a _ ih => exact ih (main_action_preserves_phase a)
 
 /-- Theorem 16: Phase ordering monotonically increases within a turn. -/
 theorem phase_transition_monotone {s t : TurnState} (tr : PhaseTransition s t)

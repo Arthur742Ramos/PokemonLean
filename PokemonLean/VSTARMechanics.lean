@@ -7,9 +7,7 @@
   - Giratina VSTAR (Star Requiem + Lost Zone condition)
   - Arceus VSTAR (Starbirth search)
   - Prize penalties for VSTAR knockouts (2 prizes)
-  - Interaction with game state via computational paths
 
-  All proofs use multi-step trans/symm/congrArg chains — the rewriting IS the math.
 -/
 
 namespace VSTARMechanics
@@ -17,34 +15,6 @@ namespace VSTARMechanics
 -- ============================================================================
 -- Core game state
 -- ============================================================================
-
-/-- A rewrite step in game state transitions. -/
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-/-- Computational paths tracking game state evolution. -/
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | Path.nil _, q => q
-  | Path.cons s p, q => Path.cons s (Path.trans p q)
-
-def Path.length : Path α a b → Nat
-  | Path.nil _ => 0
-  | Path.cons _ p => 1 + Path.length p
-
-def Step.symm : Step α a b → Step α b a
-  | Step.refl a => Step.refl a
-  | Step.rule name a b => Step.rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | Path.nil a => Path.nil a
-  | Path.cons s p => Path.trans (Path.symm p) (Path.cons (Step.symm s) (Path.nil _))
-
-def PathConnected (α : Type) (a b : α) : Prop := Nonempty (Path α a b)
 
 -- ============================================================================
 -- VSTAR types
@@ -227,53 +197,14 @@ theorem takePrizes_vstar_takes_two (s : VSTARState) :
     s.prizesRemaining - 2 := by
   simp [takePrizes, prizePenalty]
 
--- ============================================================================
--- Path-theoretic game state transitions
--- ============================================================================
-
 -- 16
-theorem path_trans_nil (p : Path α a b) :
-    Path.trans p (Path.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
 -- 17
-theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
 -- 18
-theorem path_nil_trans (p : Path α a b) :
-    Path.trans (Path.nil a) p = p := rfl
-
 -- 19
-theorem path_trans_length (p : Path α a b) (q : Path α b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- 20
-theorem game_state_path_refl (s : VSTARState) :
-    PathConnected VSTARState s s :=
-  ⟨Path.nil s⟩
 
 -- 21
-theorem game_state_path_trans
-    (h1 : PathConnected VSTARState s₁ s₂)
-    (h2 : PathConnected VSTARState s₂ s₃) :
-    PathConnected VSTARState s₁ s₃ :=
-  h1.elim fun p => h2.elim fun q => ⟨Path.trans p q⟩
-
 -- 22
-theorem game_state_path_symm
-    (h : PathConnected VSTARState s₁ s₂) :
-    PathConnected VSTARState s₂ s₁ :=
-  h.elim fun p => ⟨Path.symm p⟩
-
 -- ============================================================================
 -- Lost Zone path coherence
 -- ============================================================================

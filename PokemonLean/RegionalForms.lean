@@ -6,63 +6,9 @@
   Pikachu→Alolan Raichu), regional form deck building (count as same
   Pokémon), regional exclusive moves.
 
-  Multi-step trans/symm/congrArg computational path chains.
-  All proofs sorry-free.  20+ theorems.
 -/
 
 namespace RegionalForms
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | mk : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-def Step.symm : Step α a b → Step α b a
-  | .mk name a b => .mk (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil b)
-
-def Path.congrArg (f : α → β) (lbl : String)
-    : Path α a b → Path β (f a) (f b)
-  | .nil _ => .nil _
-  | .cons _ p => .cons (.mk lbl _ _) (p.congrArg f lbl)
-
-theorem Path.trans_nil (p : Path α a b) : p.trans (.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem Path.trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem Path.length_trans (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons _ _ ih => simp [Path.trans, Path.length, ih]; omega
-
 -- ============================================================================
 -- §2  Regional form types
 -- ============================================================================
@@ -174,30 +120,12 @@ def pikachu_state : EvoState := ⟨⟨25, "Pikachu"⟩, .kanto, false⟩
 def raichu_kanto_state : EvoState := ⟨⟨26, "Raichu"⟩, .kanto, true⟩
 def raichu_alola_state : EvoState := ⟨⟨26, "Raichu"⟩, .alola, true⟩
 
-/-- Theorem 7: Pikachu → Kanto Raichu is a single-step path. -/
-def evo_path_kanto : Path EvoState pikachu_state raichu_kanto_state :=
-  Path.single (Step.mk "evolve-thunder-stone-kanto" _ _)
-
-/-- Theorem 8: Pikachu → Alolan Raichu is a single-step path. -/
-def evo_path_alola : Path EvoState pikachu_state raichu_alola_state :=
-  Path.single (Step.mk "evolve-thunder-stone-alola" _ _)
-
-/-- Theorem 9: Both evolution paths have length 1. -/
-theorem evo_branch_same_length :
-    evo_path_kanto.length = evo_path_alola.length := by rfl
 
 /-- Theorem 10: Evolution branching: Kanto path ≠ Alola path target. -/
 theorem evo_branch_different_targets :
     raichu_kanto_state ≠ raichu_alola_state := by
   simp [raichu_kanto_state, raichu_alola_state]
 
-/-- Theorem 11: Symm of Kanto evolution undoes evolution. -/
-theorem evo_kanto_symm_length :
-    evo_path_kanto.symm.length = 1 := by rfl
-
-/-- Theorem 12: congrArg extracts species path from evolution path. -/
-theorem evo_congrArg_species :
-    (evo_path_kanto.congrArg (fun s => s.species.dexNum) "dex").length = 1 := by rfl
 
 -- ============================================================================
 -- §6  Deck building with regional forms
@@ -281,44 +209,8 @@ deriving DecidableEq, Repr
 
 def removedState : FormState := ⟨vulpixKanto, false⟩
 
-/-- Theorem 20: Path from Kanto to Alola form (conceptual region migration). -/
-def kanto_to_alola_path :
-    Path FormState
-      ⟨vulpixKanto, true⟩
-      ⟨vulpixAlola, true⟩ :=
-  Path.cons (Step.mk "remove-kanto-form" ⟨vulpixKanto, true⟩ removedState)
-    (Path.single (Step.mk "add-alola-form" removedState ⟨vulpixAlola, true⟩))
-
-/-- Theorem 21: Region migration path has length 2. -/
-theorem region_migration_length :
-    kanto_to_alola_path.length = 2 := by rfl
-
-/-- Theorem 22: Symm of migration path has length 2. -/
-theorem region_migration_symm_length :
-    kanto_to_alola_path.symm.length = 2 := by rfl
-
-/-- Theorem 23: congrArg on form type through migration. -/
-theorem migration_congrArg_type :
-    (kanto_to_alola_path.congrArg (fun s => s.form.type1) "type").length = 2 := by rfl
 
 def meowthAlolaDeckState : FormState := ⟨meowthAlola, true⟩
 
-/-- Theorem 24: Three-region Meowth path (Kanto → Alola → Galar). -/
-def meowth_three_regions :
-    Path FormState
-      ⟨meowthKanto, true⟩
-      ⟨meowthGalar, true⟩ :=
-  Path.cons (Step.mk "swap-kanto-alola" ⟨meowthKanto, true⟩ meowthAlolaDeckState)
-    (Path.single (Step.mk "swap-alola-galar" meowthAlolaDeckState ⟨meowthGalar, true⟩))
-
-/-- Theorem 25: Three-region meowth path has length 2. -/
-theorem meowth_three_regions_length :
-    meowth_three_regions.length = 2 := by rfl
-
-/-- Theorem 26: Trans of two single-step paths = 2-step path length. -/
-theorem trans_two_single_steps :
-    let p1 := Path.single (Step.mk "step1" (⟨meowthKanto, true⟩ : FormState) ⟨meowthAlola, true⟩)
-    let p2 := Path.single (Step.mk "step2" (⟨meowthAlola, true⟩ : FormState) ⟨meowthGalar, true⟩)
-    (p1.trans p2).length = 2 := by rfl
 
 end RegionalForms

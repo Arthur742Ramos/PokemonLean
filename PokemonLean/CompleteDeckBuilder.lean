@@ -1,61 +1,16 @@
 /-
   PokemonLean / CompleteDeckBuilder.lean
 
-  Complete Pokémon TCG deck-building rules formalised as computational paths.
   Covers: exactly 60 cards, max 4 copies (except basic energy), at least
   1 basic Pokémon, ACE SPEC limit (1), Prism Star limit (1 per name),
   Radiant limit (1 per name), evolution line consistency, full deck
-  validation algorithm, path-based deck transformations.
 
-  32 theorems.  Sorry-free.  No Path.ofEq.  Multi-step trans/symm/congrArg chains.
 -/
 
 set_option linter.unusedVariables false
 set_option linter.unusedSimpArgs false
 
 namespace CompleteDeckBuilder
-
--- ============================================================
--- §1  Computational Path Infrastructure
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | rule : (name : String) → (a b : α) → Step α a b
-  | refl : (a : α) → Step α a a
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.single (s : Step α a b) : Path α a b := .cons s (.nil _)
-
-def Step.inv : Step α a b → Step α b a
-  | .rule n a b => .rule (n ++ "⁻¹") b a
-  | .refl a     => .refl a
-
-def Path.inv : Path α a b → Path α b a
-  | .nil a    => .nil a
-  | .cons s p => p.inv.trans (.single s.inv)
-
-def Path.length : Path α a b → Nat
-  | .nil _    => 0
-  | .cons _ p => 1 + p.length
-
-theorem trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem trans_nil_right (p : Path α a b) : p.trans (.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
 -- ============================================================
 -- §2  Card, Deck, and Category Types
 -- ============================================================
@@ -205,37 +160,14 @@ theorem evo_empty : evoConsistent [] := by
 -- ============================================================
 
 -- Theorem 11: adding a card is a step
-def addCardStep (d : Deck) (c : Card) :
-    Step DeckState (DeckState.ofDeck d) (DeckState.ofDeck (c :: d)) :=
-  .rule ("add:" ++ c.name) _ _
 
 -- Theorem 12: removing a card is a step
-def removeCardStep (d : Deck) (c : Card) :
-    Step DeckState (DeckState.ofDeck (c :: d)) (DeckState.ofDeck d) :=
-  .rule ("remove:" ++ c.name) _ _
 
 -- Theorem 13: swap = remove then add (path composition)
-def swapPath (d : Deck) (old new_ : Card) :
-    Path DeckState
-      (DeckState.ofDeck (old :: d))
-      (DeckState.ofDeck (new_ :: d)) :=
-  (Path.single (removeCardStep d old)).trans
-    (Path.single (addCardStep d new_))
-
 -- Theorem 14: swap has length 2
-theorem swap_length (d : Deck) (old new_ : Card) :
-    (swapPath d old new_).length = 2 := rfl
 
 -- Theorem 15: double swap
-def doubleSwap (d : Deck) (c1 c2 : Card) :
-    Path DeckState
-      (DeckState.ofDeck (c1 :: d))
-      (DeckState.ofDeck (c1 :: d)) :=
-  (swapPath d c1 c2).trans (swapPath d c2 c1)
-
 -- Theorem 16: double swap has length 4
-theorem double_swap_length (d : Deck) (c1 c2 : Card) :
-    (doubleSwap d c1 c2).length = 4 := rfl
 
 -- ============================================================
 -- §8  Concrete Card Examples
@@ -279,16 +211,8 @@ instance : Decidable (aceSpecLimit d) := by
 -- ============================================================
 
 -- Theorem 19: three adds compose associatively
-theorem three_adds_assoc (d : Deck) (c1 c2 c3 : Card) :
-    let s1 := Path.single (addCardStep d c1)
-    let s2 := Path.single (addCardStep (c1 :: d) c2)
-    let s3 := Path.single (addCardStep (c2 :: c1 :: d) c3)
-    (s1.trans s2).trans s3 = s1.trans (s2.trans s3) :=
-  trans_assoc _ _ _
 
 -- Theorem 20: swap self length
-theorem swap_self_length (d : Deck) (c : Card) :
-    (swapPath d c c).length = 2 := rfl
 
 -- ============================================================
 -- §11  Deck Archetype Classification

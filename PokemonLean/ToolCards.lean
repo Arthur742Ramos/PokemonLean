@@ -2,7 +2,6 @@
   PokemonLean / ToolCards.lean
 
   Pokémon TCG Tool / Item card mechanics formalised via
-  computational paths.
 
   Covers: Float Stone (free retreat), Choice Band (+30 to EX/GX/V),
   Muscle Band (+20 to active), Lucky Egg (draw on KO),
@@ -10,7 +9,6 @@
   Tool Scrapper (removal), Field Blower, tool attachment as
   path steps, coherence of tool stacking/removal.
 
-  All proofs are sorry-free.  20+ theorems.
 -/
 
 -- ============================================================
@@ -54,11 +52,6 @@ structure ToolPokemon where
   tool        : ToolName
   energy      : List EType
 deriving DecidableEq, Repr
-
--- ============================================================
--- §2  Computational Paths
--- ============================================================
-
 inductive TStep (α : Type) : α → α → Type where
   | mk : (label : String) → (a b : α) → TStep α a b
 
@@ -66,25 +59,6 @@ inductive TPath (α : Type) : α → α → Type where
   | nil  : (a : α) → TPath α a a
   | cons : TStep α a b → TPath α b c → TPath α a c
 
-def TPath.trans {α : Type} {a b c : α}
-    (p : TPath α a b) (q : TPath α b c) : TPath α a c :=
-  match p with
-  | .nil _ => q
-  | .cons s rest => .cons s (rest.trans q)
-
-def TStep.symm {α : Type} {a b : α} : TStep α a b → TStep α b a
-  | .mk n a b => .mk (n ++ "⁻¹") b a
-
-def TPath.symm {α : Type} {a b : α} : TPath α a b → TPath α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-def TPath.length {α : Type} {a b : α} : TPath α a b → Nat
-  | .nil _ => 0
-  | .cons _ rest => 1 + rest.length
-
-def TPath.single {α : Type} {a b : α} (s : TStep α a b) : TPath α a b :=
-  .cons s (.nil _)
 
 -- ============================================================
 -- §3  Tool attachment rules
@@ -269,11 +243,6 @@ theorem toolScrapper_nil (n : Nat) : toolScrapper [] n = [] := by
 theorem toolScrapper_zero (ps : List ToolPokemon) :
     toolScrapper ps 0 = ps := by
   cases ps <;> rfl
-
--- ============================================================
--- §9  Computational paths for tool operations
--- ============================================================
-
 /-- Tool operation as a path step. -/
 inductive ToolOp : ToolPokemon → ToolPokemon → Prop where
   | attach  (p : ToolPokemon) (t : ToolName) : ToolOp p (attachTool p t)
@@ -284,24 +253,6 @@ inductive ToolPath : ToolPokemon → ToolPokemon → Prop where
   | nil  (p : ToolPokemon) : ToolPath p p
   | cons {p₁ p₂ p₃ : ToolPokemon} : ToolOp p₁ p₂ → ToolPath p₂ p₃ → ToolPath p₁ p₃
 
-/-- Theorem 22: ToolPath transitivity. -/
-theorem ToolPath.trans {p₁ p₂ p₃ : ToolPokemon}
-    (h₁ : ToolPath p₁ p₂) (h₂ : ToolPath p₂ p₃) : ToolPath p₁ p₃ := by
-  induction h₁ with
-  | nil _ => exact h₂
-  | cons s _ ih => exact ToolPath.cons s (ih h₂)
-
-/-- Theorem 23: Single tool op is a path. -/
-theorem ToolPath.single {p₁ p₂ : ToolPokemon}
-    (op : ToolOp p₁ p₂) : ToolPath p₁ p₂ :=
-  ToolPath.cons op (ToolPath.nil _)
-
-/-- Theorem 24: Attach-remove path returns to no-tool state. -/
-theorem attach_remove_path (p : ToolPokemon) (t : ToolName) :
-    ToolPath p (removeTool (attachTool p t)) :=
-  ToolPath.cons (ToolOp.attach p t)
-    (ToolPath.cons (ToolOp.remove (attachTool p t)) (ToolPath.nil _))
-
 /-- Theorem 25: Attach-remove yields tool = none. -/
 theorem attach_remove_tool_none (p : ToolPokemon) (t : ToolName) :
     (removeTool (attachTool p t)).tool = .none := rfl
@@ -310,45 +261,6 @@ theorem attach_remove_tool_none (p : ToolPokemon) (t : ToolName) :
 -- §10  TPath-based tool proofs
 -- ============================================================
 
-/-- Model tool state transitions as TPath. -/
-def toolAttachPath (p : ToolPokemon) (t : ToolName) :
-    TPath ToolName p.tool t :=
-  TPath.cons (TStep.mk "attach" p.tool t) (TPath.nil t)
-
-/-- Theorem 26: Tool attach path has length 1. -/
-theorem toolAttachPath_length (p : ToolPokemon) (t : ToolName) :
-    (toolAttachPath p t).length = 1 := rfl
-
-/-- Tool removal path. -/
-def toolRemovePath (p : ToolPokemon) :
-    TPath ToolName p.tool ToolName.none :=
-  TPath.cons (TStep.mk "remove" p.tool ToolName.none) (TPath.nil ToolName.none)
-
-/-- Theorem 27: Tool removal path has length 1. -/
-theorem toolRemovePath_length (p : ToolPokemon) :
-    (toolRemovePath p).length = 1 := rfl
-
-/-- Full attach-then-remove round-trip path. -/
-def toolRoundTrip (t : ToolName) :
-    TPath ToolName ToolName.none ToolName.none :=
-  (TPath.cons (TStep.mk "attach" ToolName.none t) (TPath.nil t)).trans
-  (TPath.cons (TStep.mk "remove" t ToolName.none) (TPath.nil ToolName.none))
-
-/-- Theorem 28: Round-trip path has length 2. -/
-theorem toolRoundTrip_length (t : ToolName) :
-    (toolRoundTrip t).length = 2 := rfl
-
-/-- Theorem 29: TPath.trans preserves total length. -/
-theorem TPath.trans_length {α : Type} {a b c : α}
-    (p : TPath α a b) (q : TPath α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [TPath.trans, TPath.length]
-  | cons _ _ ih => simp [TPath.trans, TPath.length, ih]; omega
-
-/-- Theorem 30: TPath.symm of nil is nil. -/
-theorem TPath.symm_nil {α : Type} (a : α) :
-    (TPath.nil a).symm = TPath.nil a := rfl
 
 -- ============================================================
 -- §11  Focus Sash

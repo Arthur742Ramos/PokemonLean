@@ -102,7 +102,6 @@ inductive DmgPath : DmgPhase × Int → DmgPhase × Int → Prop where
   | refl (s : DmgPhase × Int) : DmgPath s s
   | step : DmgStep s₁ s₂ → DmgPath s₂ s₃ → DmgPath s₁ s₃
 
-/-- Path concatenation (transitivity). -/
 def DmgPath.trans : DmgPath s₁ s₂ → DmgPath s₂ s₃ → DmgPath s₁ s₃
   | .refl _, q => q
   | .step h p, q => .step h (p.trans q)

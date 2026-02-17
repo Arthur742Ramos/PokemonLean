@@ -382,7 +382,6 @@ theorem transport_refl {P : GameState → Prop}
     (gs : GameState) (pa : P gs) :
     transportAbilPath preserve (.refl gs) pa = pa := rfl
 
-/-- Path length is preserved by trans. -/
 theorem abilPath_length_trans : (p : AbilPath a b) → (q : AbilPath b c) →
     (p.trans q).length = p.length + q.length
   | .refl _, q => by simp [AbilPath.trans, AbilPath.length]

@@ -7,65 +7,13 @@
   - GX marker tracking (once used, cannot use another)
   - Tag Team GX: 270+ HP, Tag Team GX attacks with bonus effects
   - Interaction with VSTAR Power (similar one-per-game mechanic)
-  - All via multi-step trans/symm/congrArg computational path chains
 
-  All proofs are sorry-free.  22 theorems.
 -/
 
 set_option linter.unusedVariables false
 set_option linter.unusedSimpArgs false
 
 namespace GXAttacks
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | Path.nil _, q => q
-  | Path.cons s p, q => Path.cons s (Path.trans p q)
-
-def Path.length : Path α a b → Nat
-  | Path.nil _ => 0
-  | Path.cons _ p => 1 + Path.length p
-
-def Step.symm : Step α a b → Step α b a
-  | Step.refl a => Step.refl a
-  | Step.rule name a b => Step.rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | Path.nil a => Path.nil a
-  | Path.cons s p => Path.trans (Path.symm p) (Path.cons (Step.symm s) (Path.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  Path.cons s (Path.nil _)
-
-theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_trans_nil_right (p : Path α a b) :
-    Path.trans p (Path.nil b) = p := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_length_trans (p : Path α a b) (q : Path α b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §2  GX Card Types
 -- ============================================================================
@@ -198,21 +146,6 @@ def tagTeamPrizes (k : GXKind) : Nat :=
   if isTagTeam k then 3 else 2
 
 -- ============================================================================
--- §5  Path-Level GX State Expressions
--- ============================================================================
-
-/-- State expression for path-level reasoning. -/
-inductive GXExpr where
-  | state        : GXGameState → GXExpr
-  | useGX        : Nat → GXExpr → GXExpr      -- player n uses GX
-  | takePrize    : Nat → Nat → GXExpr → GXExpr -- player n takes k prizes
-  | advanceTurn  : GXExpr → GXExpr
-  | tagTeamBonus : GXExpr → GXExpr              -- activate tag team bonus
-deriving Repr
-
-abbrev GXPath := Path GXExpr
-
--- ============================================================================
 -- §6  Core GX Theorems
 -- ============================================================================
 
@@ -254,35 +187,9 @@ theorem stage1_gx_gives_2 : tagTeamPrizes .stage1 = 2 := by
   rfl
 
 -- Theorem 9: Path — using GX attack transitions state
-def gx_use_path (gs : GXGameState) :
-    GXPath (.state gs) (.useGX 1 (.state gs)) :=
-  Path.single (.rule "player1-uses-GX" _ _)
-
 -- Theorem 10: Multi-step — use GX then take prize
-def gx_then_prize (gs : GXGameState) :
-    GXPath (.state gs) (.takePrize 1 2 (.useGX 1 (.state gs))) :=
-  let s1 : Step GXExpr (.state gs) (.useGX 1 (.state gs)) :=
-    .rule "use-GX" _ _
-  let s2 : Step GXExpr (.useGX 1 (.state gs))
-                        (.takePrize 1 2 (.useGX 1 (.state gs))) :=
-    .rule "take-prizes-on-KO" _ _
-  Path.cons s1 (Path.single s2)
-
-theorem gx_then_prize_len (gs : GXGameState) :
-    (gx_then_prize gs).length = 2 := by
-  simp [gx_then_prize, Path.cons, Path.single, Path.length]
 
 -- Theorem 11: Tag Team bonus activation is a 3-step path
-def tag_team_bonus_path (gs : GXGameState) :
-    GXPath (.state gs) (.tagTeamBonus (.useGX 1 (.state gs))) :=
-  let s1 : Step GXExpr _ (.useGX 1 (.state gs)) := .rule "pay-GX-cost" _ _
-  let s2 : Step GXExpr _ (.tagTeamBonus (.useGX 1 (.state gs))) :=
-    .rule "pay-bonus-energy" _ _
-  Path.cons s1 (Path.single s2)
-
-theorem tag_team_bonus_len (gs : GXGameState) :
-    (tag_team_bonus_path gs).length = 2 := by
-  simp [tag_team_bonus_path, Path.cons, Path.single, Path.length]
 
 -- Theorem 12: GX and VSTAR are independent markers
 theorem gx_vstar_independent :
@@ -292,22 +199,9 @@ theorem gx_vstar_independent :
   intro _ _; rfl
 
 -- Theorem 13: Symmetry — reversing GX-use path
-def gx_use_symm (gs : GXGameState) :
-    GXPath (.useGX 1 (.state gs)) (.state gs) :=
-  (gx_use_path gs).symm
 
-theorem gx_use_symm_len (gs : GXGameState) :
-    (gx_use_symm gs).length = 1 := by
-  simp [gx_use_symm, gx_use_path, Path.symm, Path.single,
-        Path.trans, Path.length]
 
 -- Theorem 14: Trans — GX use followed by symmetry is length 2
-theorem gx_roundtrip_len (gs : GXGameState) :
-    (Path.trans (gx_use_path gs) (gx_use_symm gs)).length = 2 := by
-  rw [path_length_trans]
-  simp [gx_use_path, gx_use_symm, Path.single, Path.length,
-        Path.symm, Path.trans]
-
 -- Theorem 15: damage from pure-damage GX is correct
 theorem damage_200 : gxDamage (.damage 200) = 200 := by rfl
 
@@ -389,19 +283,5 @@ theorem tag_team_hp_high :
 -- §8  Multi-step Path: Full GX Turn Sequence
 -- ============================================================================
 
-/-- Theorem 23 (bonus): Full turn — attach energy, use GX, take prizes -/
-def full_gx_turn (gs : GXGameState) :
-    GXPath (.state gs)
-           (.takePrize 1 3 (.tagTeamBonus (.useGX 1 (.state gs)))) :=
-  let s1 : Step GXExpr _ (.useGX 1 (.state gs)) := .rule "pay-GX-cost" _ _
-  let s2 : Step GXExpr _ (.tagTeamBonus (.useGX 1 (.state gs))) :=
-    .rule "pay-bonus-energy" _ _
-  let s3 : Step GXExpr _ (.takePrize 1 3 (.tagTeamBonus (.useGX 1 (.state gs)))) :=
-    .rule "KO-take-3-prizes" _ _
-  Path.cons s1 (Path.cons s2 (Path.single s3))
-
-theorem full_gx_turn_len (gs : GXGameState) :
-    (full_gx_turn gs).length = 3 := by
-  simp [full_gx_turn, Path.cons, Path.single, Path.length]
 
 end GXAttacks

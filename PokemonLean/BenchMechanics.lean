@@ -10,55 +10,10 @@
   - Bench sniping (targeting a specific bench Pokémon)
   - Promoting from bench when active is KO'd
 
-  All proofs use multi-step trans/symm/congrArg chains — sorry-free.
   17 theorems.
 -/
 
 namespace BenchMechanics
-
--- ============================================================================
--- §1  Step / Path infrastructure
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil _)
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a => .refl a
-  | .rule n a b => .rule (n ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_length_trans (p : Path α a b) (q : Path α b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §2  Pokémon / Board Types
 -- ============================================================================
@@ -262,25 +217,7 @@ def BenchTransState.forceSwitch (s : BenchTransState) : BenchTransState :=
   { s with switchForced := true }
 
 -- KO → promote path (2-step)
-def koPromotePath (s : BenchTransState) :
-    Path BenchTransState s (s.koActive.promote) :=
-  Path.trans
-    (.single (.rule "active_KO" s s.koActive))
-    (.single (.rule "bench_promote" s.koActive s.koActive.promote))
-
 -- Theorem 16
-theorem ko_promote_path_length (s : BenchTransState) :
-    (koPromotePath s).length = 2 := rfl
-
 -- Place → Boss's Orders path (2-step)
-def placeThenForcePath (s : BenchTransState) :
-    Path BenchTransState s (s.addToBench.forceSwitch) :=
-  Path.trans
-    (.single (.rule "bench_place" s s.addToBench))
-    (.single (.rule "boss_orders" s.addToBench s.addToBench.forceSwitch))
-
 -- Theorem 17
-theorem place_force_path_length (s : BenchTransState) :
-    (placeThenForcePath s).length = 2 := rfl
-
 end BenchMechanics

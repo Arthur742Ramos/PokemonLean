@@ -5,49 +5,9 @@
   timing conflicts, simultaneous effects ordering, mandatory vs optional effects,
   "you may" semantics, OHKO prevention ordering (Focus Sash before KO check).
 
-  All proofs are sorry-free. Uses computational paths for ruling resolution.
 -/
 
 namespace PokemonLean.RulingsEngine
-
--- ============================================================
--- §1  Core Path Infrastructure
--- ============================================================
-
-/-- A rewrite step tracking ruling resolution transitions. -/
-inductive Step (α : Type) : α → α → Type where
-  | mk : (name : String) → (a b : α) → Step α a b
-
-/-- Computational path: sequence of ruling resolution transitions. -/
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-/-- Transitivity: path concatenation. -/
-def Path.trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) : Path α a c :=
-  match p with
-  | .nil _ => q
-  | .cons s rest => .cons s (rest.trans q)
-
-/-- Path length. -/
-def Path.length {α : Type} {a b : α} : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ rest => 1 + rest.length
-
-/-- Symmetry for steps. -/
-def Step.symm {α : Type} {a b : α} : Step α a b → Step α b a
-  | .mk name a b => .mk (name ++ "⁻¹") b a
-
-/-- Symmetry for paths. -/
-def Path.symm {α : Type} {a b : α} : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-/-- Single step as path. -/
-def Path.single {α : Type} {a b : α} (s : Step α a b) : Path α a b :=
-  .cons s (.nil b)
-
 -- ============================================================
 -- §2  Rule Sources and Priority
 -- ============================================================
@@ -143,17 +103,6 @@ def stageSorted     : Stage := 1
 def stageChecking   : Stage := 2
 def stageApplied    : Stage := 3
 def stageDone       : Stage := 4
-
-/-- Theorem 7: Single effect resolves in 4 steps. -/
-def single_effect_path : Path Stage stageInitial stageDone :=
-  .cons (.mk "sort" stageInitial stageSorted)
-    (.cons (.mk "check" stageSorted stageChecking)
-      (.cons (.mk "apply" stageChecking stageApplied)
-        (.cons (.mk "done" stageApplied stageDone)
-          (.nil stageDone))))
-
-/-- Theorem 8: Single effect resolution has length 4. -/
-theorem single_effect_path_length : single_effect_path.length = 4 := rfl
 
 -- ============================================================
 -- §6  Timing Windows
@@ -272,46 +221,6 @@ def ohkoPrevCheck   : Nat := 2
 def ohkoPrevApply   : Nat := 3
 def ohkoKOCheck     : Nat := 4
 def ohkoSurvived    : Nat := 5
-
-/-- Theorem 14: Focus Sash resolution path (5 steps). -/
-def focus_sash_path : Path Nat ohkoStart ohkoSurvived :=
-  .cons (.mk "apply_damage" ohkoStart ohkoDamage)
-    (.cons (.mk "check_prevention" ohkoDamage ohkoPrevCheck)
-      (.cons (.mk "apply_focus_sash" ohkoPrevCheck ohkoPrevApply)
-        (.cons (.mk "ko_check" ohkoPrevApply ohkoKOCheck)
-          (.cons (.mk "survive" ohkoKOCheck ohkoSurvived)
-            (.nil ohkoSurvived)))))
-
-/-- Theorem 15: Focus Sash path has length 5. -/
-theorem focus_sash_path_length : focus_sash_path.length = 5 := rfl
-
--- ============================================================
--- §10  Path Algebra Properties
--- ============================================================
-
-/-- Theorem 16: Trans length is additive. -/
-theorem path_length_trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons _ _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
-/-- Theorem 17: Trans right identity. -/
-theorem path_trans_nil {α : Type} {a b : α} (p : Path α a b) :
-    p.trans (.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons _ _ ih => simp [Path.trans, ih]
-
-/-- Theorem 18: Trans associativity. -/
-theorem path_trans_assoc {α : Type} {a b c d : α}
-    (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons _ _ ih => simp [Path.trans, ih]
-
 -- ============================================================
 -- §11  Conflict Resolution
 -- ============================================================
@@ -348,20 +257,6 @@ theorem triggered_must_resolve (e : Effect) (he : e.kind = .triggered) :
 -- §13  Pipeline Composition
 -- ============================================================
 
-/-- Theorem 23: Empty pipeline (just done). -/
-def empty_pipeline : Path Nat 0 1 :=
-  .cons (.mk "done" 0 1) (.nil 1)
-
-/-- Theorem 24: Empty pipeline has length 1. -/
-theorem empty_pipeline_length : empty_pipeline.length = 1 := rfl
-
-/-- Theorem 25: Two pipelines compose via trans. -/
-def compose_two_pipelines : Path Nat 0 2 :=
-  (Path.cons (.mk "phase1" 0 1) (.nil 1)).trans
-    (.cons (.mk "phase2" 1 2) (.nil 2))
-
-/-- Theorem 26: Composed pipeline has expected length. -/
-theorem compose_two_pipelines_length : compose_two_pipelines.length = 2 := rfl
 
 -- ============================================================
 -- §14  Errata Priority

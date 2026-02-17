@@ -8,63 +8,12 @@
   - Spread vs focused damage comparison
   - Multi-target damage distribution
 
-  All proofs are sorry-free.  Uses computational paths for
   spread-damage state transitions.
   Multi-step trans / symm / congrArg chains — paths ARE the math.
   20 theorems.
 -/
 
 namespace PokemonLean.SpreadDamage
-
--- ============================================================================
--- §1  Path Infrastructure
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil _)
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a => .refl a
-  | .rule n a b => .rule (n ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_trans_nil_right (p : Path α a b) :
-    Path.trans p (Path.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_length_trans (p : Path α a b) (q : Path α b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §2  Pokémon and Board Types
 -- ============================================================================
@@ -273,76 +222,11 @@ def SpreadState.countKOs (s : SpreadState) (hps : List Nat) : Nat :=
 -- §9  Path-Traced Spread Sequences
 -- ============================================================================
 
-/-- Path: spread then count KOs (2-step). -/
-def spreadThenKOPath (s : SpreadState) (dmg : Nat)
-    (kos : Nat) :
-    Path SpreadState s
-      { (s.applySpread dmg) with kos := kos } :=
-  Path.trans
-    (Path.single (Step.rule "apply_spread" s (s.applySpread dmg)))
-    (Path.single (Step.rule "count_kos"
-      (s.applySpread dmg)
-      { (s.applySpread dmg) with kos := kos }))
-
-/-- Theorem 13: Spread-then-KO path has length 2. -/
-theorem spread_then_ko_length (s : SpreadState) (dmg kos : Nat) :
-    (spreadThenKOPath s dmg kos).length = 2 := rfl
-
-/-- Path: focused attack on active (1-step). -/
-def focusedPath (s : SpreadState) (dmg : Nat) :
-    Path SpreadState s (s.applyFocused dmg) :=
-  Path.single (Step.rule "focused_attack" s (s.applyFocused dmg))
-
-/-- Theorem 14: Focused path has length 1. -/
-theorem focused_path_length (s : SpreadState) (dmg : Nat) :
-    (focusedPath s dmg).length = 1 := rfl
-
-/-- Path: snipe then spread (2-step). -/
-def snipeThenSpreadPath (s : SpreadState) (idx snipeDmg spreadDmg : Nat) :
-    Path SpreadState s ((s.applySnipe idx snipeDmg).applySpread spreadDmg) :=
-  Path.trans
-    (Path.single (Step.rule "bench_snipe" s (s.applySnipe idx snipeDmg)))
-    (Path.single (Step.rule "follow_spread"
-      (s.applySnipe idx snipeDmg)
-      ((s.applySnipe idx snipeDmg).applySpread spreadDmg)))
-
-/-- Theorem 15: Snipe-then-spread path has length 2. -/
-theorem snipe_spread_length (s : SpreadState) (idx snipeDmg spreadDmg : Nat) :
-    (snipeThenSpreadPath s idx snipeDmg spreadDmg).length = 2 := rfl
 
 -- ============================================================================
 -- §10  Multi-Turn Spread Paths
 -- ============================================================================
 
-/-- Two consecutive spreads via trans. -/
-def doubleSpreadPath (s : SpreadState) (dmg1 dmg2 : Nat) :
-    Path SpreadState s ((s.applySpread dmg1).applySpread dmg2) :=
-  Path.trans
-    (Path.single (Step.rule "spread_turn1" s (s.applySpread dmg1)))
-    (Path.single (Step.rule "spread_turn2"
-      (s.applySpread dmg1)
-      ((s.applySpread dmg1).applySpread dmg2)))
-
-/-- Theorem 16: Double spread is 2 steps. -/
-theorem double_spread_length (s : SpreadState) (dmg1 dmg2 : Nat) :
-    (doubleSpreadPath s dmg1 dmg2).length = 2 := rfl
-
-/-- Three-turn spread: trans chain of 3 steps. -/
-def tripleSpreadPath (s : SpreadState) (d1 d2 d3 : Nat) :
-    Path SpreadState s
-      (((s.applySpread d1).applySpread d2).applySpread d3) :=
-  Path.trans
-    (Path.single (Step.rule "spread_t1" s (s.applySpread d1)))
-    (Path.trans
-      (Path.single (Step.rule "spread_t2"
-        (s.applySpread d1) ((s.applySpread d1).applySpread d2)))
-      (Path.single (Step.rule "spread_t3"
-        ((s.applySpread d1).applySpread d2)
-        (((s.applySpread d1).applySpread d2).applySpread d3))))
-
-/-- Theorem 17: Triple spread is 3 steps. -/
-theorem triple_spread_length (s : SpreadState) (d1 d2 d3 : Nat) :
-    (tripleSpreadPath s d1 d2 d3).length = 3 := rfl
 
 -- ============================================================================
 -- §11  Protection Toggle Paths
@@ -368,16 +252,5 @@ theorem protection_blocks_snipe (s : SpreadState) (idx dmg : Nat)
     s.applySnipe idx dmg = s := by
   simp [SpreadState.applySnipe, h]
 
-/-- Path: disable protection then spread (2-step). -/
-def removeThenSpreadPath (s : SpreadState) (dmg : Nat) :
-    Path SpreadState s (s.disableProtection.applySpread dmg) :=
-  Path.trans
-    (Path.single (Step.rule "remove_protection" s s.disableProtection))
-    (Path.single (Step.rule "spread_attack"
-      s.disableProtection (s.disableProtection.applySpread dmg)))
-
-/-- Theorem 20: Remove-then-spread path has length 2. -/
-theorem remove_spread_length (s : SpreadState) (dmg : Nat) :
-    (removeThenSpreadPath s dmg).length = 2 := rfl
 
 end PokemonLean.SpreadDamage

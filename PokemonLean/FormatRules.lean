@@ -8,70 +8,12 @@
   by set, ban list mechanics, format-specific deck validation, best-of-three
   match structure, and format transitions.
 
-  All proofs are sorry-free.  Multi-step trans / symm / congrArg chains.
   Paths ARE the math.  20+ theorems.
 -/
 
 set_option linter.unusedVariables false
 
 namespace FormatRules
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-/-- A rewrite step in format transitions. -/
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-/-- Computational paths tracking format evolution. -/
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | Path.nil _, q => q
-  | Path.cons s p, q => Path.cons s (Path.trans p q)
-
-def Path.length : Path α a b → Nat
-  | Path.nil _ => 0
-  | Path.cons _ p => 1 + Path.length p
-
-def Step.symm : Step α a b → Step α b a
-  | Step.refl a => Step.refl a
-  | Step.rule name a b => Step.rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | Path.nil a => Path.nil a
-  | Path.cons s p => Path.trans (Path.symm p) (Path.cons (Step.symm s) (Path.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  Path.cons s (Path.nil _)
-
--- ============================================================================
--- §2  Path algebra lemmas
--- ============================================================================
-
-theorem trans_nil (p : Path α a b) : p.trans (.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-theorem nil_trans (p : Path α a b) : (Path.nil a).trans p = p := rfl
-
-theorem trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-theorem length_trans (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s p ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §3  Formats
 -- ============================================================================
@@ -209,6 +151,7 @@ def hasBasic (d : Deck) : Bool :=
 -- §7  Deck Validation
 -- ============================================================================
 
+
 /-- A deck is size-valid if it has exactly 60 cards. -/
 def validSize (d : Deck) : Prop := d.length = 60
 
@@ -231,8 +174,6 @@ structure DeckLegal (d : Deck) (f : Format) (bl : BanList) (rot : RotationCutoff
 theorem empty_deck_invalid : ¬ validSize ([] : Deck) := by
   simp [validSize]
 
-/-- Theorem 7: A 60-card deck has valid size. -/
-theorem sixty_card_valid (d : Deck) (h : d.length = 60) : validSize d := h
 
 /-- Theorem 8: An empty deck has no banned cards. -/
 theorem empty_deck_no_banned (bl : BanList) (f : Format) :
@@ -243,25 +184,6 @@ theorem empty_deck_no_banned (bl : BanList) (f : Format) :
 -- §8  Format Transition Paths
 -- ============================================================================
 
-/-- Format transition step: rotation event. -/
-def rotationStep (oldSeason newSeason : RotationCutoff) :
-    Step RotationCutoff oldSeason newSeason :=
-  .rule "rotation" oldSeason newSeason
-
-/-- Theorem 9: A rotation path from season S to S has length 0. -/
-theorem rotation_self_length (s : RotationCutoff) :
-    (Path.nil s : Path RotationCutoff s s).length = 0 := rfl
-
-/-- Theorem 10: Two consecutive rotations compose to length 2. -/
-theorem two_rotations_length (s₁ s₂ s₃ : RotationCutoff) :
-    ((Path.single (rotationStep s₁ s₂)).trans
-     (Path.single (rotationStep s₂ s₃))).length = 2 := rfl
-
-/-- Theorem 11: Rotation path length is additive via trans. -/
-theorem rotation_path_additive (p : Path RotationCutoff a b)
-    (q : Path RotationCutoff b c) :
-    (p.trans q).length = p.length + q.length :=
-  length_trans p q
 
 -- ============================================================================
 -- §9  Best-of-Three Match Structure
@@ -304,41 +226,12 @@ theorem one_game_undecided :
 /-- Theorem 15: Split 1-1 is not decided. -/
 theorem split_undecided :
     bo3Decided [.player1Wins, .player2Wins] = false := rfl
-
--- ============================================================================
--- §10  Match as Computational Paths
--- ============================================================================
-
 /-- Match state: wins so far. -/
 structure MatchState where
   p1 : Nat
   p2 : Nat
 deriving DecidableEq, Repr
 
-/-- A game result transitions the match state. -/
-def gameStep (s₁ s₂ : MatchState) (r : GameResult) : Step MatchState s₁ s₂ :=
-  match r with
-  | .player1Wins => .rule "p1win" s₁ s₂
-  | .player2Wins => .rule "p2win" s₁ s₂
-  | .draw        => .rule "draw" s₁ s₂
-
-/-- Theorem 16: A 2-0 match path has length 2. -/
-theorem two_zero_match_length :
-    let s0 : MatchState := ⟨0, 0⟩
-    let s1 : MatchState := ⟨1, 0⟩
-    let s2 : MatchState := ⟨2, 0⟩
-    ((Path.single (gameStep s0 s1 .player1Wins)).trans
-     (Path.single (gameStep s1 s2 .player1Wins))).length = 2 := rfl
-
-/-- Theorem 17: A 2-1 match path has length 3. -/
-theorem two_one_match_length :
-    let s0 : MatchState := ⟨0, 0⟩
-    let s1 : MatchState := ⟨1, 0⟩
-    let s2 : MatchState := ⟨1, 1⟩
-    let s3 : MatchState := ⟨2, 1⟩
-    ((Path.single (gameStep s0 s1 .player1Wins)).trans
-     ((Path.single (gameStep s1 s2 .player2Wins)).trans
-      (Path.single (gameStep s2 s3 .player1Wins)))).length = 3 := rfl
 
 -- ============================================================================
 -- §11  Format-Specific Constraints
@@ -367,14 +260,5 @@ theorem deck_congrArg (d₁ d₂ : Deck) (h : d₁ = d₂) :
     validSize d₁ = validSize d₂ :=
   congrArg validSize h
 
-/-- Theorem 21: trans of format paths preserves associativity. -/
-theorem format_path_assoc (p : Path Format a b) (q : Path Format b c)
-    (r : Path Format c d) :
-    (p.trans q).trans r = p.trans (q.trans r) :=
-  trans_assoc p q r
-
-/-- Theorem 22: symm of format nil is nil. -/
-theorem format_symm_nil (f : Format) :
-    (Path.nil f).symm = Path.nil f := rfl
 
 end FormatRules

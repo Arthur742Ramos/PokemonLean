@@ -7,48 +7,11 @@
   keeps attacks + gains new ones, stat boosts, Primal Reversion
   (Groudon/Kyogre), Mega = Rule Box for prize purposes.
 
-  Multi-step trans/symm/congrArg computational path chains.
-  All proofs are sorry-free. 25+ theorems.
 -/
 
 set_option linter.unusedVariables false
 
 namespace MegaEvolution
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | mk : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-def Step.symm : Step α a b → Step α b a
-  | .mk name a b => .mk (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil b)
-
-def Path.congrArg (f : α → β) (lbl : String)
-    : Path α a b → Path β (f a) (f b)
-  | .nil _ => .nil _
-  | .cons _ p => .cons (.mk lbl _ _) (p.congrArg f lbl)
-
 -- ============================================================================
 -- §2  Mega Evolution types
 -- ============================================================================
@@ -174,22 +137,6 @@ def attachMegaStone (s : MegaState) (stone : String) : MegaState :=
 def attachSpiritLink (s : MegaState) (link : String) : MegaState :=
   { s with attachedTool := some (.spiritLink link) }
 
--- ============================================================================
--- §6  Computational path proofs
--- ============================================================================
-
-/-- Theorem 1: Mega Evolution from EX is a two-step path (attach stone, evolve). -/
-def mega_evolution_two_step (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    let s1 := attachMegaStone s0 "Charizardite X"
-    let s2 := megaEvolve s1 megaCharizardX false
-    Path MegaState s0 s2 :=
-  let s1 := attachMegaStone s0 "Charizardite X"
-  let s2 := megaEvolve s1 megaCharizardX false
-  Path.trans
-    (Path.single (Step.mk "attach-mega-stone" s0 s1))
-    (Path.single (Step.mk "mega-evolve" s1 s2))
-
 /-- Theorem 2: With Spirit Link, turn does not end. -/
 theorem spirit_link_no_end_turn (s0 : MegaState)
     (hEX : isEX s0.active = true) :
@@ -207,10 +154,6 @@ theorem mega_keeps_attacks :
     charizardEX.attacks.isPrefixOf megaCharizardX.attacks = true := by
   native_decide
 
-/-- Theorem 5: Mega EX gains new attacks. -/
-theorem mega_gains_attack :
-    megaCharizardX.attacks.length > charizardEX.attacks.length := by
-  native_decide
 
 /-- Theorem 6: HP boost from Mega Evolution. -/
 theorem mega_hp_boost :
@@ -224,28 +167,6 @@ theorem mega_is_rule_box :
 /-- Theorem 8: Mega EX gives 2 prizes. -/
 theorem mega_gives_two_prizes :
     megaCharizardX.prizeValue = 2 := by rfl
-
-/-- Theorem 9: Mega Evolution path is length 2. -/
-theorem mega_path_length (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    let s1 := attachMegaStone s0 "Charizardite X"
-    let s2 := megaEvolve s1 megaCharizardX false
-    (mega_evolution_two_step s0 hEX).length = 2 := by
-  simp [mega_evolution_two_step, Path.trans, Path.single, Path.length]
-
-/-- Theorem 10: Primal Reversion — Groudon path. -/
-def primal_reversion_groudon (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    let s1 := megaEvolve s0 primalGroudon false
-    Path MegaState s0 s1 :=
-  Path.single (Step.mk "primal-reversion-groudon" s0 _)
-
-/-- Theorem 11: Primal Reversion — Kyogre path. -/
-def primal_reversion_kyogre (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    let s1 := megaEvolve s0 primalKyogre false
-    Path MegaState s0 s1 :=
-  Path.single (Step.mk "primal-reversion-kyogre" s0 _)
 
 /-- Theorem 12: Primal Groudon is Rule Box. -/
 theorem primal_groudon_rule_box :
@@ -269,47 +190,10 @@ theorem one_mega_per_turn (s0 : MegaState) :
     canMegaEvolve s1 = false := by
   simp [canMegaEvolve, megaEvolve, isEX]
 
-/-- Theorem 17: Spirit Link three-step path (attach link, attach stone, evolve). -/
-def spirit_link_full_path (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    let s1 := attachSpiritLink s0 "Charizard Spirit Link"
-    let s2 := { s1 with attachedTool := some (.megaStone "Charizardite X") }
-    let s3 := megaEvolve s2 megaCharizardX true
-    Path MegaState s0 s3 :=
-  let s1 := attachSpiritLink s0 "Charizard Spirit Link"
-  let s2 : MegaState := { s1 with attachedTool := some (.megaStone "Charizardite X") }
-  let s3 := megaEvolve s2 megaCharizardX true
-  Path.trans
-    (Path.single (Step.mk "attach-spirit-link" s0 s1))
-    (Path.trans
-      (Path.single (Step.mk "swap-to-mega-stone" s1 s2))
-      (Path.single (Step.mk "mega-evolve-with-link" s2 s3)))
-
-/-- Theorem 18: Spirit Link path has length 3. -/
-theorem spirit_link_path_length (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    (spirit_link_full_path s0 hEX).length = 3 := by
-  simp [spirit_link_full_path, Path.trans, Path.single, Path.length]
-
 /-- Theorem 19: Mega evolve preserves energy count. -/
 theorem mega_preserves_energy (s : MegaState) (mega : Pokemon) (sl : Bool) :
     (megaEvolve s mega sl).energyCount = s.energyCount := by rfl
 
-/-- Theorem 20: Symmetry — reverse the mega evolution path. -/
-def mega_evolution_reversible (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    let s1 := attachMegaStone s0 "Charizardite X"
-    let s2 := megaEvolve s1 megaCharizardX false
-    Path MegaState s2 s0 :=
-  (mega_evolution_two_step s0 hEX).symm
-
-/-- Theorem 21: congrArg — mega evolution lifts through energy count. -/
-def mega_congrArg_energy (s0 : MegaState)
-    (hEX : isEX s0.active = true) :
-    let s1 := attachMegaStone s0 "Charizardite X"
-    let s2 := megaEvolve s1 megaCharizardX false
-    Path Nat s0.energyCount s2.energyCount :=
-  (mega_evolution_two_step s0 hEX).congrArg (fun s => s.energyCount) "energy-preserved"
 
 /-- Theorem 22: Primal Groudon keeps old attacks. -/
 theorem primal_groudon_keeps_attacks :

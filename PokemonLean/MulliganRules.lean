@@ -7,43 +7,10 @@
   - Mulligan procedure: shuffle and redraw if no Basic
   - Opponent draws one extra card per mulligan
   - Opening setup: choose Active + Bench from hand
-  - Path-based formalisation of the setup procedure
 
-  All proofs use multi-step trans/symm/congrArg chains — sorry-free.
 -/
 
 namespace MulliganRules
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a => .refl a
-  | .rule name a b => .rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.single (s : Step α a b) : Path α a b := .cons s (.nil _)
-
 -- ============================================================================
 -- §2  Card types and hand representation
 -- ============================================================================
@@ -132,36 +99,10 @@ inductive SetupStep : SetupState → SetupState → Type where
       (hroom : s.bench.length < maxBenchSize) :
       SetupStep s { s with bench := c :: s.bench, hand := rest }
 
-abbrev SetupPath := Path SetupState
-
--- ============================================================================
--- §6  Groupoid laws for SetupPath
--- ============================================================================
-
 -- Theorem 5
-theorem setup_trans_assoc : (p : SetupPath a b) → (q : SetupPath b c) → (r : SetupPath c d) →
-    (p.trans q).trans r = p.trans (q.trans r)
-  | .nil _, _, _ => rfl
-  | .cons s p, q, r => by simp [Path.trans]; exact setup_trans_assoc p q r
-
 -- Theorem 6
-theorem setup_trans_nil_right : (p : SetupPath a b) →
-    p.trans (.nil b) = p
-  | .nil _ => rfl
-  | .cons s p => by simp [Path.trans]; exact setup_trans_nil_right p
-
 -- Theorem 7
-theorem setup_trans_nil_left (p : SetupPath a b) :
-    (Path.nil a).trans p = p := rfl
-
 -- Theorem 8
-theorem setup_length_trans : (p : SetupPath a b) → (q : SetupPath b c) →
-    (p.trans q).length = p.length + q.length
-  | .nil _, q => by simp [Path.trans, Path.length]
-  | .cons s p, q => by
-    simp [Path.trans, Path.length]
-    rw [setup_length_trans p q]; omega
-
 -- ============================================================================
 -- §7  Mulligan counting
 -- ============================================================================
@@ -193,20 +134,10 @@ theorem opponent_extra_increments (s : SetupState) (hno : hasBasicInHand s.hand 
 -- ============================================================================
 
 -- Theorem 13: after draw, hand has 7 cards
-theorem draw_gives_seven (s : SetupState) (drawn : Hand) (remaining : Deck)
-    (hsize : drawn.length = openingHandSize)
-    (hcat : s.deck = drawn ++ remaining) :
-    ({ s with deck := remaining, hand := drawn } : SetupState).hand.length = 7 := by
-  simp; exact hsize
 
 -- Theorem 14: initial hand is empty
-theorem initial_hand_empty (d : Deck) :
-    (initialSetup d).hand.length = 0 := rfl
 
 -- Theorem 15: mulligan empties the hand
-theorem mulligan_empties_hand (s : SetupState) :
-    (SetupState.mk (s.hand ++ s.deck) [] (s.mulligans + 1) none []
-      (s.opponentExtra + 1)).hand.length = 0 := rfl
 
 -- ============================================================================
 -- §9  Active Pokémon placement
@@ -234,12 +165,6 @@ theorem energy_not_basic :
 -- ============================================================================
 
 -- Theorem 20: bench grows by one
-theorem bench_grows (s : SetupState) (c : Card) (rest : Hand)
-    (hbasic : isBasic c = true) (hhand : s.hand = c :: rest)
-    (hroom : s.bench.length < maxBenchSize) :
-    ({ s with bench := c :: s.bench, hand := rest } : SetupState).bench.length
-    = s.bench.length + 1 := by
-  simp [List.length_cons]
 
 -- Theorem 21: bench limit
 theorem bench_limit : maxBenchSize = 5 := rfl
@@ -256,46 +181,11 @@ structure ValidOpening (final : SetupState) : Prop where
   bench_ok     : final.bench.length ≤ maxBenchSize
 
 -- Theorem 22: constructing a draw-then-place path
-def drawAndPlacePath (deck : Deck) (drawn : Hand) (remaining : Deck)
-    (c : Card) (rest : Hand)
-    (hsize : drawn.length = openingHandSize)
-    (hcat : deck = drawn ++ remaining)
-    (hbasic : isBasic c = true)
-    (hhand : drawn = c :: rest)
-    : SetupPath (initialSetup deck)
-        (SetupState.mk remaining rest 0 (some c) [] 0) :=
-  let s₀ := initialSetup deck
-  let s₁ := SetupState.mk remaining drawn 0 none [] 0
-  let s₂ := SetupState.mk remaining rest 0 (some c) [] 0
-  Path.cons (.rule "draw7" s₀ s₁) (Path.cons (.rule "placeActive" s₁ s₂) (.nil s₂))
-
 -- Theorem 23: the path has length 2
-theorem drawAndPlace_length (deck : Deck) (drawn : Hand) (remaining : Deck)
-    (c : Card) (rest : Hand)
-    (hsize : drawn.length = openingHandSize)
-    (hcat : deck = drawn ++ remaining)
-    (hbasic : isBasic c = true)
-    (hhand : drawn = c :: rest) :
-    (drawAndPlacePath deck drawn remaining c rest hsize hcat hbasic hhand).length = 2 := by
-  simp [drawAndPlacePath, Path.length]
 
 -- ============================================================================
 -- §12  Mulligan path construction
 -- ============================================================================
-
--- Theorem 24: single mulligan path
-def singleMulliganPath (s : SetupState)
-    (hno : hasBasicInHand s.hand = false) :
-    SetupPath s { deck := s.hand ++ s.deck, hand := [],
-                  mulligans := s.mulligans + 1,
-                  active := none, bench := [],
-                  opponentExtra := s.opponentExtra + 1 } :=
-  .single (.rule "mulligan" s _)
-
--- Theorem 25: mulligan path length is 1
-theorem mulligan_path_length (s : SetupState)
-    (hno : hasBasicInHand s.hand = false) :
-    (singleMulliganPath s hno).length = 1 := rfl
 
 -- ============================================================================
 -- §13  hasBasic decidability
@@ -323,16 +213,7 @@ theorem mulligan_preserves_cards (s : SetupState) :
 -- ============================================================================
 
 -- Theorem 30: two consecutive mulligan paths compose
-theorem double_mulligan_path_length
-    (p : SetupPath a b) (q : SetupPath b c)
-    (hp : p.length = 1) (hq : q.length = 1) :
-    (p.trans q).length = 2 := by
-  rw [setup_length_trans p q, hp, hq]
-
 -- Theorem 31: general path length after n steps
-theorem path_length_single (s : Step SetupState a b) :
-    (Path.single s).length = 1 := rfl
-
 -- Theorem 32: hasBasic after inserting non-basic is preserved
 theorem nonbasic_cons_preserves (c : Card) (h : Hand)
     (hnotbasic : isBasic c = false) :

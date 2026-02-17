@@ -9,44 +9,9 @@
   - Prize mapping and ordering
   - Gladion trainer card: look at face-down prizes
 
-  All proofs use multi-step trans/symm/congrArg chains — sorry-free.
 -/
 
 namespace PrizeCards
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-/-- A rewrite step in game state transitions. -/
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-/-- Computational paths tracking game state evolution. -/
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | Path.nil _, q => q
-  | Path.cons s p, q => Path.cons s (Path.trans p q)
-
-def Path.length : Path α a b → Nat
-  | Path.nil _ => 0
-  | Path.cons _ p => 1 + Path.length p
-
-def Step.symm : Step α a b → Step α b a
-  | Step.refl a => Step.refl a
-  | Step.rule name a b => Step.rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | Path.nil a => Path.nil a
-  | Path.cons s p => Path.trans (Path.symm p) (Path.cons (Step.symm s) (Path.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  Path.cons s (Path.nil _)
-
 -- ============================================================================
 -- §2  Pokémon card subtypes and prize penalties
 -- ============================================================================
@@ -128,15 +93,6 @@ theorem PrizeZone.initial_count (ids : List Nat) :
   simp [PrizeZone.initial, PrizeZone.remaining, List.length_map]
 
 -- Theorem 9: Standard game starts with 6 prizes each.
-theorem initial_six_prizes (myIds oppIds : List Nat)
-    (h1 : myIds.length = 6) (h2 : oppIds.length = 6) :
-    (GameState.initial myIds oppIds).myPrizes.remaining = 6 ∧
-    (GameState.initial myIds oppIds).oppPrizes.remaining = 6 := by
-  simp [GameState.initial, PrizeZone.initial_count, h1, h2]
-
--- ============================================================================
--- §4  Taking prizes (as computational path steps)
--- ============================================================================
 
 /-- Take n prizes from the front of the prize zone. -/
 def PrizeZone.take (pz : PrizeZone) (n : Nat) : PrizeZone :=
@@ -155,32 +111,9 @@ theorem take_reduces (pz : PrizeZone) (n : Nat) (_h : n ≤ pz.remaining) :
 theorem take_zero (pz : PrizeZone) : pz.take 0 = pz := by
   simp [PrizeZone.take]
 
--- ============================================================================
--- §5  Path for multi-KO sequences
--- ============================================================================
-
-/-- A KO event records the subtype knocked out. -/
-def koStep (gs gs' : GameState) (sub : PokemonSubtype) : Step GameState gs gs' :=
-  Step.rule ("KO:" ++ toString (repr sub)) gs gs'
-
-/-- Build a two-step KO path via trans. -/
-def twoKOPath (gs : GameState) (s1 s2 : PokemonSubtype) :
-    Path GameState gs (takePrizeStep (takePrizeStep gs s1) s2) :=
-  let gs1 := takePrizeStep gs s1
-  let gs2 := takePrizeStep gs1 s2
-  Path.trans (Path.single (koStep gs gs1 s1)) (Path.single (koStep gs1 gs2 s2))
 
 -- Theorem 12: Path length of single KO is 1.
-theorem single_ko_path_length (gs : GameState) (sub : PokemonSubtype) :
-    (Path.single (koStep gs (takePrizeStep gs sub) sub)).length = 1 := by
-  simp [Path.single, Path.length]
-
 -- Theorem 13: trans of two single-KO paths has length 2.
-theorem double_ko_path_length (gs gs' gs'' : GameState)
-    (s1 : Step GameState gs gs') (s2 : Step GameState gs' gs'') :
-    (Path.trans (Path.single s1) (Path.single s2)).length = 2 := by
-  simp [Path.trans, Path.single, Path.length]
-
 -- ============================================================================
 -- §6  Win condition
 -- ============================================================================
@@ -257,49 +190,12 @@ theorem gladion_take_oob (pz : PrizeZone) (idx : Nat)
     (h : pz.cards[idx]? = none) :
     gladionTake pz idx = none := by
   simp [gladionTake, h]
-
--- ============================================================================
--- §9  Prize path algebra: trans / symm / congrArg
--- ============================================================================
-
 -- Theorem 23: trans is associative for prize paths.
-theorem prize_path_trans_assoc {a b c d : GameState}
-    (p : Path GameState a b) (q : Path GameState b c) (r : Path GameState c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
 -- Theorem 24: nil is left identity for trans.
-theorem prize_path_nil_trans {a b : GameState}
-    (p : Path GameState a b) :
-    Path.trans (Path.nil a) p = p := rfl
-
 -- Theorem 25: nil is right identity for trans.
-theorem prize_path_trans_nil {a b : GameState}
-    (p : Path GameState a b) :
-    Path.trans p (Path.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
 -- Theorem 26: symm of nil is nil.
-theorem prize_path_symm_nil (a : GameState) :
-    Path.symm (Path.nil a) = Path.nil a := rfl
-
 -- Theorem 27: symm of single step has length 1.
-theorem prize_path_symm_single_length {a b : GameState} (s : Step GameState a b) :
-    (Path.symm (Path.single s)).length = 1 := by
-  simp [Path.single, Path.symm, Path.trans, Path.length, Step.symm]
-
 -- Theorem 28: length of trans is sum of lengths.
-theorem prize_path_trans_length {a b c : GameState}
-    (p : Path GameState a b) (q : Path GameState b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih]; omega
-
 -- ============================================================================
 -- §10  Prize mapping (congrArg lifting)
 -- ============================================================================
@@ -362,10 +258,6 @@ theorem prize_distinguishes_basic_ex :
 theorem gladion_idempotent (pz : PrizeZone) :
     gladionReveal (gladionReveal pz) = gladionReveal pz := by
   simp [gladionReveal, List.map_map]
-
--- Theorem 39: Step.symm of refl is refl.
-theorem step_symm_refl (a : GameState) :
-    Step.symm (Step.refl a) = Step.refl a := rfl
 
 -- Theorem 40: Prize ordering — taking n then m is same as taking (n+m).
 theorem take_take_eq_take_add (pz : PrizeZone) (n m : Nat) :

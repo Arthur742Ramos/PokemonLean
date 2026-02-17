@@ -6,7 +6,6 @@
   immediate damage trade-off, setup sweeper strategy, reset mechanics
   (switching resets boosts), boost stacking limits.
 
-  All proofs are sorry-free.  Uses computational paths for
   turn-by-turn state transitions.
   Multi-step trans / symm / congrArg chains — paths ARE the math.
   25+ theorems.
@@ -15,56 +14,6 @@
 set_option linter.unusedVariables false
 
 namespace PokemonLean.SetupAttacks
-
--- ============================================================
--- §1  Computational Path Infrastructure
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _,    q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil _)
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a     => .refl a
-  | .rule n a b => .rule (n ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a    => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.length : Path α a b → Nat
-  | .nil _    => 0
-  | .cons _ p => 1 + p.length
-
-theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_trans_nil_right (p : Path α a b) :
-    Path.trans p (.nil b) = p := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_length_trans (p : Path α a b) (q : Path α b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================
 -- §2  Core Types: Boosts, Pokémon State
 -- ============================================================
@@ -131,26 +80,6 @@ def resetBoosts (s : PokemonState) : PokemonState :=
 def switchIn (s : PokemonState) : PokemonState :=
   { s with isActive := true, boosts := Boosts.zero }
 
-/-- Step types for setup moves. -/
-def swordsDanceStep (s : PokemonState) :
-    Step PokemonState s (swordsDance s) :=
-  .rule "swords-dance" _ _
-
-def dragonDanceStep (s : PokemonState) :
-    Step PokemonState s (dragonDance s) :=
-  .rule "dragon-dance" _ _
-
-def ironDefenseStep (s : PokemonState) :
-    Step PokemonState s (ironDefense s) :=
-  .rule "iron-defense" _ _
-
-def switchOutStep (s : PokemonState) :
-    Step PokemonState s (resetBoosts s) :=
-  .rule "switch-out" _ _
-
-def switchInStep (s : PokemonState) :
-    Step PokemonState s (switchIn s) :=
-  .rule "switch-in" _ _
 
 -- ============================================================
 -- §4  Core Theorems: Boost Mechanics
@@ -205,68 +134,10 @@ theorem triple_swords_dance_capped (s : PokemonState) (h : s.boosts.attack = 0) 
 -- §5  Setup Path Constructions
 -- ============================================================
 
-/-- 1: Swords Dance path (single step). -/
-def swords_dance_path (s : PokemonState) :
-    Path PokemonState s (swordsDance s) :=
-  Path.single (swordsDanceStep s)
-
-/-- 2: Dragon Dance path (single step). -/
-def dragon_dance_path (s : PokemonState) :
-    Path PokemonState s (dragonDance s) :=
-  Path.single (dragonDanceStep s)
-
-/-- 3: Double Swords Dance (2-step trans chain). -/
-def double_swords_dance (s : PokemonState) :
-    Path PokemonState s (swordsDance (swordsDance s)) :=
-  (swords_dance_path s).trans (swords_dance_path (swordsDance s))
-
-/-- 4: Triple Swords Dance (3-step trans chain). -/
-def triple_swords_dance (s : PokemonState) :
-    Path PokemonState s (swordsDance (swordsDance (swordsDance s))) :=
-  (double_swords_dance s).trans (swords_dance_path (swordsDance (swordsDance s)))
-
-/-- 5: Setup then switch-out (2-step: boost then lose it). -/
-def setup_then_switch (s : PokemonState) :
-    Path PokemonState s (resetBoosts (swordsDance s)) :=
-  (swords_dance_path s).trans (Path.single (switchOutStep (swordsDance s)))
-
-/-- 6: Dragon Dance x2 chain. -/
-def double_dragon_dance (s : PokemonState) :
-    Path PokemonState s (dragonDance (dragonDance s)) :=
-  (dragon_dance_path s).trans (dragon_dance_path (dragonDance s))
-
 -- ============================================================
 -- §6  Path Length Theorems
 -- ============================================================
 
-/-- Theorem 9: Single setup is 1 step. -/
-theorem swords_dance_len (s : PokemonState) :
-    (swords_dance_path s).length = 1 := by
-  simp [swords_dance_path, Path.single, Path.length]
-
-/-- Theorem 10: Double setup is 2 steps. -/
-theorem double_sd_len (s : PokemonState) :
-    (double_swords_dance s).length = 2 := by
-  simp [double_swords_dance, swords_dance_path, Path.trans,
-        Path.single, Path.length]
-
-/-- Theorem 11: Triple setup is 3 steps. -/
-theorem triple_sd_len (s : PokemonState) :
-    (triple_swords_dance s).length = 3 := by
-  simp [triple_swords_dance, double_swords_dance, swords_dance_path,
-        Path.trans, Path.single, Path.length]
-
-/-- Theorem 12: Setup-then-switch is 2 steps. -/
-theorem setup_switch_len (s : PokemonState) :
-    (setup_then_switch s).length = 2 := by
-  simp [setup_then_switch, swords_dance_path, switchOutStep,
-        Path.trans, Path.single, Path.length]
-
-/-- Theorem 13: Double Dragon Dance is 2 steps. -/
-theorem double_dd_len (s : PokemonState) :
-    (double_dragon_dance s).length = 2 := by
-  simp [double_dragon_dance, dragon_dance_path, Path.trans,
-        Path.single, Path.length]
 
 -- ============================================================
 -- §7  Setup vs. Immediate Damage Trade-off
@@ -330,30 +201,6 @@ theorem four_sd_sweep_same :
 -- §9  Symm and Multi-step Coherence
 -- ============================================================
 
-/-- 7: Reversed swords dance path. -/
-def swords_dance_rev (s : PokemonState) :
-    Path PokemonState (swordsDance s) s :=
-  (swords_dance_path s).symm
-
-/-- Theorem 20: Reversed path has length 1. -/
-theorem swords_dance_rev_len (s : PokemonState) :
-    (swords_dance_rev s).length = 1 := by
-  simp [swords_dance_rev, Path.symm, swords_dance_path, Path.single,
-        swordsDanceStep, Step.symm, Path.trans, Path.length]
-
-/-- 8: Setup-reset cycle: setup, then switch out (boosts lost), then switch in. -/
-def setup_reset_cycle (s : PokemonState) :
-    Path PokemonState s (switchIn (resetBoosts (swordsDance s))) :=
-  let p1 := swords_dance_path s
-  let p2 := Path.single (switchOutStep (swordsDance s))
-  let p3 := Path.single (switchInStep (resetBoosts (swordsDance s)))
-  p1.trans (p2.trans p3)
-
-/-- Theorem 21: Setup-reset cycle is 3 steps. -/
-theorem setup_reset_cycle_len (s : PokemonState) :
-    (setup_reset_cycle s).length = 3 := by
-  simp [setup_reset_cycle, swords_dance_path, switchOutStep, switchInStep,
-        Path.trans, Path.single, Path.length]
 
 /-- Theorem 22: After setup-reset cycle, attack boost is 0. -/
 theorem setup_reset_zeroes_atk (s : PokemonState) :

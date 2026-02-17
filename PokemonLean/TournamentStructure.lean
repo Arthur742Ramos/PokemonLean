@@ -6,71 +6,12 @@
   Swiss rounds, top cut, best-of-three, match points, resistance calculation,
   tiebreakers, intentional draw, prize structure.
 
-  All proofs are sorry-free.  Multi-step trans / symm / congrArg chains.
   Paths ARE the math.  20+ theorems.
 -/
 
 set_option linter.unusedVariables false
 
 namespace TournamentStructure
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a => .refl a
-  | .rule name a b => .rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.single (s : Step α a b) : Path α a b := .cons s (.nil _)
-
--- ============================================================================
--- §2  Path algebra lemmas
--- ============================================================================
-
-/-- Theorem 1: trans with nil is identity. -/
-theorem trans_nil (p : Path α a b) : p.trans (.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-/-- Theorem 2: nil trans is identity. -/
-theorem nil_trans (p : Path α a b) : (Path.nil a).trans p = p := rfl
-
-/-- Theorem 3: trans is associative. -/
-theorem trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-/-- Theorem 4: length is additive over trans. -/
-theorem length_trans (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s p ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §3  Match Results
 -- ============================================================================
@@ -181,27 +122,6 @@ inductive TourneyPath : Standing → Standing → Type where
   | refl (s : Standing) : TourneyPath s s
   | step {a b c : Standing} : TourneyStep a b → TourneyPath b c → TourneyPath a c
 
-/-- Theorem 14: Transitivity of tournament paths. -/
-def TourneyPath.trans : TourneyPath a b → TourneyPath b c → TourneyPath a c
-  | .refl _, q => q
-  | .step s p, q => .step s (p.trans q)
-
-/-- Theorem 15: Single round lifts to path. -/
-def TourneyPath.single (s : TourneyStep a b) : TourneyPath a b :=
-  .step s (.refl _)
-
-/-- Path length (rounds played in this path). -/
-def TourneyPath.length : TourneyPath a b → Nat
-  | .refl _ => 0
-  | .step _ p => 1 + p.length
-
-/-- Theorem 16: Length is additive over trans. -/
-theorem TourneyPath.length_trans (p : TourneyPath a b) (q : TourneyPath b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | refl _ => simp [TourneyPath.trans, TourneyPath.length]
-  | step s _ ih => simp [TourneyPath.trans, TourneyPath.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §7  Swiss Round Count
 -- ============================================================================
@@ -307,16 +227,6 @@ inductive TiebreakerPath : (List Nat) → (List Nat) → Type where
   | refl (l : List Nat) : TiebreakerPath l l
   | step {a b c} : TiebreakerStep a b → TiebreakerPath b c → TiebreakerPath a c
 
-/-- Theorem 24: Transitivity of tiebreaker paths. -/
-def TiebreakerPath.trans : TiebreakerPath a b → TiebreakerPath b c → TiebreakerPath a c
-  | .refl _, q => q
-  | .step s p, q => .step s (p.trans q)
-
-/-- Theorem 25: congrArg — appending preserves tiebreaker paths. -/
--- We prove it via single steps
-def TiebreakerPath.single (s : TiebreakerStep a b) : TiebreakerPath a b :=
-  .step s (.refl _)
-
 -- ============================================================================
 -- §12  Intentional Draw
 -- ============================================================================
@@ -387,25 +297,6 @@ inductive PhasePath : TournamentPhase → TournamentPhase → Type where
 def fullTournament : PhasePath .swiss .done :=
   .step .swissToTopCut (.step .topCutToDone (.refl _))
 
-/-- Phase path transitivity. -/
-def PhasePath.trans : PhasePath a b → PhasePath b c → PhasePath a c
-  | .refl _, q => q
-  | .step s p, q => .step s (p.trans q)
-
-/-- Phase path length. -/
-def PhasePath.length : PhasePath a b → Nat
-  | .refl _ => 0
-  | .step _ p => 1 + p.length
-
-/-- Theorem 31: Full tournament has 2 phases. -/
-theorem fullTournament_length : fullTournament.length = 2 := rfl
-
-/-- Theorem 32: Phase path length is additive. -/
-theorem PhasePath.length_trans (p : PhasePath a b) (q : PhasePath b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | refl _ => simp [PhasePath.trans, PhasePath.length]
-  | step s _ ih => simp [PhasePath.trans, PhasePath.length, ih, Nat.add_assoc]
 
 -- ============================================================================
 -- §15  Fresh standing and total round count via path

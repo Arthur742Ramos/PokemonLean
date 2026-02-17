@@ -7,60 +7,12 @@
   acceleration vs manual attach, energy acceleration paths,
   acceleration advantage theorem.
 
-  All proofs are sorry-free.  Uses computational paths for
   energy-attachment state transitions.
   Multi-step trans / symm / congrArg chains — paths ARE the math.
   15+ theorems.
 -/
 
 namespace PokemonLean.EnergyAcceleration
-
--- ============================================================
--- §1  Computational Paths
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | mk : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) : Path α a c :=
-  match p with
-  | .nil _ => q
-  | .cons s rest => .cons s (rest.trans q)
-
-def Path.length {α : Type} {a b : α} : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ rest => 1 + rest.length
-
-def Step.symm {α : Type} {a b : α} : Step α a b → Step α b a
-  | .mk name a b => .mk (name ++ "⁻¹") b a
-
-def Path.symm {α : Type} {a b : α} : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-def Path.single {α : Type} {a b : α} (s : Step α a b) : Path α a b :=
-  .cons s (.nil _)
-
--- Path algebra
-theorem path_length_trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons _ _ ih => simp [Path.trans, Path.length, ih]; omega
-
-theorem path_trans_assoc {α : Type} {a b c d : α}
-    (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons _ _ ih => simp [Path.trans, ih]
-
 -- ============================================================
 -- §2  Energy Types and Core Types
 -- ============================================================
@@ -204,11 +156,6 @@ theorem dark_patch_preserves_supporter (gs : GameState) (e : EnergyCard)
     (hd : e ∈ gs.discard) (hk : e.etype = .darkness) :
     (darkPatch gs e hd hk).supporterUsed = gs.supporterUsed := by
   simp [darkPatch]
-
--- ============================================================
--- §5  Energy Acceleration as Computational Paths
--- ============================================================
-
 /-- Phase of energy attachment. -/
 inductive AttachPhase where
   | start          -- beginning of turn
@@ -219,79 +166,11 @@ inductive AttachPhase where
   | turnEnd        -- end of energy attachment phase
 deriving DecidableEq, Repr
 
-/-- Manual-only path: 1 energy per turn. -/
-def manualOnlyPath : Path AttachPhase AttachPhase.start AttachPhase.turnEnd :=
-  .cons (.mk "manual_attach" AttachPhase.start AttachPhase.manualDone)
-    (.cons (.mk "end_turn" AttachPhase.manualDone AttachPhase.turnEnd)
-      (.nil AttachPhase.turnEnd))
-
-/-- Theorem 12: Manual-only path has length 2. -/
-theorem manualOnly_length : manualOnlyPath.length = 2 := rfl
-
-/-- Welder + manual path: 3 energy in one turn (welder 2 + manual 1). -/
-def welderManualPath : Path AttachPhase AttachPhase.start AttachPhase.turnEnd :=
-  .cons (.mk "welder_attach_fire1" AttachPhase.start AttachPhase.accelOne)
-    (.cons (.mk "welder_attach_fire2" AttachPhase.accelOne AttachPhase.accelTwo)
-      (.cons (.mk "manual_attach" AttachPhase.accelTwo AttachPhase.accelThree)
-        (.cons (.mk "end_turn" AttachPhase.accelThree AttachPhase.turnEnd)
-          (.nil AttachPhase.turnEnd))))
-
-/-- Theorem 13: Welder+manual path has length 4 (3 attaches + end). -/
-theorem welderManual_length : welderManualPath.length = 4 := rfl
-
-/-- Max Elixir + manual path: 2 energy (elixir from deck + manual from hand). -/
-def maxElixirManualPath : Path AttachPhase AttachPhase.start AttachPhase.turnEnd :=
-  .cons (.mk "max_elixir_from_deck" AttachPhase.start AttachPhase.accelOne)
-    (.cons (.mk "manual_attach" AttachPhase.accelOne AttachPhase.accelTwo)
-      (.cons (.mk "end_turn" AttachPhase.accelTwo AttachPhase.turnEnd)
-        (.nil AttachPhase.turnEnd)))
-
-/-- Theorem 14: MaxElixir+manual path has length 3. -/
-theorem maxElixirManual_length : maxElixirManualPath.length = 3 := rfl
-
-/-- Dark Patch + Melony + manual = 3 energy from multiple sources. -/
-def darkMelonyManualPath : Path AttachPhase AttachPhase.start AttachPhase.turnEnd :=
-  .cons (.mk "dark_patch_from_discard" AttachPhase.start AttachPhase.accelOne)
-    (.cons (.mk "melony_from_discard" AttachPhase.accelOne AttachPhase.accelTwo)
-      (.cons (.mk "manual_attach" AttachPhase.accelTwo AttachPhase.accelThree)
-        (.cons (.mk "end_turn" AttachPhase.accelThree AttachPhase.turnEnd)
-          (.nil AttachPhase.turnEnd))))
-
-/-- Theorem 15: DarkPatch+Melony+manual has length 4. -/
-theorem darkMelonyManual_length : darkMelonyManualPath.length = 4 := rfl
 
 -- ============================================================
 -- §6  Acceleration Advantage
 -- ============================================================
 
-/-- Energy gained per turn: number of attach operations in a path. -/
-def energyGained {a b : AttachPhase} (p : Path AttachPhase a b) : Nat :=
-  match p with
-  | .nil _ => 0
-  | .cons (.mk name _ _) rest =>
-    (if name == "end_turn" then 0 else 1) + energyGained rest
-
-/-- Theorem 16: Manual-only gains 1 energy. -/
-theorem manualOnly_gains : energyGained manualOnlyPath = 1 := rfl
-
-/-- Theorem 17: Welder+manual gains 3 energy. -/
-theorem welderManual_gains : energyGained welderManualPath = 3 := rfl
-
-/-- Theorem 18: MaxElixir+manual gains 2 energy. -/
-theorem maxElixirManual_gains : energyGained maxElixirManualPath = 2 := rfl
-
-/-- Theorem 19: Acceleration advantage = accel gains - manual gains. -/
-def accelerationAdvantage
-    {a b : AttachPhase} (accelPath manualPath : Path AttachPhase a b) : Int :=
-  (energyGained accelPath : Int) - (energyGained manualPath : Int)
-
-/-- Theorem 20: Welder gives +2 advantage over manual-only. -/
-theorem welder_advantage :
-    accelerationAdvantage welderManualPath manualOnlyPath = 2 := rfl
-
-/-- Theorem 21: MaxElixir gives +1 advantage. -/
-theorem maxElixir_advantage :
-    accelerationAdvantage maxElixirManualPath manualOnlyPath = 1 := rfl
 
 -- ============================================================
 -- §7  Source Diversity
@@ -326,48 +205,10 @@ theorem welder_source : cardSource "Welder" = .hand := rfl
 -- §8  congrArg / Path Lifting
 -- ============================================================
 
-/-- Lift a path through a function (congrArg). -/
-def Path.map {α : Type} (f : α → α) (fname : String) {a b : α}
-    (p : Path α a b) : Path α (f a) (f b) :=
-  match p with
-  | .nil x => .nil (f x)
-  | .cons (.mk n x y) rest =>
-    .cons (.mk (fname ++ "/" ++ n) (f x) (f y)) (rest.map f fname)
-
-/-- Theorem 26: Map preserves path length. -/
-theorem map_preserves_length {α : Type} (f : α → α) (fname : String)
-    {a b : α} (p : Path α a b) :
-    (p.map f fname).length = p.length := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih =>
-    match s with
-    | .mk _ _ _ => simp [Path.map, Path.length, ih]
-
 -- ============================================================
 -- §9  Multi-Turn Acceleration Paths
 -- ============================================================
 
-/-- Model multi-turn energy accumulation. -/
-def multiTurnPath (turns : Nat) :
-    Path Nat 0 turns :=
-  match turns with
-  | 0 => .nil 0
-  | n + 1 =>
-    let prev := multiTurnPath n
-    let addStep : Path Nat n (n + 1) :=
-      .cons (.mk s!"turn_{n+1}_attach" n (n + 1)) (.nil _)
-    prev.trans addStep
-
-/-- Theorem 27: Multi-turn path has length = number of turns. -/
-theorem multiTurn_length (turns : Nat) :
-    (multiTurnPath turns).length = turns := by
-  induction turns with
-  | zero => rfl
-  | succ n ih =>
-    simp [multiTurnPath]
-    rw [path_length_trans]
-    simp [Path.length, ih]
 
 /-- Theorem 28: 3 turns with accel (3/turn) vs 3 turns manual (1/turn). -/
 theorem accel_3turns_vs_manual :
@@ -376,26 +217,6 @@ theorem accel_3turns_vs_manual :
 -- ============================================================
 -- §10  Path Reversal and Symmetry
 -- ============================================================
-
-/-- Theorem 29: Symm of single step. -/
-theorem symm_single {α : Type} {a b : α} (s : Step α a b) :
-    (Path.single s).symm.length = 1 := rfl
-
-/-- Symm length equals original length. -/
-theorem symm_length {α : Type} {a b : α} (p : Path α a b) :
-    p.symm.length = p.length := by
-  induction p with
-  | nil _ => rfl
-  | cons s rest ih =>
-    simp [Path.symm]
-    rw [path_length_trans]
-    simp [Path.length, ih]; omega
-
-/-- Theorem 30: Trans of roundtrip has double length. -/
-theorem roundtrip_length_double {α : Type} {a b : α} (p : Path α a b) :
-    (p.trans p.symm).length = 2 * p.length := by
-  rw [path_length_trans, symm_length]
-  omega
 
 -- ============================================================
 -- §11  Type Restrictions

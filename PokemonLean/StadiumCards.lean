@@ -4,64 +4,9 @@
   Stadium card mechanics: one Stadium in play at a time, new replaces old,
   symmetrical effects (both players), Path to the Peak (blocks Rule Box abilities),
   Collapsed Stadium (bench limit 4), Temple of Sinnoh (removes special energy effects),
-  stadium war strategy. All theorems sorry-free, using computational paths.
 -/
 
 namespace PokemonLean.StadiumCards
-
--- ============================================================
--- §1  Computational path infrastructure
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive GPath (α : Type) : α → α → Type where
-  | nil  : (a : α) → GPath α a a
-  | cons : Step α a b → GPath α b c → GPath α a c
-
-def GPath.trans : GPath α a b → GPath α b c → GPath α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a => .refl a
-  | .rule nm a b => .rule (nm ++ "⁻¹") b a
-
-def GPath.symm : GPath α a b → GPath α b a
-  | .nil a => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def GPath.length : GPath α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-def GPath.single (s : Step α a b) : GPath α a b :=
-  .cons s (.nil _)
-
-def GPath.congrArg (f : α → β) : GPath α a b → GPath β (f a) (f b)
-  | .nil a => .nil (f a)
-  | .cons (.refl a) p => (GPath.nil (f a)).trans (congrArg f p)
-  | .cons (.rule nm a b) p => .cons (.rule nm (f a) (f b)) (congrArg f p)
-
-theorem gpath_trans_assoc (p : GPath α a b) (q : GPath α b c) (r : GPath α c d) :
-    GPath.trans (GPath.trans p q) r = GPath.trans p (GPath.trans q r) := by
-  induction p with
-  | nil _ => simp [GPath.trans]
-  | cons s _ ih => simp [GPath.trans, ih]
-
-theorem gpath_trans_nil_right (p : GPath α a b) :
-    GPath.trans p (GPath.nil b) = p := by
-  induction p with
-  | nil _ => simp [GPath.trans]
-  | cons s _ ih => simp [GPath.trans, ih]
-
-theorem gpath_length_trans (p : GPath α a b) (q : GPath α b c) :
-    (GPath.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [GPath.trans, GPath.length]
-  | cons _ _ ih => simp [GPath.trans, GPath.length, ih, Nat.add_assoc]
 
 -- ============================================================
 -- §2  Core types
@@ -153,9 +98,6 @@ def applyCollapsedStadium (s : FieldState) : FieldState :=
   { s with player1BenchLimit := min s.player1BenchLimit 4
            player2BenchLimit := min s.player2BenchLimit 4 }
 
-/-- Path to the Peak active predicate. -/
-def pathToThePeakActive (s : FieldState) : Prop :=
-  s.activeStadium = some .pathToThePeak
 
 /-- Temple of Sinnoh active predicate. -/
 def templeOfSinnohActive (s : FieldState) : Prop :=
@@ -165,9 +107,6 @@ def templeOfSinnohActive (s : FieldState) : Prop :=
 def collapsedStadiumActive (s : FieldState) : Prop :=
   s.activeStadium = some .collapsedStadium
 
-/-- Under Path to the Peak, a rule box Pokemon's ability is negated. -/
-def abilityNegated (s : FieldState) (pk : PokemonInPlay) : Prop :=
-  pathToThePeakActive s ∧ pk.kind.isRuleBox = true ∧ pk.hasAbility = true
 
 /-- Count special energy in a Pokemon's attached energy. -/
 def countSpecialEnergy (pk : PokemonInPlay) : Nat :=
@@ -232,19 +171,6 @@ theorem remove_stadium_none (s : FieldState) :
     (removeStadium s).activeStadium = none := by
   rfl
 
-/-- Theorem 5: Path to the Peak negates rule box abilities (VSTAR). -/
-theorem path_to_peak_negates_vstar (s : FieldState)
-    (h : pathToThePeakActive s) (pk : PokemonInPlay)
-    (hk : pk.kind = .vstar) (ha : pk.hasAbility = true) :
-    abilityNegated s pk := by
-  exact ⟨h, by simp [PokemonKind.isRuleBox, hk], ha⟩
-
-/-- Theorem 6: Path to the Peak negates rule box abilities (VMAX). -/
-theorem path_to_peak_negates_vmax (s : FieldState)
-    (h : pathToThePeakActive s) (pk : PokemonInPlay)
-    (hk : pk.kind = .vmax) (ha : pk.hasAbility = true) :
-    abilityNegated s pk := by
-  exact ⟨h, by simp [PokemonKind.isRuleBox, hk], ha⟩
 
 /-- Theorem 7: Path to the Peak does NOT negate basic Pokemon abilities. -/
 theorem path_to_peak_spares_basic (pk : PokemonInPlay)
@@ -308,22 +234,6 @@ theorem replace_then_remove (s : FieldState) (c : StadiumCard) :
     (removeStadium (playStadium s c)).activeStadium = none := by
   rfl
 
-/-- Theorem 18: No stadium means Path to the Peak is not active. -/
-theorem no_stadium_no_peak (s : FieldState) (h : s.activeStadium = none) :
-    ¬ pathToThePeakActive s := by
-  intro hp
-  simp [pathToThePeakActive] at hp
-  rw [h] at hp
-  exact absurd hp (by simp)
-
-/-- Theorem 19: Different stadium means Path to the Peak not active. -/
-theorem different_stadium_no_peak (s : FieldState) (c : StadiumCard)
-    (hne : c ≠ .pathToThePeak) (hs : s.activeStadium = some c) :
-    ¬ pathToThePeakActive s := by
-  intro hp
-  simp [pathToThePeakActive] at hp
-  rw [hs] at hp
-  exact hne (Option.some.inj hp)
 
 /-- Theorem 20: Playing two different stadiums — last one wins. -/
 theorem last_stadium_wins (s : FieldState) (c₁ c₂ : StadiumCard) :
@@ -366,25 +276,6 @@ theorem bench_preserved_on_play (s : FieldState) (c : StadiumCard) :
 -- §7  Path-based stadium transition proofs
 -- ============================================================
 
-/-- Path: no stadium → play Peak → ability negated for rule box. -/
-def path_to_peak_activation :
-    GPath FieldState FieldState.default (playStadium FieldState.default .pathToThePeak) :=
-  GPath.single (.rule "playPeak" _ _)
-
-/-- Path: play stadium → replace → remove = 3 steps. -/
-def stadium_lifecycle (c1 c2 : StadiumCard) :
-    GPath FieldState FieldState.default (removeStadium (playStadium (playStadium FieldState.default c1) c2)) :=
-  let p1 := GPath.single (.rule "play" FieldState.default (playStadium FieldState.default c1))
-  let s1 := playStadium FieldState.default c1
-  let p2 := GPath.single (.rule "replace" s1 (playStadium s1 c2))
-  let s2 := playStadium s1 c2
-  let p3 := GPath.single (.rule "remove" s2 (removeStadium s2))
-  p1.trans (p2.trans p3)
-
-/-- Theorem 26: Stadium lifecycle path has length 3. -/
-theorem stadium_lifecycle_length (c1 c2 : StadiumCard) :
-    (stadium_lifecycle c1 c2).length = 3 := by
-  simp [stadium_lifecycle, GPath.trans, GPath.single, GPath.length]
 
 /-- Theorem 27: Symmetric path — playing for p1 then p2 yields same effect. -/
 theorem stadium_symmetry_both_players (s : FieldState) (c : StadiumCard) :
@@ -392,31 +283,6 @@ theorem stadium_symmetry_both_players (s : FieldState) (c : StadiumCard) :
     benchLimit (playStadium s c) .p2 = s.player2BenchLimit := by
   simp [benchLimit, playStadium]
 
-/-- Theorem 28: congrArg lifts stadium field over path. -/
-def lift_stadium_over_path (p : GPath FieldState a b) :
-    GPath (Option StadiumCard) a.activeStadium b.activeStadium :=
-  GPath.congrArg FieldState.activeStadium p
-
-/-- Theorem 29: Stadium war path. -/
-def stadium_war_path (c1 c2 c3 : StadiumCard) :
-    GPath FieldState FieldState.default (stadiumWarSequence FieldState.default c1 c2 c3) :=
-  let s0 := FieldState.default
-  let s1 := playStadium s0 c1
-  let s2 := playStadium s1 c2
-  let p1 := GPath.single (.rule "p1_plays" s0 s1)
-  let p2 := GPath.single (.rule "p2_counters" s1 s2)
-  let p3 := GPath.single (.rule "p1_recounters" s2 (playStadium s2 c3))
-  p1.trans (p2.trans p3)
-
-/-- Theorem 30: Stadium war path has length 3. -/
-theorem stadium_war_path_length (c1 c2 c3 : StadiumCard) :
-    (stadium_war_path c1 c2 c3).length = 3 := by
-  simp [stadium_war_path, GPath.trans, GPath.single, GPath.length]
-
-/-- Theorem 31: Reversed stadium war path. -/
-def stadium_war_reverse (c1 c2 c3 : StadiumCard) :
-    GPath FieldState (stadiumWarSequence FieldState.default c1 c2 c3) FieldState.default :=
-  (stadium_war_path c1 c2 c3).symm
 
 /-- Theorem 32: Collapsed Stadium after default reduces both benches to 4. -/
 theorem collapsed_from_default :
@@ -437,17 +303,5 @@ theorem no_energy_no_special (pk : PokemonInPlay) (h : pk.attachedEnergy = []) :
     countSpecialEnergy pk = 0 := by
   simp [countSpecialEnergy, h]
 
-/-- Theorem 35: Transport: if a property holds at start, and is preserved by steps, it holds at end. -/
-def GPath.transport (P : α → Prop) (p : GPath α a b) (pa : P a)
-    (compat : ∀ x y, Step α x y → P x → P y) : P b := by
-  induction p with
-  | nil _ => exact pa
-  | cons s _ ih => exact ih (compat _ _ s pa)
-
-/-- Theorem 36: "No rule box negated" property is preserved when there's no Peak. -/
-theorem no_peak_preserves_abilities (s : FieldState) (h : s.activeStadium ≠ some .pathToThePeak)
-    (pk : PokemonInPlay) : ¬ abilityNegated s pk := by
-  intro ⟨hp, _, _⟩
-  exact h hp
 
 end PokemonLean.StadiumCards

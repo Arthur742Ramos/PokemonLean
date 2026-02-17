@@ -9,68 +9,12 @@
   interactions, format-specific rules (first turn supporter in Standard),
   set block structure, and format transition paths.
 
-  All proofs are sorry-free.  Multi-step trans / symm / congrArg chains.
   Paths ARE the math.  20+ theorems.
 -/
 
 set_option linter.unusedVariables false
 
 namespace RotationFormats
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | Path.nil _, q => q
-  | Path.cons s p, q => Path.cons s (Path.trans p q)
-
-def Path.length : Path α a b → Nat
-  | Path.nil _ => 0
-  | Path.cons _ p => 1 + Path.length p
-
-def Step.symm : Step α a b → Step α b a
-  | Step.refl a => Step.refl a
-  | Step.rule name a b => Step.rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | Path.nil a => Path.nil a
-  | Path.cons s p => Path.trans (Path.symm p) (Path.cons (Step.symm s) (Path.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  Path.cons s (Path.nil _)
-
--- ============================================================================
--- §2  Path algebra lemmas
--- ============================================================================
-
-theorem trans_nil (p : Path α a b) : p.trans (.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-theorem nil_trans (p : Path α a b) : (Path.nil a).trans p = p := rfl
-
-theorem trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-theorem length_trans (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s p ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §3  Formats and Eras
 -- ============================================================================
@@ -178,11 +122,6 @@ theorem f_mark_rotated_2025 (s : CardSetInfo) (h : s.regMark = .F) :
 theorem g_mark_survives_rotation (s : CardSetInfo) (h : s.regMark = .G) :
     isLegalInStandard s rotation2024 = true ∧ isLegalInStandard s rotation2025 = true := by
   constructor <;> simp [isLegalInStandard, rotation2024, rotation2025, List.contains, List.elem, h, BEq.beq] <;> decide
-
--- ============================================================================
--- §7  Rotation as computational paths
--- ============================================================================
-
 /-- Format state: which marks are legal. -/
 structure FormatState where
   formatName : Format
@@ -194,30 +133,6 @@ def fs2025 : FormatState := ⟨.standard, [.G, .H, .I]⟩
 def fsExpanded : FormatState := ⟨.expanded, [.D, .E, .F, .G, .H, .I]⟩
 def fsUnlimited : FormatState := ⟨.unlimited, [.D, .E, .F, .G, .H, .I]⟩
 
-/-- Theorem 9: Rotation path from 2024 to 2025 Standard. -/
-def rotation_path_2024_2025 : Path FormatState fs2024 fs2025 :=
-  Path.single (Step.rule "2025 rotation: drop F, add I" fs2024 fs2025)
-
-/-- Theorem 10: Rotation path length is 1. -/
-theorem rotation_path_length : rotation_path_2024_2025.length = 1 := rfl
-
-/-- Theorem 11: Standard → Expanded widening path. -/
-def standard_to_expanded : Path FormatState fs2024 fsExpanded :=
-  Path.single (Step.rule "widen to Expanded" fs2024 fsExpanded)
-
-/-- Theorem 12: Expanded → Unlimited widening path. -/
-def expanded_to_unlimited : Path FormatState fsExpanded fsUnlimited :=
-  Path.single (Step.rule "widen to Unlimited" fsExpanded fsUnlimited)
-
-/-- Theorem 13: Standard → Unlimited via 2-step chain. -/
-def standard_to_unlimited : Path FormatState fs2024 fsUnlimited :=
-  Path.trans standard_to_expanded expanded_to_unlimited
-
-/-- Theorem 14: Standard → Unlimited chain has length 2. -/
-theorem standard_to_unlimited_length :
-    standard_to_unlimited.length = 2 := by
-  simp [standard_to_unlimited, standard_to_expanded, expanded_to_unlimited,
-        Path.trans, Path.single, Path.length]
 
 -- ============================================================================
 -- §8  Ban list mechanics
@@ -310,28 +225,6 @@ theorem standard_strictest :
 
 def fs2023 : FormatState := ⟨.standard, [.E, .F, .G]⟩
 
-def rotation_2023_2024 : Path FormatState fs2023 fs2024 :=
-  Path.single (Step.rule "2024 rotation: drop E, add H" fs2023 fs2024)
-
-/-- Theorem 24: Two-year rotation chain 2023→2024→2025. -/
-def two_year_rotation : Path FormatState fs2023 fs2025 :=
-  Path.trans rotation_2023_2024 rotation_path_2024_2025
-
-/-- Theorem 25: Two-year chain has length 2. -/
-theorem two_year_rotation_length :
-    two_year_rotation.length = 2 := by
-  simp [two_year_rotation, rotation_2023_2024, rotation_path_2024_2025,
-        Path.trans, Path.single, Path.length]
-
-/-- Theorem 26: Reverse rotation path (symm). -/
-def reverse_rotation : Path FormatState fs2025 fs2024 :=
-  rotation_path_2024_2025.symm
-
-/-- Theorem 27: Round-trip rotation has length 2. -/
-theorem round_trip_length :
-    (Path.trans rotation_path_2024_2025 reverse_rotation).length = 2 := by
-  simp [rotation_path_2024_2025, reverse_rotation, Path.symm, Path.trans,
-        Path.single, Step.symm, Path.length]
 
 -- ============================================================================
 -- §12  Regulation mark transitions

@@ -1,13 +1,11 @@
 /-
   PokemonLean / AbilityKeywords.lean
 
-  Ability keywords for the Pokémon TCG formalised with computational paths.
   Covers: Rush In (free switch-in), Safeguard (prevent effects),
   Intimidate (reduce damage), Adaptive Evolution (type change),
   Ditto's Transform, Unaware (ignore stat changes),
   ability interaction priority.
 
-  All proofs are sorry-free. 20+ theorems using computational paths.
 -/
 
 namespace PokemonLean.AbilityKeywords
@@ -102,38 +100,6 @@ structure GameState where
   damageReduction : Int
   moldBreakerActive : Bool
   deriving Repr
-
--- ============================================================
--- §4  Computational paths
--- ============================================================
-
-inductive Step : GameState → GameState → Type where
-  | refl : (gs : GameState) → Step gs gs
-  | rule : (name : String) → (a b : GameState) → Step a b
-
-inductive Path : GameState → GameState → Type where
-  | nil  : (gs : GameState) → Path gs gs
-  | cons : Step a b → Path b c → Path a c
-
-def Path.trans : Path a b → Path b c → Path a c
-  | Path.nil _, q => q
-  | Path.cons s p, q => Path.cons s (Path.trans p q)
-
-def Step.symm : Step a b → Step b a
-  | Step.refl gs => Step.refl gs
-  | Step.rule name a b => Step.rule (name ++ "⁻¹") b a
-
-def Path.symm : Path a b → Path b a
-  | Path.nil gs => Path.nil gs
-  | Path.cons s p => Path.trans (Path.symm p) (Path.cons (Step.symm s) (Path.nil _))
-
-def Path.single (s : Step a b) : Path a b :=
-  Path.cons s (Path.nil _)
-
-def Path.length : Path a b → Nat
-  | Path.nil _ => 0
-  | Path.cons _ p => 1 + Path.length p
-
 -- ============================================================
 -- §5  Ability activation predicates
 -- ============================================================
@@ -348,30 +314,10 @@ theorem overriding_gt_immediate :
 -- ============================================================
 
 -- 21: trans_nil
-theorem path_trans_nil (p : Path a b) :
-    Path.trans p (Path.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s _ ih => simp [Path.trans, ih]
-
 -- 22: trans_assoc
-theorem path_trans_assoc (p : Path a b) (q : Path b c) (r : Path c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
 -- 23: Single step has length 1
-theorem path_single_length (s : Step a b) :
-    Path.length (Path.single s) = 1 := by
-  simp [Path.single, Path.length]
 
 -- 24: Intimidate + Rush In composition path
-def intimidate_rushIn_sequence (gs : GameState)
-    (gs' : GameState) (gs'' : GameState) :
-    Path gs gs' → Path gs' gs'' → Path gs gs'' :=
-  Path.trans
-
 -- 25: Shield Dust is passive
 theorem shieldDust_is_passive :
     abilityPriority .shieldDust = .passive := rfl

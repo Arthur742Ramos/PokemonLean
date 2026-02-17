@@ -52,35 +52,6 @@ def ConditionSet.wf (cs : ConditionSet) : Prop :=
 def ConditionSet.empty : ConditionSet := ⟨false, false, none⟩
 
 -- ============================================================
--- §2  Step / Path infrastructure
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (tag : String) → (a b : α) → Step α a b
-
-inductive CPath (α : Type) : α → α → Type where
-  | nil  : (a : α) → CPath α a a
-  | cons : Step α a b → CPath α b c → CPath α a c
-
-def CPath.trans : CPath α a b → CPath α b c → CPath α a c
-  | .nil _, q    => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a     => .refl a
-  | .rule t a b => .rule (t ++ "⁻¹") b a
-
-def CPath.symm : CPath α a b → CPath α b a
-  | .nil a    => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def CPath.single (s : Step α a b) : CPath α a b := .cons s (.nil _)
-
-def CPath.length : CPath α a b → Nat
-  | .nil _    => 0
-  | .cons _ p => 1 + p.length
-
 -- ============================================================
 -- §3  Applying conditions (stacking rules)
 -- ============================================================
@@ -284,34 +255,6 @@ theorem fullHeal_idempotent (p : PokemonHP) :
 theorem fullHeal_preserves_hp (p : PokemonHP) :
     (fullHeal p).hp = p.hp := rfl
 
--- ============================================================
--- §6  Path-theoretic condition transitions
--- ============================================================
-
-def condStep (name : String) (s1 s2 : PokemonHP) :
-    Step PokemonHP s1 s2 :=
-  Step.rule name s1 s2
-
-/-- Theorem 27: Poison-then-burn path has length 2. -/
-theorem poison_burn_path (p1 p2 p3 : PokemonHP) :
-    (CPath.trans
-      (CPath.single (condStep "poison" p1 p2))
-      (CPath.single (condStep "burn" p2 p3))).length = 2 := by
-  simp [CPath.trans, CPath.single, CPath.length]
-
-/-- Theorem 28: Heal reverses condition path (symm). -/
-theorem heal_reverses (p1 p2 : PokemonHP) :
-    (CPath.symm (CPath.single (condStep "inflict" p1 p2))).length = 1 := by
-  simp [CPath.symm, CPath.single, CPath.trans, CPath.length, Step.symm]
-
-/-- Theorem 29: Three-step between-turns path. -/
-theorem between_turns_path (p1 p2 p3 p4 : PokemonHP) :
-    (CPath.trans
-      (CPath.single (condStep "poisonDmg" p1 p2))
-      (CPath.trans
-        (CPath.single (condStep "burnDmg" p2 p3))
-        (CPath.single (condStep "sleepCheck" p3 p4)))).length = 3 := by
-  simp [CPath.trans, CPath.single, CPath.length]
 
 /-- Theorem 30: Empty condition set is well-formed. -/
 theorem empty_wf : ConditionSet.empty.wf := by

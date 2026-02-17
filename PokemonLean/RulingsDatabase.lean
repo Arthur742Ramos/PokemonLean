@@ -9,66 +9,12 @@
   errata vs ruling distinction, ruling search by card, comprehensive
   rules vs play rules distinction.
 
-  All proofs are sorry-free.  Multi-step trans / symm / congrArg chains.
   Paths ARE the math.  20 theorems.
 -/
 
 set_option linter.unusedVariables false
 
 namespace RulingsDatabase
-
--- ============================================================
--- §1  Core Step / Path machinery
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _,    q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil _)
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a     => .refl a
-  | .rule n a b => .rule (n ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a    => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.length : Path α a b → Nat
-  | .nil _    => 0
-  | .cons _ p => 1 + p.length
-
--- §1a  Path algebra lemmas
-
-theorem trans_nil (p : Path α a b) : p.trans (.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-theorem nil_trans (p : Path α a b) : (Path.nil a).trans p = p := rfl
-
-theorem trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-theorem length_trans (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s p ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================
 -- §2  Ruling Categories
 -- ============================================================
@@ -275,56 +221,5 @@ theorem empty_db_no_errata (name : String) :
     (RulingsDB.mk [] []).hasErrata name = false := by
   rfl
 
-/-- Theorem 13: Ruling resolution path — compendium supersedes play rules
-    through a two-step rewriting chain. -/
-def ruling_supersession_path (r_play r_comp : Ruling)
-    (h_card : r_play.cardName = r_comp.cardName)
-    (h_play : r_play.source = .playRules)
-    (h_comp : r_comp.source = .compendium) :
-    Path Ruling r_play r_comp :=
-  let mid := { r_play with superseded := true }
-  Path.cons (Step.rule "supersede-play" r_play mid)
-    (Path.single (Step.rule "adopt-compendium" mid r_comp))
-
-/-- Theorem 14: Errata vs ruling distinction path. -/
-def errata_vs_ruling_path (r : Ruling) (e : Errata)
-    (h : r.cardName = e.cardName) :
-    Path Ruling r { r with isErrata := true, text := e.correctedText } :=
-  Path.single (Step.rule "apply-errata" r { r with isErrata := true, text := e.correctedText })
-
-/-- Theorem 15: Category transition path — attack timing to damage calculation. -/
-def attack_to_damage_path :
-    Path RulingCategory .attackTiming .damageCalculation :=
-  let s1 := Step.rule "resolve-attack" RulingCategory.attackTiming .abilityInteraction
-  let s2 := Step.rule "check-abilities" RulingCategory.abilityInteraction .damageCalculation
-  Path.cons s1 (Path.single s2)
-
-/-- Theorem 16: Category path length is 2 for attack→damage. -/
-theorem attack_to_damage_length :
-    attack_to_damage_path.length = 2 := by
-  rfl
-
-/-- Theorem 17: Reversing category path yields damage→attack. -/
-def damage_to_attack_path : Path RulingCategory .damageCalculation .attackTiming :=
-  attack_to_damage_path.symm
-
-/-- Theorem 18: Play rules → comprehensive rules upgrade path. -/
-def play_to_comprehensive_path :
-    Path RulesDocument .playRules .comprehensiveRules :=
-  Path.single (Step.rule "upgrade" RulesDocument.playRules .comprehensiveRules)
-
-/-- Theorem 19: Full ruling lifecycle — three-step chain
-    (card text → FAQ → compendium resolution). -/
-def ruling_lifecycle_path (cardName : String) :
-    Path RulingSource .cardText .compendium :=
-  let s1 := Step.rule "faq-issued" RulingSource.cardText .tpci_faq
-  let s2 := Step.rule "professor-review" RulingSource.tpci_faq .professorProgram
-  let s3 := Step.rule "compendium-entry" RulingSource.professorProgram .compendium
-  Path.cons s1 (Path.cons s2 (Path.single s3))
-
-/-- Theorem 20: Ruling lifecycle has 3 steps. -/
-theorem ruling_lifecycle_length (cn : String) :
-    (ruling_lifecycle_path cn).length = 3 := by
-  rfl
 
 end RulingsDatabase

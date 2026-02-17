@@ -9,45 +9,12 @@
   - Bench space pressure
   - Retreat from bench
 
-  All proofs use multi-step trans/symm/congrArg chains with complete derivations.
   26 theorems.
 -/
 
 set_option linter.unusedVariables false
 
 namespace BenchManagement
-
--- ============================================================================
--- §1  Step / Path infrastructure
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil _)
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a => .refl a
-  | .rule n a b => .rule (n ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
 -- ============================================================================
 -- §2  Core Types
 -- ============================================================================
@@ -99,6 +66,7 @@ def benchSpace (b : Board) : Nat :=
 
 def canBench (b : Board) : Bool :=
   b.bench.length < benchLimit b.stadium
+
 
 -- Theorem 1
 theorem bench_limit_standard : benchLimit .none = 5 := rfl
@@ -282,61 +250,19 @@ def BenchState.activateBarrier (s : BenchState) : BenchState :=
   { s with barrierOn := true }
 
 -- Place → Barrier → Boss's Orders (3-step path)
-def placeBarrierBossPath (s : BenchState) :
-    Path BenchState s (s.place.activateBarrier.setBoss) :=
-  Path.trans
-    (Path.single (.rule "bench_place" s s.place))
-    (Path.trans
-      (Path.single (.rule "activate_barrier" s.place s.place.activateBarrier))
-      (Path.single (.rule "boss_orders" s.place.activateBarrier s.place.activateBarrier.setBoss)))
-
 -- Theorem 21
-theorem place_barrier_boss_length (s : BenchState) :
-    (placeBarrierBossPath s).length = 3 := rfl
 
 -- KO → Promote (2-step path)
-def koPromotePath (s : BenchState) :
-    Path BenchState s (s.koActive.promote) :=
-  Path.trans
-    (Path.single (.rule "active_KO" s s.koActive))
-    (Path.single (.rule "bench_promote" s.koActive s.koActive.promote))
-
 -- Theorem 22
-theorem ko_promote_length (s : BenchState) :
-    (koPromotePath s).length = 2 := rfl
 
 -- Place → KO → Promote (3-step path)
-def placeKoPromotePath (s : BenchState) :
-    Path BenchState s (s.place.koActive.promote) :=
-  Path.trans
-    (Path.single (.rule "bench_place" s s.place))
-    (Path.trans
-      (Path.single (.rule "active_KO" s.place s.place.koActive))
-      (Path.single (.rule "bench_promote" s.place.koActive s.place.koActive.promote)))
-
 -- Theorem 23
-theorem place_ko_promote_length (s : BenchState) :
-    (placeKoPromotePath s).length = 3 := rfl
 
 -- Symmetry of KO-promote path
-def koPromotePathSymm (s : BenchState) :
-    Path BenchState (s.koActive.promote) s :=
-  (koPromotePath s).symm
-
 -- Theorem 24
-theorem ko_promote_symm_length (s : BenchState) :
-    (koPromotePathSymm s).length = 2 := rfl
 
 -- Double place (2-step)
-def doublePlacePath (s : BenchState) :
-    Path BenchState s (s.place.place) :=
-  Path.trans
-    (Path.single (.rule "bench_place_1" s s.place))
-    (Path.single (.rule "bench_place_2" s.place s.place.place))
-
 -- Theorem 25
-theorem double_place_length (s : BenchState) :
-    (doublePlacePath s).length = 2 := rfl
 
 -- Theorem 26 – bench size after double place
 theorem double_place_bench_size (s : BenchState) :

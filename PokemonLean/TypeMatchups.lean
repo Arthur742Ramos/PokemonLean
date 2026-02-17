@@ -5,83 +5,11 @@
   Covers: 18 types, weakness/resistance/immunity tables,
   effectiveness multipliers (0×, ½×, 1×, 2×, 4× for dual-type),
   inverse type chart, multi-type damage computation,
-  and type-chart symmetry / path structure.
 
-  All proofs are sorry-free. Uses computational paths for
   type-effectiveness calculation chains.  15+ theorems.
 -/
 
 namespace PokemonLean.TypeMatchups
-
--- ============================================================
--- §1  Computational Paths
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | mk : (tag : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) : Path α a c :=
-  match p with
-  | .nil _ => q
-  | .cons s rest => .cons s (rest.trans q)
-
-def Path.length {α : Type} {a b : α} : Path α a b → Nat
-  | .nil _       => 0
-  | .cons _ rest => 1 + rest.length
-
-def Step.symm {α : Type} {a b : α} : Step α a b → Step α b a
-  | .mk tag a b => .mk (tag ++ "⁻¹") b a
-
-def Path.symm {α : Type} {a b : α} : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-def Path.single {α : Type} {a b : α} (s : Step α a b) : Path α a b :=
-  .cons s (.nil b)
-
-def Path.congrArg {α β : Type} (f : α → β) {a b : α}
-    (p : Path α a b) : Path β (f a) (f b) :=
-  match p with
-  | .nil a => .nil (f a)
-  | .cons (.mk tag x y) rest =>
-    .cons (.mk ("congr:" ++ tag) (f x) (f y)) (rest.congrArg f)
-
--- ============================================================
--- §2  Path algebra lemmas
--- ============================================================
-
-/-- Theorem 1: nil left identity. -/
-theorem Path.trans_nil_left {α : Type} {a b : α} (p : Path α a b) :
-    (Path.nil a).trans p = p := rfl
-
-/-- Theorem 2: nil right identity. -/
-theorem Path.trans_nil_right {α : Type} {a b : α} (p : Path α a b) :
-    p.trans (Path.nil b) = p := by
-  induction p with
-  | nil _ => rfl
-  | cons s rest ih => simp [Path.trans, ih]
-
-/-- Theorem 3: trans associativity. -/
-theorem Path.trans_assoc {α : Type} {a b c d : α}
-    (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s rest ih => simp [Path.trans, ih]
-
-/-- Theorem 4: length distributes over trans. -/
-theorem Path.length_trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s rest ih => simp [Path.trans, Path.length, ih]; omega
-
 -- ============================================================
 -- §3  Pokémon Types (18 main-series types)
 -- ============================================================
@@ -291,10 +219,6 @@ theorem neutral_dual (atk : PType) (d1 d2 : PType)
     dualTypeEff atk d1 d2 = 4 := by
   simp [dualTypeEff, Eff.combine, h1, h2, Eff.toNat]
 
--- ============================================================
--- §8  Damage calculation as a computational path
--- ============================================================
-
 inductive DmgPhase where
   | base | typeApplied | stabApplied | final
 deriving DecidableEq, Repr
@@ -314,16 +238,6 @@ inductive DmgPath : DmgPhase × Nat → DmgPhase × Nat → Prop where
   | step {s₁ s₂ s₃ : DmgPhase × Nat} :
       DmgStep s₁ s₂ → DmgPath s₂ s₃ → DmgPath s₁ s₃
 
-/-- Theorem 19: DmgPath is transitive. -/
-theorem DmgPath.trans {a b c : DmgPhase × Nat}
-    (p : DmgPath a b) (q : DmgPath b c) : DmgPath a c := by
-  induction p with
-  | refl _ => exact q
-  | step s _ ih => exact DmgPath.step s (ih q)
-
-/-- Theorem 20: Single step is a path. -/
-theorem DmgPath.single {a b : DmgPhase × Nat} (s : DmgStep a b) :
-    DmgPath a b := DmgPath.step s (DmgPath.refl _)
 
 -- ============================================================
 -- §9  STAB (Same-Type Attack Bonus) example paths
@@ -417,13 +331,6 @@ theorem starter_cycle :
     (TypeAdvPath.step (TypeAdvStep.beats .grass .water rfl)
       (TypeAdvPath.step (TypeAdvStep.beats .water .fire rfl)
         (TypeAdvPath.refl .fire)))
-
-/-- Theorem 29: TypeAdvPath transitive. -/
-theorem TypeAdvPath.trans {a b c : PType}
-    (p : TypeAdvPath a b) (q : TypeAdvPath b c) : TypeAdvPath a c := by
-  induction p with
-  | refl _ => exact q
-  | step s _ ih => exact TypeAdvPath.step s (ih q)
 
 -- ============================================================
 -- §13  Effectiveness ordering via paths

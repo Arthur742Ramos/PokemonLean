@@ -6,61 +6,9 @@
   Charizard VMAX chase card, ETB contents, pin collections,
   set numbering, collector value tiers.
 
-  All via multi-step trans/symm/congrArg computational path chains.
-  All proofs are sorry-free.  15+ theorems.
 -/
 
 namespace ChampionsPath
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a => .refl a
-  | .rule name a b => .rule (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s p => Path.trans (Path.symm p) (Path.cons (Step.symm s) (Path.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  Path.cons s (Path.nil _)
-
-theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_trans_nil_right (p : Path α a b) :
-    Path.trans p (Path.nil b) = p := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_length_trans (p : Path α a b) (q : Path α b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §2  Champion's Path set types
 -- ============================================================================
@@ -157,14 +105,6 @@ theorem charizard_vmax_hp :
     Path chain: V_hp = 220 → VMAX_hp = 330, diff = 110. -/
 theorem vmax_hp_boost :
     charizardVMax.hp - charizardV.hp = 110 := rfl
-
-/-- Theorem 8 – Charizard V evolves into VMAX (type-level path).
-    We witness this as a computational path between the two cards. -/
-def charizard_evolution_path : Path CPCard charizardV charizardVMax :=
-  Path.single (Step.rule "evolve_VMAX" charizardV charizardVMax)
-
-theorem charizard_evolution_path_length :
-    charizard_evolution_path.length = 1 := rfl
 
 -- ============================================================================
 -- §5  ETB (Elite Trainer Box) contents
@@ -279,15 +219,6 @@ theorem congrArg_card_rarity (c : CPCard) (h1 h2 : Nat) (heq : h1 = h2) :
     ({ c with hp := h1 } : CPCard).rarity = ({ c with hp := h2 } : CPCard).rarity :=
   congrArg (fun h => ({ c with hp := h } : CPCard).rarity) heq
 
-/-- Theorem 20 – Path composition: evolution then rewrite.
-    Compose the evolution path with a renaming step. -/
-def evolution_then_rename : Path CPCard charizardV charizardVMax :=
-  Path.trans
-    (Path.single (Step.rule "evolve_to_vmax" charizardV charizardVMax))
-    (Path.nil _)
-
-theorem evolution_then_rename_length :
-    evolution_then_rename.length = 1 := rfl
 
 -- ============================================================================
 -- §9  Multi-step trans/symm chains
@@ -304,32 +235,6 @@ def alcremieVMax : CPCard :=
     cardType := .psychic, cat := .pokemon, hp := 310,
     isV := false, isVMax := true }
 
-/-- Theorem 21 – Multi-step path through three cards via trans chain. -/
-def three_card_path : Path CPCard lucarioV charizardVMax :=
-  Path.trans
-    (Path.single (Step.rule "trade" lucarioV alcremieVMax))
-    (Path.single (Step.rule "trade" alcremieVMax charizardVMax))
-
-theorem three_card_path_length :
-    three_card_path.length = 2 := rfl
-
-/-- Theorem 22 – Symmetric path: trade back. -/
-def trade_back : Path CPCard charizardVMax lucarioV :=
-  Path.symm three_card_path
-
-/-- Theorem 23 – Round trip path length. -/
-theorem round_trip_length :
-    (Path.trans three_card_path trade_back).length =
-    three_card_path.length + trade_back.length :=
-  path_length_trans three_card_path trade_back
-
-/-- Theorem 24 – Associativity of a three-leg trade path. -/
-theorem trade_assoc :
-    let p := Path.single (Step.rule "t1" lucarioV alcremieVMax)
-    let q := Path.single (Step.rule "t2" alcremieVMax charizardV)
-    let r := Path.single (Step.rule "t3" charizardV charizardVMax)
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) :=
-  path_trans_assoc _ _ _
 
 -- ============================================================================
 -- §10  Booster pack odds and ratios

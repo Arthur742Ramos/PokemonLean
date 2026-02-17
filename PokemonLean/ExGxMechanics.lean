@@ -8,70 +8,11 @@
   - ex rule box, Tag Team GX (3 prizes, extra GX effect)
   - Similarities and differences between ex and GX
 
-  Multi-step trans/symm/congrArg computational path chains.
-  All proofs are sorry-free.  15+ theorems.
 -/
 
 set_option linter.unusedVariables false
 
 namespace ExGxMechanics
-
--- ============================================================================
--- §1  Core Step / Path machinery
--- ============================================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | mk : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _, q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.length : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ p => 1 + p.length
-
-def Step.symm : Step α a b → Step α b a
-  | .mk name a b => .mk (name ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil b)
-
-def Path.congrArg (f : α → β) (lbl : String) : Path α a b → Path β (f a) (f b)
-  | .nil _ => .nil _
-  | .cons _ p => .cons (.mk lbl _ _) (p.congrArg f lbl)
-
-structure Cell2 {α : Type} {a b : α} (p q : Path α a b) where
-  witness : p = q
-
-def Cell2.id (p : Path α a b) : Cell2 p p := ⟨rfl⟩
-
-theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_trans_nil_right (p : Path α a b) :
-    Path.trans p (Path.nil b) = p := by
-  induction p with
-  | nil _ => simp [Path.trans]
-  | cons s _ ih => simp [Path.trans, ih]
-
-theorem path_length_trans (p : Path α a b) (q : Path α b c) :
-    (Path.trans p q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s _ ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================================
 -- §2  Card era and mechanic types
 -- ============================================================================
@@ -124,9 +65,6 @@ theorem gx_gives_two_prizes : prizeCount .gx = 2 := rfl
 theorem tagTeam_gives_three_prizes : prizeCount .tagTeamGX = 3 := rfl
 
 -- ex and GX share prize count — path equivalence
-def exGxPrizeEquivPath : Path Nat (prizeCount .ex) (prizeCount .gx) :=
-  Path.nil 2   -- both are 2, so identity path
-
 theorem exGxSamePrizes : prizeCount .ex = prizeCount .gx := rfl
 
 -- Tag Team vs ex: different prize counts
@@ -137,9 +75,6 @@ theorem tagTeam_more_than_ex : prizeCount .tagTeamGX > prizeCount .ex := by
 theorem vmax_tagTeam_same_prizes : prizeCount .vmax = prizeCount .tagTeamGX := rfl
 
 -- Prize comparison chain: ex(2) = GX(2) < TagTeam(3) = VMAX(3)
-def prizeComparisonPath : Path Nat 2 3 :=
-  Path.single (.mk "tagTeam_upgrade" 2 3)
-
 -- ============================================================================
 -- §4  GX attack mechanics
 -- ============================================================================
@@ -164,16 +99,7 @@ theorem gx_attack_once : useGXAttack .available = .used := rfl
 theorem gx_attack_idempotent : useGXAttack .used = .used := rfl
 
 -- GX attack usage path: available → used (irreversible)
-def gxUsagePath : Path GXState .available .used :=
-  Path.single (.mk "use_gx_attack" GXState.available GXState.used)
-
 -- Trying to use twice: path shows idempotence
-def gxDoubleUsePath : Path GXState .available .used :=
-  (Path.single (.mk "use_gx_attack" GXState.available GXState.used)).trans
-    (Path.single (.mk "gx_already_used" GXState.used GXState.used))
-
-theorem gxDoubleUse_two_steps : gxDoubleUsePath.length = 2 := by
-  simp [gxDoubleUsePath, Path.trans, Path.single, Path.length]
 
 -- GX attack is per-game, not per-Pokémon
 -- Once used, no GX attack can be used even with a different Pokémon
@@ -208,9 +134,6 @@ theorem doubleBlaze_base : doubleBlazeGX.totalDamage false = 200 := rfl
 theorem doubleBlaze_extra : doubleBlazeGX.totalDamage true = 300 := rfl
 
 -- Path: base damage → bonus damage
-def doubleBlazeBoostPath : Path Nat 200 300 :=
-  Path.single (.mk "pay_extra_energy" 200 300)
-
 -- ============================================================================
 -- §6  Card structures
 -- ============================================================================
@@ -248,12 +171,6 @@ theorem gx_hp_example : gxHPValid 210 := by constructor <;> omega
 theorem tagTeam_hp_example : tagTeamHPValid 270 := by constructor <;> omega
 
 -- HP comparison path: GX(210) → ex(230) → TagTeam(270)
-def hpEscalationPath : Path Nat 210 270 :=
-  (Path.single (.mk "gx_to_ex" 210 230)).trans
-    (Path.single (.mk "ex_to_tagteam" 230 270))
-
-theorem hpEscalation_two_steps : hpEscalationPath.length = 2 := by
-  simp [hpEscalationPath, Path.trans, Path.single, Path.length]
 
 -- ============================================================================
 -- §8  ex rule box specifics (SV era)
@@ -319,9 +236,6 @@ def gxShared : RuleBoxShared where
 theorem exGxSharedEqual : exShared = gxShared := rfl
 
 -- Path witnessing the shared structure
-def sharedStructurePath : Path RuleBoxShared exShared gxShared :=
-  Path.nil exShared  -- they're literally equal
-
 -- ============================================================================
 -- §11  Differences between ex and GX
 -- ============================================================================
@@ -341,12 +255,6 @@ def exHasNoGXAttack : Prop := True  -- ex cards use regular attacks + abilities
 theorem tagTeam_is_gx_only : prizeCount .tagTeamGX = 3 := rfl
 
 -- Path showing era progression: GX → V/VMAX → ex
-def eraProgressionPath : Path Era .sunMoon .scarletViolet :=
-  (Path.single (.mk "sun_moon_to_swsh" Era.sunMoon Era.swordShield)).trans
-    (Path.single (.mk "swsh_to_sv" Era.swordShield Era.scarletViolet))
-
-theorem eraProgression_two_steps : eraProgressionPath.length = 2 := by
-  simp [eraProgressionPath, Path.trans, Path.single, Path.length]
 
 -- ============================================================================
 -- §12  KO and prize taking
@@ -374,17 +282,6 @@ def koTagTeam (s : PrizeState) : PrizeState := takePrizes s 3
 theorem ko_ex_eq_ko_gx (s : PrizeState) : koEx s = koGX s := rfl
 
 -- Path: initial → KO ex(take 2) → KO another ex(take 2) → KO third(take 2) = win
-def threeExKOPath : Path PrizeState PrizeState.initial (takePrizes (takePrizes (takePrizes PrizeState.initial 2) 2) 2) :=
-  let s0 := PrizeState.initial
-  let s1 := takePrizes s0 2
-  let s2 := takePrizes s1 2
-  let s3 := takePrizes s2 2
-  (Path.single (.mk "ko_ex_1" s0 s1)).trans
-    ((Path.single (.mk "ko_ex_2" s1 s2)).trans
-      (Path.single (.mk "ko_ex_3" s2 s3)))
-
-theorem threeExKO_length : threeExKOPath.length = 3 := by
-  simp [threeExKOPath, Path.trans, Path.single, Path.length]
 
 -- Win condition: 0 remaining prizes
 theorem three_ex_ko_wins : (takePrizes (takePrizes (takePrizes PrizeState.initial 2) 2) 2).remaining = 0 := by
@@ -397,9 +294,6 @@ theorem two_tagTeam_ko_wins :
 
 -- Comparing: 3 KOs of ex vs 2 KOs of Tag Team GX to win
 -- Path showing efficiency: fewer KOs needed for Tag Team targets
-def tagTeamEfficiencyPath : Path Nat 3 2 :=
-  Path.single (.mk "tagteam_fewer_kos" 3 2)
-
 -- ============================================================================
 -- §13  GX attack examples
 -- ============================================================================
@@ -418,17 +312,7 @@ def venusaurGXCard : GXCard where
   isGX := Or.inl rfl
 
 -- GX attack damage path: 0 → 200 (one big hit)
-def gxAttackDamagePath : Path Nat 0 200 :=
-  Path.single (.mk "solar_beam_gx" 0 200)
-
 -- Multi-step game flow: play GX → attack → use GX attack → GX used
-def gxGameFlowPath : Path GXState .available .used :=
-  (Path.single (.mk "normal_attack_turn1" GXState.available GXState.available)).trans
-    ((Path.single (.mk "normal_attack_turn2" GXState.available GXState.available)).trans
-      (Path.single (.mk "use_gx_attack" GXState.available GXState.used)))
-
-theorem gxGameFlow_three_steps : gxGameFlowPath.length = 3 := by
-  simp [gxGameFlowPath, Path.trans, Path.single, Path.length]
 
 -- ============================================================================
 -- §14  Format legality
@@ -461,12 +345,6 @@ theorem both_legal_expanded : exLegal .expanded = true ∧ gxLegal .expanded = t
   ⟨rfl, rfl⟩
 
 -- Path: Standard(ex only) → Expanded(ex + GX) → Unlimited(all)
-def formatInclusionPath : Path Format .standard .unlimited :=
-  (Path.single (.mk "standard_to_expanded" Format.standard Format.expanded)).trans
-    (Path.single (.mk "expanded_to_unlimited" Format.expanded Format.unlimited))
-
-theorem formatInclusion_two_steps : formatInclusionPath.length = 2 := by
-  simp [formatInclusionPath, Path.trans, Path.single, Path.length]
 
 -- ============================================================================
 -- §15  Combined matchup analysis
@@ -490,15 +368,6 @@ theorem calc_resist : calcDamage 100 false true = 70 := rfl
 theorem calc_both : calcDamage 100 true true = 170 := rfl
 
 -- Damage calculation path: base → weakness → resistance → final
-def damageCalcPath (base : Nat) (weak resist : Bool) :
-    Path Nat base (calcDamage base weak resist) :=
-  let afterWeak := if weak then base * 2 else base
-  (Path.single (.mk "apply_weakness" base afterWeak)).trans
-    (Path.single (.mk "apply_resistance" afterWeak (calcDamage base weak resist)))
-
-theorem damageCalc_two_steps (base : Nat) (weak resist : Bool) :
-    (damageCalcPath base weak resist).length = 2 := by
-  simp [damageCalcPath, Path.trans, Path.single, Path.length]
 
 -- ============================================================================
 -- §16  ex vs GX decision tree
@@ -532,11 +401,6 @@ theorem gx_more_reward_than_ex : strategyReward .playGX > strategyReward .playEx
   decide
 
 -- Strategic evolution path: GX → ex (era progression)
-def strategicEvolutionPath : Path Strategy .playGX .playEx :=
-  (Path.single (.mk "gx_rotates_out" Strategy.playGX Strategy.playTagTeam)).trans
-    ((Path.single (.mk "tag_team_too_risky" Strategy.playTagTeam Strategy.playEx)).trans
-      (Path.single (.mk "ex_era_begins" Strategy.playEx Strategy.playEx))).symm.symm
-
 -- ============================================================================
 -- §17  Comprehensive comparison summary
 -- ============================================================================
@@ -576,19 +440,7 @@ theorem summary_gx_higher_max :
     gxSummary.maxPrizeVal > exSummary.maxPrizeVal := by decide
 
 -- Grand comparison path: GX → shared properties → ex
-def grandComparisonPath : Path Nat exSummary.prizeValue gxSummary.prizeValue :=
-  Path.nil 2  -- they're equal
-
 -- Full era path: SM(GX) → SwSh(V) → SV(ex)
-def fullEraPath : Path Era .sunMoon .scarletViolet :=
-  (Path.single (.mk "gx_era_ends" Era.sunMoon Era.swordShield)).trans
-    (Path.single (.mk "ex_era_begins" Era.swordShield Era.scarletViolet))
-
 -- Coherence: path from ex prizes to GX prizes and back is identity
-def prizeRoundtrip : Path Nat (prizeCount .ex) (prizeCount .ex) :=
-  (Path.nil (prizeCount .ex) |>.trans (Path.nil (prizeCount .gx)))
-
-theorem prizeRoundtrip_is_trivial : prizeRoundtrip.length = 0 := by
-  simp [prizeRoundtrip, Path.trans, Path.length]
 
 end ExGxMechanics

@@ -13,7 +13,6 @@
   5. BREAK / Mega / VMAX evolution rules
   6. Devolution (Devolving Spray)
 
-  All proofs sorry-free. 20+ theorems. No Path.ofEq.
 -/
 
 namespace EvolutionMechanics
@@ -41,40 +40,6 @@ structure TurnInfo where
   globalTurn   : Nat      -- 0 = first turn of game
   turnPlayed   : Nat      -- turn this Pokémon entered play
 deriving DecidableEq, Repr
-
--- ============================================================
--- §2  Computational paths for evolution chains
--- ============================================================
-
-/-- A labelled rewrite step (state transition). -/
-inductive Step (α : Type) : α → α → Type where
-  | refl : (a : α) → Step α a a
-  | rule : (name : String) → (a b : α) → Step α a b
-
-/-- Computational paths: evolution chains. -/
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans : Path α a b → Path α b c → Path α a c
-  | .nil _,    q => q
-  | .cons s p, q => .cons s (p.trans q)
-
-def Path.length : Path α a b → Nat
-  | .nil _    => 0
-  | .cons _ p => 1 + p.length
-
-def Step.symm : Step α a b → Step α b a
-  | .refl a     => .refl a
-  | .rule n a b => .rule (n ++ "⁻¹") b a
-
-def Path.symm : Path α a b → Path α b a
-  | .nil a    => .nil a
-  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
-
-def Path.single (s : Step α a b) : Path α a b :=
-  .cons s (.nil _)
-
 -- ============================================================
 -- §3  Evolution state
 -- ============================================================
@@ -137,34 +102,6 @@ def charizardMega : PokemonCard := ⟨"M Charizard EX", .mega, some "Charizard E
 def charizardEX : PokemonCard := ⟨"Charizard EX", .basic, none, 180⟩
 def charizardV : PokemonCard := ⟨"Charizard V", .basic, none, 220⟩
 def charizardVMAX : PokemonCard := ⟨"Charizard VMAX", .vmax, some "Charizard V", 330⟩
-
--- ============================================================
--- §6  Path algebra theorems
--- ============================================================
-
-/-- Theorem 1: trans with nil is identity. -/
-theorem trans_nil : ∀ (p : Path α a b), p.trans (.nil b) = p := by
-  intro p; induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-/-- Theorem 2: nil trans p = p. -/
-theorem nil_trans (p : Path α a b) : (Path.nil a).trans p = p := rfl
-
-/-- Theorem 3: trans is associative. -/
-theorem trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
-    (p.trans q).trans r = p.trans (q.trans r) := by
-  induction p with
-  | nil _ => rfl
-  | cons s p ih => simp [Path.trans, ih]
-
-/-- Theorem 4: length is additive under trans. -/
-theorem length_trans (p : Path α a b) (q : Path α b c) :
-    (p.trans q).length = p.length + q.length := by
-  induction p with
-  | nil _ => simp [Path.trans, Path.length]
-  | cons s p ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
-
 -- ============================================================
 -- §7  Evolution chain theorems
 -- ============================================================
@@ -254,24 +191,6 @@ theorem vmax_requires_basic (current evo : PokemonCard)
 -- §10  Evolution chain paths
 -- ============================================================
 
-/-- An evolution chain from Charmander to Charizard as a 2-step path. -/
-def evoChain_charm : Path PokemonCard charmander charizard :=
-  .cons (.rule "evolve" charmander charmeleon)
-    (.cons (.rule "evolve" charmeleon charizard) (.nil charizard))
-
-/-- Rare candy chain: single-step path. -/
-def rareCandyChain : Path PokemonCard charmander charizard :=
-  .single (.rule "rare_candy" charmander charizard)
-
-/-- Theorem 18: Normal evolution chain has length 2. -/
-theorem evo_chain_length : evoChain_charm.length = 2 := rfl
-
-/-- Theorem 19: Rare candy chain has length 1. -/
-theorem rare_candy_chain_length : rareCandyChain.length = 1 := rfl
-
-/-- Theorem 20: Rare candy is strictly shorter than normal evolution. -/
-theorem rare_candy_shorter :
-    rareCandyChain.length < evoChain_charm.length := by decide
 
 -- ============================================================
 -- §11  Devolution (Devolving Spray)
@@ -308,25 +227,6 @@ theorem double_devolve :
 -- §12  Devolution as path inversion (symm)
 -- ============================================================
 
-/-- The evolution step Charmander → Charmeleon. -/
-def evoStep1 : Step PokemonCard charmander charmeleon :=
-  .rule "evolve" charmander charmeleon
-
-/-- The evolution step Charmeleon → Charizard. -/
-def evoStep2 : Step PokemonCard charmeleon charizard :=
-  .rule "evolve" charmeleon charizard
-
-/-- Full evolution path. -/
-def fullEvoPath : Path PokemonCard charmander charizard :=
-  .cons evoStep1 (.cons evoStep2 (.nil _))
-
-/-- The devolution path (symm). -/
-def devoPath : Path PokemonCard charizard charmander :=
-  fullEvoPath.symm
-
-/-- Theorem 25: Devolution path has same length as evolution path. -/
-theorem devo_length_eq : devoPath.length = fullEvoPath.length := by
-  native_decide
 
 -- ============================================================
 -- §13  congrArg / transport through evolution

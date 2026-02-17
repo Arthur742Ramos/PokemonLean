@@ -7,43 +7,10 @@
   BREAK evolution from Stage 2, Rare Candy + Devolution Spray combo,
   deck search mechanics.
 
-  All proofs are sorry‑free. Uses computational paths for
   game-state transitions (each rule application = path step).
 -/
 
 namespace RareCandy
-
--- ============================================================
--- §1  Computational Paths
--- ============================================================
-
-inductive Step (α : Type) : α → α → Type where
-  | mk : (name : String) → (a b : α) → Step α a b
-
-inductive Path (α : Type) : α → α → Type where
-  | nil  : (a : α) → Path α a a
-  | cons : Step α a b → Path α b c → Path α a c
-
-def Path.trans {α : Type} {a b c : α}
-    (p : Path α a b) (q : Path α b c) : Path α a c :=
-  match p with
-  | .nil _ => q
-  | .cons s rest => .cons s (rest.trans q)
-
-def Path.length {α : Type} {a b : α} : Path α a b → Nat
-  | .nil _ => 0
-  | .cons _ rest => 1 + rest.length
-
-def Step.symm {α : Type} {a b : α} : Step α a b → Step α b a
-  | .mk name a b => .mk (name ++ "⁻¹") b a
-
-def Path.symm {α : Type} {a b : α} : Path α a b → Path α b a
-  | .nil a => .nil a
-  | .cons s rest => rest.symm.trans (.cons s.symm (.nil _))
-
-def Path.single {α : Type} {a b : α} (s : Step α a b) : Path α a b :=
-  .cons s (.nil b)
-
 -- ============================================================
 -- §2  Pokemon TCG types
 -- ============================================================
@@ -144,13 +111,6 @@ inductive GameStep : GameState → GameState → Prop where
 inductive GamePath : GameState → GameState → Prop where
   | refl (gs : GameState) : GamePath gs gs
   | step {g₁ g₂ g₃ : GameState} : GameStep g₁ g₂ → GamePath g₂ g₃ → GamePath g₁ g₃
-
-/-- Theorem 1: Transitivity of game paths. -/
-theorem GamePath.trans {a b c : GameState}
-    (p : GamePath a b) (q : GamePath b c) : GamePath a c := by
-  induction p with
-  | refl _ => exact q
-  | step s _ ih => exact .step s (ih q)
 
 -- ============================================================
 -- §7  Core Rare Candy theorems
@@ -295,13 +255,6 @@ inductive EvoPath : Pokemon → Pokemon → Prop where
   | refl (p : Pokemon) : EvoPath p p
   | step {a b c : Pokemon} : EvoStep a b → EvoPath b c → EvoPath a c
 
-/-- Theorem 17: Transitivity of evolution paths. -/
-theorem EvoPath.trans {a b c : Pokemon}
-    (p : EvoPath a b) (q : EvoPath b c) : EvoPath a c := by
-  induction p with
-  | refl _ => exact q
-  | step s _ ih => exact .step s (ih q)
-
 /-- Theorem 18: Charmander → Charmeleon is one step. -/
 theorem charmander_to_charmeleon : EvoStep charmander charmeleon :=
   .evolve _ _ rfl
@@ -310,17 +263,9 @@ theorem charmander_to_charmeleon : EvoStep charmander charmeleon :=
 theorem charmeleon_to_charizard : EvoStep charmeleon charizard :=
   .evolve _ _ rfl
 
-/-- Theorem 20: Charmander → Charizard is a 2-step path. -/
-theorem charmander_to_charizard_path : EvoPath charmander charizard :=
-  .step charmander_to_charmeleon (.step charmeleon_to_charizard (.refl _))
-
 /-- Theorem 21: Charizard → Charizard BREAK extends the path. -/
 theorem charizard_to_break : EvoStep charizard charizardBreak :=
   .evolve _ _ rfl
-
-/-- Theorem 22: Full path Charmander → Charizard BREAK (3 steps via trans). -/
-theorem charmander_to_charizard_break : EvoPath charmander charizardBreak :=
-  EvoPath.trans charmander_to_charizard_path (.step charizard_to_break (.refl _))
 
 /-- Theorem 23: Ralts → Kirlia step. -/
 theorem ralts_to_kirlia : EvoStep ralts kirlia :=
@@ -329,17 +274,6 @@ theorem ralts_to_kirlia : EvoStep ralts kirlia :=
 /-- Theorem 24: Kirlia → Gardevoir step. -/
 theorem kirlia_to_gardevoir : EvoStep kirlia gardevoir :=
   .evolve _ _ rfl
-
-/-- Theorem 25: Ralts → Gardevoir is a 2-step path. -/
-theorem ralts_to_gardevoir : EvoPath ralts gardevoir :=
-  .step ralts_to_kirlia (.step kirlia_to_gardevoir (.refl _))
-
-/-- Theorem 26: Path length for Charmander line. -/
-theorem evo_path_length_charmander :
-    let p := @Path.cons Pokemon _ _ _
-      (.mk "evolve" charmander charmeleon)
-      (.cons (.mk "evolve" charmeleon charizard) (.nil charizard))
-    p.length = 2 := rfl
 
 -- ============================================================
 -- §12  Additional properties
