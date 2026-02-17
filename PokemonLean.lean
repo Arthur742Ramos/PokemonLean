@@ -38,3 +38,6 @@ import PokemonLean.Core.LiveFormat
 import PokemonLean.Core.Metagame
 import PokemonLean.Core.SideDeck
 import PokemonLean.Core.HistoricalFormats
+import PokemonLean.Core.LostZoneDeck
+import PokemonLean.Core.CharizardDeck
+import PokemonLean.Core.ControlDeck
