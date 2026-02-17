@@ -1,247 +1,322 @@
 /-
   PokemonLean / MillDecking.lean
 
-  Mill / deck-out strategy in the Pokémon TCG:
-  Aggro mill (Durant, Wailord), control mill (Sableye/Bunnelby),
-  mill as win condition (0 cards in deck = lose), cards that force
-  draw (N, Iono), deck thinning, mill-vs-aggro matchup analysis.
+  Mill / deck-out strategy formalised via computational paths.
+  Covers:
+  - aggro mill (Durant, Wailord)
+  - control mill (Sableye, Bunnelby)
+  - mill win condition (0 cards in deck = lose)
+  - force-draw cards (N, Iono)
+  - deck thinning
+  - mill-vs-aggro matchup analysis
 
-  All proofs are sorry-free.  24 theorems.
+  All proofs are sorry-free.  15+ theorems.
 -/
-
-set_option linter.unusedVariables false
-
--- ============================================================
--- §1  Core types
--- ============================================================
 
 namespace MillDecking
 
-/-- Card category. -/
-inductive CardCat where
-  | pokemon  | trainer | energy
-  deriving DecidableEq, Repr
-
-/-- A card in the deck. -/
-structure Card where
-  name     : String
-  cat      : CardCat
-  deriving DecidableEq, Repr
-
-/-- Game zone sizes for mill tracking. -/
-structure GameState where
-  deckSize      : Nat
-  handSize      : Nat
-  discardSize   : Nat
-  prizeCards    : Nat
-  deriving DecidableEq, Repr
-
 -- ============================================================
--- §2  Win / loss conditions
+-- §1  Computational paths infrastructure
 -- ============================================================
 
-def isDeckOut (gs : GameState) : Bool := gs.deckSize == 0
+inductive Step (α : Type) : α → α → Type where
+  | refl : (a : α) → Step α a a
+  | rule : (name : String) → (a b : α) → Step α a b
 
-def millWin (opponentState : GameState) : Bool := isDeckOut opponentState
+inductive Path (α : Type) : α → α → Type where
+  | nil  : (a : α) → Path α a a
+  | cons : Step α a b → Path α b c → Path α a c
 
--- ============================================================
--- §3  Mill actions as rewrite steps
--- ============================================================
+def Path.trans : Path α a b → Path α b c → Path α a c
+  | .nil _, q => q
+  | .cons s p, q => .cons s (p.trans q)
 
-/-- Mill action: a single game action that changes the game state. -/
-inductive MillAction : GameState → GameState → Prop where
-  | drawCard (d h di p : Nat) (hd : d > 0) :
-      MillAction ⟨d, h, di, p⟩ ⟨d - 1, h + 1, di, p⟩
-  | millCards (d h di p n : Nat) (hd : d ≥ n) :
-      MillAction ⟨d, h, di, p⟩ ⟨d - n, h, di + n, p⟩
-  | discardHand (d h di p : Nat) :
-      MillAction ⟨d, h, di, p⟩ ⟨d, 0, di + h, p⟩
-  | shuffleNDraw (d h di p n : Nat) (hd : d + h ≥ n) :
-      MillAction ⟨d, h, di, p⟩ ⟨d + h - n, n, di, p⟩
-  | thinDeck (d h di p n : Nat) (hd : d ≥ n) :
-      MillAction ⟨d, h, di, p⟩ ⟨d - n, h + n, di, p⟩
-  | takePrize (d h di p : Nat) (hp : p > 0) :
-      MillAction ⟨d, h, di, p⟩ ⟨d, h + 1, di, p - 1⟩
+def Path.single (s : Step α a b) : Path α a b :=
+  .cons s (.nil _)
 
-/-- Multi-step mill path. -/
-inductive MillPath : GameState → GameState → Prop where
-  | refl  (s : GameState) : MillPath s s
-  | step  {s₁ s₂ s₃ : GameState} :
-      MillAction s₁ s₂ → MillPath s₂ s₃ → MillPath s₁ s₃
+def Step.symm : Step α a b → Step α b a
+  | .refl a => .refl a
+  | .rule n a b => .rule n b a
 
--- ============================================================
--- §4  Path combinators
--- ============================================================
+def Path.symm : Path α a b → Path α b a
+  | .nil a => .nil a
+  | .cons s p => p.symm.trans (.cons s.symm (.nil _))
 
-/-- Theorem 1: Transitivity of mill paths. -/
-theorem MillPath.trans {a b c : GameState}
-    (p : MillPath a b) (q : MillPath b c) : MillPath a c := by
+def Path.length : Path α a b → Nat
+  | .nil _ => 0
+  | .cons _ p => 1 + p.length
+
+theorem step_symm_symm (s : Step α a b) : s.symm.symm = s := by
+  cases s <;> rfl
+
+theorem path_trans_assoc (p : Path α a b) (q : Path α b c) (r : Path α c d) :
+    Path.trans (Path.trans p q) r = Path.trans p (Path.trans q r) := by
   induction p with
-  | refl _ => exact q
-  | step s _ ih => exact MillPath.step s (ih q)
+  | nil _ => simp [Path.trans]
+  | cons s p ih => simp [Path.trans, ih]
 
-/-- Theorem 2: Single action as path. -/
-theorem MillPath.single {a b : GameState} (s : MillAction a b) : MillPath a b :=
-  MillPath.step s (MillPath.refl _)
+theorem path_trans_nil_right (p : Path α a b) :
+    Path.trans p (.nil b) = p := by
+  induction p with
+  | nil _ => simp [Path.trans]
+  | cons s p ih => simp [Path.trans, ih]
 
-/-- Theorem 3: Append action to path. -/
-theorem MillPath.append {a b c : GameState}
-    (p : MillPath a b) (s : MillAction b c) : MillPath a c :=
-  MillPath.trans p (MillPath.single s)
+theorem path_length_trans (p : Path α a b) (q : Path α b c) :
+    (Path.trans p q).length = p.length + q.length := by
+  induction p with
+  | nil _ => simp [Path.trans, Path.length]
+  | cons s p ih => simp [Path.trans, Path.length, ih, Nat.add_assoc]
 
--- ============================================================
--- §5  Mill strategy types
--- ============================================================
+theorem path_single_length (s : Step α a b) :
+    (Path.single s).length = 1 := rfl
 
-/-- Mill strategy archetype. -/
-inductive MillStrategy where
-  | aggroMill    -- Durant-style: mill many cards per turn
-  | controlMill  -- Sableye/Bunnelby: mill slowly, control board
-  | lockMill     -- Wailord-style: tank damage, opponent decks out naturally
-  deriving DecidableEq, Repr
-
-/-- Cards per turn milled by strategy. -/
-def cardsPerTurn : MillStrategy → Nat
-  | .aggroMill   => 4
-  | .controlMill => 1
-  | .lockMill    => 0
+theorem path_length_symm (p : Path α a b) :
+    p.symm.length = p.length := by
+  induction p with
+  | nil _ => simp [Path.symm, Path.length]
+  | cons s p ih =>
+      simp [Path.symm, Path.length, path_length_trans, ih, Nat.add_comm]
 
 -- ============================================================
--- §6  Core mill theorems
+-- §2  Core cards and strategy labels
 -- ============================================================
 
-/-- Theorem 4: Deck-out check is correct at 0. -/
-theorem deckout_at_zero : isDeckOut ⟨0, 7, 0, 6⟩ = true := rfl
+inductive MillCard where
+  | durant
+  | wailord
+  | sableye
+  | bunnelby
+  | cardN
+  | iono
+  | filler (name : String)
+deriving DecidableEq, Repr
 
-/-- Theorem 5: Non-empty deck is not deck-out. -/
-theorem no_deckout_one : isDeckOut ⟨1, 7, 0, 6⟩ = false := rfl
+def isAggroMillCard : MillCard → Bool
+  | .durant => true
+  | .wailord => true
+  | _ => false
 
-/-- Theorem 6: Mill win when opponent has 0 cards. -/
-theorem mill_wins_at_zero : millWin ⟨0, 5, 30, 4⟩ = true := rfl
+def isControlMillCard : MillCard → Bool
+  | .sableye => true
+  | .bunnelby => true
+  | _ => false
 
-/-- Theorem 7: Drawing from a 1-card deck leads to deck-out state. -/
-theorem draw_to_deckout :
-    MillAction ⟨1, 6, 0, 6⟩ ⟨0, 7, 0, 6⟩ :=
-  MillAction.drawCard 1 6 0 6 (by omega)
-
-/-- Theorem 8: Milling 4 cards (Durant) from a 4-card deck to deck-out. -/
-theorem durant_finish :
-    MillPath ⟨4, 7, 46, 6⟩ ⟨0, 7, 50, 6⟩ :=
-  MillPath.single (MillAction.millCards 4 7 46 6 4 (by omega))
-
-/-- Theorem 9: Aggro mill strategy: Durant mills 4 per turn. -/
-theorem durant_rate : cardsPerTurn .aggroMill = 4 := rfl
-
-/-- Theorem 10: Control mill rate. -/
-theorem bunnelby_rate : cardsPerTurn .controlMill = 1 := rfl
-
--- ============================================================
--- §7  Disruption: N / Iono paths
--- ============================================================
-
-/-- Theorem 11: Iono with 1 prize: opponent draws only 1 card. -/
-theorem iono_late_game :
-    MillAction ⟨20, 5, 20, 1⟩ ⟨24, 1, 20, 1⟩ :=
-  MillAction.shuffleNDraw 20 5 20 1 1 (by omega)
-
-/-- Theorem 12: N early game: opponent shuffles hand, draws 6. -/
-theorem n_early_game :
-    MillAction ⟨40, 7, 0, 6⟩ ⟨41, 6, 0, 6⟩ :=
-  MillAction.shuffleNDraw 40 7 0 6 6 (by omega)
+theorem durant_is_aggro : isAggroMillCard .durant = true := rfl
+theorem wailord_is_aggro : isAggroMillCard .wailord = true := rfl
+theorem sableye_is_control : isControlMillCard .sableye = true := rfl
+theorem bunnelby_is_control : isControlMillCard .bunnelby = true := rfl
 
 -- ============================================================
--- §8  Deck thinning analysis
+-- §3  Match state and mill win condition
 -- ============================================================
 
-/-- Theorem 13: Deck thinning (Ultra Ball search) reduces deck by 1. -/
-theorem ultra_ball_thin :
-    MillAction ⟨50, 6, 0, 6⟩ ⟨49, 7, 0, 6⟩ :=
-  MillAction.thinDeck 50 6 0 6 1 (by omega)
+structure MatchState where
+  millDeck : Nat
+  millHand : Nat
+  oppDeck : Nat
+  oppHand : Nat
+  aggroPrizeRate : Nat
+  turn : Nat
+deriving DecidableEq, Repr
 
-/-- Theorem 14: Multiple thinning steps path. -/
-theorem double_thin :
-    MillPath ⟨50, 6, 0, 6⟩ ⟨48, 8, 0, 6⟩ :=
-  MillPath.trans
-    (MillPath.single (MillAction.thinDeck 50 6 0 6 1 (by omega)))
-    (MillPath.single (MillAction.thinDeck 49 7 0 6 1 (by omega)))
+def deckOutLoss (deckCount : Nat) : Prop := deckCount = 0
 
--- ============================================================
--- §9  Mill vs aggro matchup
--- ============================================================
+def opponentLoses (s : MatchState) : Prop := deckOutLoss s.oppDeck
 
-/-- Matchup result. -/
-structure MatchupResult where
-  millTurns  : Nat
-  aggroTurns : Nat
-  millFavored : Bool
-  deriving DecidableEq, Repr
+theorem deckout_zero : deckOutLoss 0 := rfl
 
-def analyzeMatchup (millRate : Nat) (oppDeck : Nat) (aggroSpeed : Nat) : MatchupResult :=
-  let mt := if millRate == 0 then oppDeck else (oppDeck + millRate - 1) / millRate
-  ⟨mt, aggroSpeed, decide (mt < aggroSpeed)⟩
+theorem deckout_succ_false (n : Nat) : ¬ deckOutLoss (n + 1) := by
+  simp [deckOutLoss]
 
-/-- Theorem 15: Durant (4/turn) vs slow aggro (12 turns): mill favored. -/
-theorem durant_vs_slow_aggro :
-    (analyzeMatchup 4 40 12).millFavored = true := by native_decide
-
-/-- Theorem 16: Control mill (1/turn) vs fast aggro (4 turns): not favored. -/
-theorem control_vs_fast_aggro :
-    (analyzeMatchup 1 40 4).millFavored = false := by native_decide
+theorem opponent_loses_when_zero (s : MatchState) (h : s.oppDeck = 0) :
+    opponentLoses s := by
+  simpa [opponentLoses, deckOutLoss] using h
 
 -- ============================================================
--- §10  Full game path examples
+-- §4  Mill operations
 -- ============================================================
 
-/-- Theorem 17: Full mill game: 10 cards left, mill 4+4+2 to deck-out. -/
-theorem full_mill_10 :
-    MillPath ⟨10, 7, 40, 6⟩ ⟨0, 7, 50, 6⟩ :=
-  MillPath.trans
-    (MillPath.single (MillAction.millCards 10 7 40 6 4 (by omega)))
-    (MillPath.trans
-      (MillPath.single (MillAction.millCards 6 7 44 6 4 (by omega)))
-      (MillPath.single (MillAction.millCards 2 7 48 6 2 (by omega))))
+def durantMill (s : MatchState) (durants : Nat) : MatchState :=
+  { s with oppDeck := s.oppDeck - durants }
 
-/-- Theorem 18: Discard hand then mill: control strategy path. -/
-theorem control_discard_then_mill :
-    MillPath ⟨20, 5, 20, 4⟩ ⟨19, 0, 26, 4⟩ :=
-  MillPath.trans
-    (MillPath.single (MillAction.discardHand 20 5 20 4))
-    (MillPath.single (MillAction.millCards 20 0 25 4 1 (by omega)))
+def wailordStall (s : MatchState) : MatchState :=
+  { s with aggroPrizeRate := s.aggroPrizeRate - 1 }
 
-/-- Theorem 19: Prize take does not change deck size. -/
-theorem prize_preserves_deck (d h di p : Nat) (hp : p > 0) :
-    GameState.deckSize ⟨d, h + 1, di, p - 1⟩ = d := rfl
+def sableyeControl (s : MatchState) : MatchState :=
+  { s with oppHand := s.oppHand - 1 }
+
+def bunnelbyControl (s : MatchState) : MatchState :=
+  { s with oppDeck := s.oppDeck - 1 }
+
+def forceDraw (s : MatchState) (cards : Nat) : MatchState :=
+  { s with oppDeck := s.oppDeck - cards, oppHand := s.oppHand + cards }
+
+def playN (s : MatchState) (prizesRemaining : Nat) : MatchState :=
+  forceDraw s prizesRemaining
+
+def playIono (s : MatchState) (prizesRemaining : Nat) : MatchState :=
+  forceDraw s prizesRemaining
+
+def thinDeck (s : MatchState) (cards : Nat) : MatchState :=
+  let moved := min cards s.millDeck
+  { s with millDeck := s.millDeck - moved, millHand := s.millHand + moved }
+
+def naturalOppDraw (s : MatchState) : MatchState :=
+  { s with oppDeck := s.oppDeck - 1, oppHand := s.oppHand + 1, turn := s.turn + 1 }
+
+theorem durant_nonincreasing (s : MatchState) (d : Nat) :
+    (durantMill s d).oppDeck ≤ s.oppDeck :=
+  Nat.sub_le _ _
+
+theorem wailord_stall_nonincreasing (s : MatchState) :
+    (wailordStall s).aggroPrizeRate ≤ s.aggroPrizeRate :=
+  Nat.sub_le _ _
+
+theorem sableye_nonincreasing_hand (s : MatchState) :
+    (sableyeControl s).oppHand ≤ s.oppHand :=
+  Nat.sub_le _ _
+
+theorem bunnelby_nonincreasing (s : MatchState) :
+    (bunnelbyControl s).oppDeck ≤ s.oppDeck :=
+  Nat.sub_le _ _
+
+theorem n_forces_draw (s : MatchState) (p : Nat) :
+    playN s p = forceDraw s p := rfl
+
+theorem iono_forces_draw (s : MatchState) (p : Nat) :
+    playIono s p = forceDraw s p := rfl
+
+theorem n_and_iono_same (s : MatchState) (p : Nat) :
+    playN s p = playIono s p := rfl
+
+theorem force_draw_nonincreasing (s : MatchState) (n : Nat) :
+    (forceDraw s n).oppDeck ≤ s.oppDeck :=
+  Nat.sub_le _ _
+
+theorem thin_zero (s : MatchState) : thinDeck s 0 = s := by
+  simp [thinDeck]
+
+theorem thin_deck_nonincreasing (s : MatchState) (cards : Nat) :
+    (thinDeck s cards).millDeck ≤ s.millDeck := by
+  simp [thinDeck]
+
+theorem thin_deck_increases_hand (s : MatchState) (cards : Nat) :
+    s.millHand ≤ (thinDeck s cards).millHand := by
+  simp [thinDeck]
+
+theorem natural_draw_turn (s : MatchState) :
+    (naturalOppDraw s).turn = s.turn + 1 := rfl
+
+theorem natural_draw_deck (s : MatchState) :
+    (naturalOppDraw s).oppDeck = s.oppDeck - 1 := rfl
 
 -- ============================================================
--- §11  Card resource conservation
+-- §5  Strategy paths (aggro, control, thinning)
 -- ============================================================
 
-def totalCards (gs : GameState) : Nat :=
-  gs.deckSize + gs.handSize + gs.discardSize
+def stepDurant (s : MatchState) (d : Nat) :
+    Step MatchState s (durantMill s d) :=
+  Step.rule "durant_devour" s (durantMill s d)
 
-/-- Theorem 20: Drawing conserves total cards. -/
-theorem draw_conserves (d h di p : Nat) (hd : d > 0) :
-    totalCards ⟨d - 1, h + 1, di, p⟩ = totalCards ⟨d, h, di, p⟩ := by
-  simp [totalCards]; omega
+def stepWailord (s : MatchState) :
+    Step MatchState s (wailordStall s) :=
+  Step.rule "wailord_stall" s (wailordStall s)
 
-/-- Theorem 21: Milling conserves total cards. -/
-theorem mill_conserves (d h di p n : Nat) (hd : d ≥ n) :
-    totalCards ⟨d - n, h, di + n, p⟩ = totalCards ⟨d, h, di, p⟩ := by
-  simp [totalCards]; omega
+def stepSableye (s : MatchState) :
+    Step MatchState s (sableyeControl s) :=
+  Step.rule "sableye_control" s (sableyeControl s)
 
-/-- Theorem 22: Discarding hand conserves total cards. -/
-theorem discard_conserves (d h di p : Nat) :
-    totalCards ⟨d, 0, di + h, p⟩ = totalCards ⟨d, h, di, p⟩ := by
-  simp [totalCards]; omega
+def stepBunnelby (s : MatchState) :
+    Step MatchState s (bunnelbyControl s) :=
+  Step.rule "bunnelby_burrow" s (bunnelbyControl s)
 
-/-- Theorem 23: Deck thinning conserves total cards. -/
-theorem thin_conserves (d h di p n : Nat) (hd : d ≥ n) :
-    totalCards ⟨d - n, h + n, di, p⟩ = totalCards ⟨d, h, di, p⟩ := by
-  simp [totalCards]; omega
+def stepN (s : MatchState) (p : Nat) :
+    Step MatchState s (playN s p) :=
+  Step.rule "play_N" s (playN s p)
 
-/-- Theorem 24: Shuffle-draw conserves total cards. -/
-theorem shuffle_conserves (d h di p n : Nat) (hd : d + h ≥ n) :
-    totalCards ⟨d + h - n, n, di, p⟩ = totalCards ⟨d, h, di, p⟩ := by
-  simp [totalCards]; omega
+def stepIono (s : MatchState) (p : Nat) :
+    Step MatchState s (playIono s p) :=
+  Step.rule "play_Iono" s (playIono s p)
+
+def stepThin (s : MatchState) (n : Nat) :
+    Step MatchState s (thinDeck s n) :=
+  Step.rule "thin_deck" s (thinDeck s n)
+
+def stepNatural (s : MatchState) :
+    Step MatchState s (naturalOppDraw s) :=
+  Step.rule "opp_draw_for_turn" s (naturalOppDraw s)
+
+def aggroMillTurnPath (s : MatchState) (d : Nat) :
+    Path MatchState s (naturalOppDraw (durantMill s d)) :=
+  (Path.single (stepDurant s d)).trans
+    (Path.single (stepNatural (durantMill s d)))
+
+def controlMillTurnPath (s : MatchState) (p : Nat) :
+    Path MatchState s (bunnelbyControl (playIono (sableyeControl s) p)) :=
+  ((Path.single (stepSableye s)).trans
+    (Path.single (stepIono (sableyeControl s) p))).trans
+      (Path.single (stepBunnelby (playIono (sableyeControl s) p)))
+
+def thinningSetupPath (s : MatchState) (n : Nat) :
+    Path MatchState s (durantMill (thinDeck s n) 1) :=
+  (Path.single (stepThin s n)).trans
+    (Path.single (stepDurant (thinDeck s n) 1))
+
+theorem aggro_turn_path_length (s : MatchState) (d : Nat) :
+    (aggroMillTurnPath s d).length = 2 := by
+  simp [aggroMillTurnPath, Path.trans, Path.single, Path.length]
+
+theorem control_turn_path_length (s : MatchState) (p : Nat) :
+    (controlMillTurnPath s p).length = 3 := by
+  simp [controlMillTurnPath, Path.trans, Path.single, Path.length]
+
+theorem thinning_setup_length (s : MatchState) (n : Nat) :
+    (thinningSetupPath s n).length = 2 := by
+  simp [thinningSetupPath, Path.trans, Path.single, Path.length]
+
+theorem aggro_turn_symm_length (s : MatchState) (d : Nat) :
+    (aggroMillTurnPath s d).symm.length = 2 := by
+  rw [path_length_symm]
+  exact aggro_turn_path_length s d
+
+theorem durant_then_draw_exact_zero (s : MatchState) (d : Nat)
+    (h : s.oppDeck = d + 1) :
+    (naturalOppDraw (durantMill s d)).oppDeck = 0 := by
+  simp [naturalOppDraw, durantMill, h]
+
+-- ============================================================
+-- §6  Mill-vs-aggro matchup analysis
+-- ============================================================
+
+def totalMillPerTurn (durants forcedDrawCards : Nat) : Nat :=
+  1 + durants + forcedDrawCards
+
+def deckAfterTurns (startingDeck millRate turns : Nat) : Nat :=
+  startingDeck - millRate * turns
+
+def aggroPrizesAfter (prizeRate turns : Nat) : Nat :=
+  prizeRate * turns
+
+def millFavored (startingDeck millRate prizeRate turns : Nat) : Bool :=
+  deckAfterTurns startingDeck millRate turns = 0 &&
+  aggroPrizesAfter prizeRate turns < 6
+
+theorem four_durant_rate : totalMillPerTurn 4 0 = 5 := rfl
+
+theorem deckout_in_twelve_turns :
+    deckAfterTurns 60 (totalMillPerTurn 4 0) 12 = 0 := by
+  simp [deckAfterTurns, totalMillPerTurn]
+
+theorem aggro_two_prize_rate :
+    aggroPrizesAfter 2 3 = 6 := by
+  simp [aggroPrizesAfter]
+
+theorem mill_favored_false_vs_fast_aggro :
+    millFavored 60 (totalMillPerTurn 4 0) 2 12 = false := by
+  simp [millFavored, deckAfterTurns, totalMillPerTurn, aggroPrizesAfter]
+
+theorem mill_favored_true_vs_slow_aggro :
+    millFavored 25 (totalMillPerTurn 4 0) 1 5 = true := by
+  simp [millFavored, deckAfterTurns, totalMillPerTurn, aggroPrizesAfter]
 
 end MillDecking
