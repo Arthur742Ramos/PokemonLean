@@ -30,3 +30,7 @@ import PokemonLean.Core.CardDatabase
 import PokemonLean.Core.Abilities
 import PokemonLean.Core.SpecialMechanics
 import PokemonLean.Core.Strategy
+-- Digital variants (Armada 535)
+import PokemonLean.Core.Pocket
+import PokemonLean.Core.PocketBattle
+import PokemonLean.Core.LiveFormat
