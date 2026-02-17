@@ -41,3 +41,7 @@ import PokemonLean.Core.HistoricalFormats
 import PokemonLean.Core.LostZoneDeck
 import PokemonLean.Core.CharizardDeck
 import PokemonLean.Core.ControlDeck
+-- SV era, rulings, deep energy (Armada 543)
+import PokemonLean.Core.ScarletViolet
+import PokemonLean.Core.RulingEdgeCases
+import PokemonLean.Core.EnergySystemDeep
