@@ -57,3 +57,7 @@ import PokemonLean.Core.TurnStructure
 import PokemonLean.Core.StadiumCards
 import PokemonLean.Core.SupporterCards
 import PokemonLean.Core.PrizeMapping
+-- Format rules & rotation deep dive (Armada 548)
+import PokemonLean.Core.Rotation
+import PokemonLean.Core.MulliganSetup
+import PokemonLean.Core.AttackCost
