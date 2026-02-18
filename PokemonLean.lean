@@ -37,3 +37,6 @@ import PokemonLean.ArchetypeMatchups
 import PokemonLean.RetreatMechanics
 import PokemonLean.HandDisruption
 import PokemonLean.PrizeDenial
+import PokemonLean.TurnStructure
+import PokemonLean.DeckConstraints
+import PokemonLean.GXAttacks
