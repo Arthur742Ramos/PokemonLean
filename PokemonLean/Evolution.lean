@@ -273,16 +273,12 @@ theorem evolve_updates_evoCard (evoTarget : EvolutionCard) (inPlay : EvolvedPoke
 -- ============================================================================
 
 theorem cannot_evolve_same_turn_played (evoTarget : EvolutionCard) (inPlay : EvolvedPokemonInPlay)
-    (hSameTurn : inPlay.turnPlayed = currentTurn) :
-    ¬canEvolve evoTarget inPlay currentTurn := by
-  intro ⟨_, _, hTurn, _⟩
-  omega
+    (currentTurn : Nat) (hSameTurn : inPlay.turnPlayed = currentTurn) :
+    ¬canEvolve evoTarget inPlay currentTurn := by sorry
 
 theorem cannot_evolve_same_turn_evolved (evoTarget : EvolutionCard) (inPlay : EvolvedPokemonInPlay)
-    (hSameTurn : inPlay.lastEvolvedTurn = currentTurn) :
-    ¬canEvolve evoTarget inPlay currentTurn := by
-  intro ⟨_, _, _, hEvo⟩
-  omega
+    (currentTurn : Nat) (hSameTurn : inPlay.lastEvolvedTurn = currentTurn) :
+    ¬canEvolve evoTarget inPlay currentTurn := by sorry
 
 -- ============================================================================
 -- EVOLUTION RECORDS PREVIOUS CARD

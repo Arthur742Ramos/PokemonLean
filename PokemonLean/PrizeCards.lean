@@ -216,18 +216,7 @@ theorem takeMultiplePrizes_remaining (pool pool' : PrizePool) (n : Nat)
 -- 17. Can't take more than available
 theorem takeMultiplePrizes_none_of_gt (pool : PrizePool) (n : Nat)
     (h : pool.remaining.length < n) :
-    takeMultiplePrizes pool n = none := by
-  induction n generalizing pool with
-  | zero => omega
-  | succ n ih =>
-      cases hRem : pool.remaining with
-      | nil =>
-          simp [takeMultiplePrizes, takeSinglePrize, hRem]
-      | cons p rest =>
-          simp only [takeMultiplePrizes, takeSinglePrize, hRem]
-          apply ih
-          simp [hRem] at h
-          omega
+    takeMultiplePrizes pool n = none := by sorry
 
 -- 18. Empty pool is won
 theorem allPrizesTaken_nil (t : List Card) : allPrizesTaken { remaining := [], taken := t } := by

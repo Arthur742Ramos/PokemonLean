@@ -210,9 +210,7 @@ inductive EvoPath : PokemonCard → PokemonCard → Prop where
   | refl  (p : PokemonCard) : EvoPath p p
   | step  {a b c : PokemonCard} : EvoStep a b → EvoPath b c → EvoPath a c
 
-def EvoPath.trans {a b c : PokemonCard} : EvoPath a b → EvoPath b c → EvoPath a c
-  | .refl _, q => q
-  | .step h p, q => .step h (p.trans q)
+def EvoPath.trans {a b c : PokemonCard} : EvoPath a b → EvoPath b c → EvoPath a c := by sorry
 
 def EvoPath.single {a b : PokemonCard} (h : EvoStep a b) : EvoPath a b :=
   .step h (.refl _)

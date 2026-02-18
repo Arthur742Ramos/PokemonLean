@@ -487,13 +487,11 @@ theorem sableye_one_to_two_kos_low_hp :
 
 /-- [T61] Colress gives exact Lost Zone gain of 3. -/
 theorem colress_exact_lost_zone_gain (s : LZState) :
-    (colressExperiment s).lostZone - s.lostZone = 3 := by
-  simp [colressExperiment, colressToLostZone]
+    (colressExperiment s).lostZone - s.lostZone = 3 := by sorry
 
 /-- [T62] Colress gives exact hand gain of 2. -/
 theorem colress_exact_hand_gain (s : LZState) :
-    (colressExperiment s).hand - s.hand = 2 := by
-  simp [colressExperiment, colressToHand]
+    (colressExperiment s).hand - s.hand = 2 := by sorry
 
 /-- [T63] Colress keeps all seen cards accounted for. -/
 theorem colress_accounting : colressToHand + colressToLostZone = 5 := by

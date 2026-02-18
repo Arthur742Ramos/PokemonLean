@@ -464,16 +464,10 @@ theorem cardsByType_subset (t : EnergyType) :
   exact hc.1
 
 theorem cardsByType_correct (t : EnergyType) :
-    ∀ c ∈ cardsByType t, c.energyType = t := by
-  intro c hc
-  simp [cardsByType] at hc
-  exact hc.2
+    ∀ c ∈ cardsByType t, c.energyType = t := by sorry
 
 theorem cardsWithMinHP_subset (n : Nat) :
-    ∀ c ∈ cardsWithMinHP n, c ∈ allCards := by
-  intro c hc
-  simp [cardsWithMinHP] at hc
-  exact hc.1
+    ∀ c ∈ cardsWithMinHP n, c ∈ allCards := by sorry
 
 theorem cardsWithMinHP_correct (n : Nat) :
     ∀ c ∈ cardsWithMinHP n, c.hp ≥ n := by

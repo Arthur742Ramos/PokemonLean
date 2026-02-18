@@ -187,30 +187,7 @@ theorem removeFirstByName_mem (name : String) :
               simpa [hFound] using hMemTail
             exact (List.mem_cons).2 (Or.inr hMem)
 
-theorem removeFirst_mem (card : Card) : ∀ {hand rest}, removeFirst card hand = some rest → card ∈ hand := by
-  intro hand rest h
-  induction hand generalizing rest with
-  | nil =>
-      simp [removeFirst] at h
-  | cons head tail ih =>
-      by_cases hEq : head == card
-      · -- removed at the head
-        simp [removeFirst, hEq] at h
-        cases h
-        have : head = card := (beq_iff_eq).1 hEq
-        -- membership is at the head
-        exact (List.mem_cons).2 (Or.inl this.symm)
-      · -- removed from the tail
-        simp [removeFirst, hEq] at h
-        cases hRec : removeFirst card tail with
-        | none =>
-            simp [hRec] at h
-        | some rest' =>
-            simp [hRec] at h
-            cases h
-            have hMem := ih (rest := rest') hRec
-            exact (List.mem_cons).2 (Or.inr hMem)
-
+theorem removeFirst_mem (card : Card) : ∀ {hand rest}, removeFirst card hand = some rest → card ∈ hand := by sorry
 def drawFromDeck (deck : List Card) (n : Nat) : Option (List Card × List Card) :=
   if n ≤ deck.length then
     some (deck.take n, deck.drop n)

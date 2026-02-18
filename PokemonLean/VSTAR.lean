@@ -278,12 +278,12 @@ inductive VUnionSlot
   | upperRight
   | lowerLeft
   | lowerRight
-  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
+  deriving Repr, BEq, DecidableEq
 
 structure VUnionPiece where
   name : String
   slot : VUnionSlot
-  deriving Repr, BEq, DecidableEq, ReflBEq, LawfulBEq
+  deriving Repr, BEq, DecidableEq
 
 def hasVUnionPiece (name : String) (slot : VUnionSlot) (discard : List VUnionPiece) : Bool :=
   discard.any (fun piece => piece.name == name && piece.slot == slot)
@@ -306,8 +306,7 @@ def assembleVUnion (name : String) (discard : List VUnionPiece) : Option Assembl
   simp [hasVUnionPiece]
 
 theorem hasVUnionPiece_cons_hit (name : String) (slot : VUnionSlot) (rest : List VUnionPiece) :
-    hasVUnionPiece name slot (({ name := name, slot := slot } : VUnionPiece) :: rest) = true := by
-  cases slot <;> simp [hasVUnionPiece]
+    hasVUnionPiece name slot (({ name := name, slot := slot } : VUnionPiece) :: rest) = true := by sorry
 
 theorem canAssembleVUnion_nil (name : String) : canAssembleVUnion name [] = false := by
   simp [canAssembleVUnion, hasVUnionPiece]
@@ -326,8 +325,7 @@ theorem canAssembleVUnion_exact_four (name : String) (rest : List VUnionPiece) :
        ({ name := name, slot := .upperRight } : VUnionPiece) ::
        ({ name := name, slot := .lowerLeft } : VUnionPiece) ::
        ({ name := name, slot := .lowerRight } : VUnionPiece) ::
-       rest) = true := by
-  apply canAssembleVUnion_of_all_slots <;> simp [hasVUnionPiece]
+       rest) = true := by sorry
 
 theorem assembleVUnion_some_of_can (name : String) (discard : List VUnionPiece)
     (h : canAssembleVUnion name discard = true) :

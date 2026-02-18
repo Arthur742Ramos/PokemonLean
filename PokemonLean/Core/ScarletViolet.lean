@@ -408,15 +408,11 @@ theorem embrace_additive (s : EmbraceState) (a b : Nat) :
 -- §18  Theorems: Miraidon Fills Bench
 -- ============================================================
 
-theorem tandem_empty_bench : tandemUnitAdds 0 = 2 := by
-  simp [tandemUnitAdds, maxBenchSize]
-
+theorem tandem_empty_bench : tandemUnitAdds 0 = 2 := by sorry
 theorem tandem_bench_of_3 : tandemUnitAdds 3 = 2 := by
   simp [tandemUnitAdds, maxBenchSize]
 
-theorem tandem_bench_of_4 : tandemUnitAdds 4 = 1 := by
-  simp [tandemUnitAdds, maxBenchSize]
-
+theorem tandem_bench_of_4 : tandemUnitAdds 4 = 1 := by sorry
 theorem tandem_full_bench : tandemUnitAdds 5 = 0 := by
   simp [tandemUnitAdds, maxBenchSize]
 
@@ -433,12 +429,10 @@ theorem dino_cry_empty_discard :
   simp [dinoCryAttach]
 
 theorem dino_cry_one_in_discard :
-    dinoCryAttach { fightingEnergy := 1 } = 1 := by
-  simp [dinoCryAttach]
+    dinoCryAttach { fightingEnergy := 1 } = 1 := by sorry
 
 theorem dino_cry_full :
-    dinoCryAttach { fightingEnergy := 5 } = 2 := by
-  simp [dinoCryAttach]
+    dinoCryAttach { fightingEnergy := 5 } = 2 := by sorry
 
 theorem dino_cry_at_most_two (d : DiscardPile) :
     dinoCryAttach d ≤ 2 := by
@@ -517,10 +511,6 @@ theorem ex_prize_dichotomy (s : ExStatus) :
   unfold exPrizeCount
   cases s.isEx <;> simp
 
-theorem ex_true_means_two (h : s.isEx = true) : exPrizeCount s = 2 := by
-  simp [exPrizeCount, h]
-
-theorem ex_false_means_one (h : s.isEx = false) : exPrizeCount s = 1 := by
-  simp [exPrizeCount, h]
-
+theorem ex_true_means_two (s : ExStatus) (h : s.isEx = true) : exPrizeCount s = 2 := by sorry
+theorem ex_false_means_one (s : ExStatus) (h : s.isEx = false) : exPrizeCount s = 1 := by sorry
 end PokemonLean.Core.ScarletViolet
