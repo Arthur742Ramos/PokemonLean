@@ -34,3 +34,6 @@ import PokemonLean.TournamentRules
 import PokemonLean.HandManagement
 import PokemonLean.Archetypes
 import PokemonLean.ArchetypeMatchups
+import PokemonLean.RetreatMechanics
+import PokemonLean.HandDisruption
+import PokemonLean.PrizeDenial
