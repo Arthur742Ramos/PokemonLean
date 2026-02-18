@@ -1,6 +1,4 @@
 import PokemonLean.Basic
-import Mathlib.Data.List.Count
-import Std.Tactic
 
 namespace List
 

@@ -318,7 +318,7 @@ theorem prizeDelta_nonneg_of_progress (before after : GameState) (player : Playe
   have hNat : (Int.ofNat (prizeProgress before player)) ≤
       (Int.ofNat (prizeProgress after player)) := by
     exact Int.ofNat_le.mpr h
-  simpa using (Int.sub_nonneg.mpr hNat)
+  simpa using (Int.sub_nonneg_of_le hNat)
 
 theorem prizeProgress_zero_of_full (state : GameState) (player : PlayerId)
     (h : (getPlayerState state (otherPlayer player)).prizes.length = standardPrizeCount) :

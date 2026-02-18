@@ -1,11 +1,8 @@
 import PokemonLean.Basic
-import PokemonLean.Mulligan
-import PokemonLean.TrainerCards
 
 namespace PokemonLean.HandManagement
 
 open PokemonLean
-open PokemonLean.Mulligan
 
 def drawPhaseCount : Nat := 1
 
@@ -371,55 +368,6 @@ theorem applyHandDisruption_opponentHandBottom (current opponent : PlayerState) 
     applyHandDisruption current opponent .opponentHandBottom =
       some (current, putHandOnBottom opponent) := rfl
 
-def openingNeedsMulligan (deck : List Card) : Bool :=
-  needsMulligan (initMulligan deck)
-
-def resolveOpeningMulligan (deck reshuffled : List Card) : MulliganState :=
-  let ms := initMulligan deck
-  if needsMulligan ms then doMulligan ms reshuffled else ms
-
-theorem openingNeedsMulligan_iff_no_basic (deck : List Card) :
-    openingNeedsMulligan deck = true ↔ ¬hasBasic (deck.take initialHandSize) := by
-  simpa [openingNeedsMulligan, initMulligan_hand] using (needsMulligan_iff (initMulligan deck))
-
-theorem resolveOpeningMulligan_no_mulligan (deck reshuffled : List Card)
-    (h : openingNeedsMulligan deck = false) :
-    resolveOpeningMulligan deck reshuffled = initMulligan deck := by
-  have hNeeds : needsMulligan (initMulligan deck) = false := by
-    simpa [openingNeedsMulligan] using h
-  simp [resolveOpeningMulligan, hNeeds]
-
-theorem resolveOpeningMulligan_yes_mulligan (deck reshuffled : List Card)
-    (h : openingNeedsMulligan deck = true) :
-    resolveOpeningMulligan deck reshuffled = doMulligan (initMulligan deck) reshuffled := by
-  have hNeeds : needsMulligan (initMulligan deck) = true := by
-    simpa [openingNeedsMulligan] using h
-  simp [resolveOpeningMulligan, hNeeds]
-
-theorem resolveOpeningMulligan_mulligans (deck reshuffled : List Card)
-    (h : openingNeedsMulligan deck = true) :
-    (resolveOpeningMulligan deck reshuffled).mulligans = 1 := by
-  rw [resolveOpeningMulligan_yes_mulligan deck reshuffled h]
-  simp [doMulligan, initMulligan]
-
-theorem resolveOpeningMulligan_opponentExtras (deck reshuffled : List Card)
-    (h : openingNeedsMulligan deck = true) :
-    (resolveOpeningMulligan deck reshuffled).opponentExtras = 1 := by
-  rw [resolveOpeningMulligan_yes_mulligan deck reshuffled h]
-  simp [doMulligan, initMulligan]
-
-theorem resolveOpeningMulligan_hand_when_redraw (deck reshuffled : List Card)
-    (h : openingNeedsMulligan deck = true) :
-    (resolveOpeningMulligan deck reshuffled).hand = reshuffled.take initialHandSize := by
-  rw [resolveOpeningMulligan_yes_mulligan deck reshuffled h]
-  simp [doMulligan]
-
-theorem resolveOpeningMulligan_hand_when_keep (deck reshuffled : List Card)
-    (h : openingNeedsMulligan deck = false) :
-    (resolveOpeningMulligan deck reshuffled).hand = deck.take initialHandSize := by
-  rw [resolveOpeningMulligan_no_mulligan deck reshuffled h]
-  simp [initMulligan]
-
 def discardTwo (hand : List Card) (first second : Card) : Option (List Card × List Card) :=
   match removeFirst first hand with
   | none => none
@@ -513,140 +461,5 @@ theorem payDiscardTwo_discard_growth (player player' : PlayerState) (first secon
       have hCards : discarded = [first, second] :=
         discardTwo_discarded_cards player.hand first second newHand discarded hDiscard
       simp [hCards, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
-
-def computerSearch (player : PlayerState) (first second : Card) (targetName : String) :
-    Option PlayerState :=
-  match payDiscardTwo player first second with
-  | none => none
-  | some paid =>
-      match TrainerCards.removeFirstByName targetName paid.deck with
-      | none => none
-      | some (found, rest) =>
-          some { paid with deck := rest, hand := found :: paid.hand }
-
-theorem computerSearch_none_of_missing_target (player paid : PlayerState)
-    (first second : Card) (targetName : String)
-    (hPay : payDiscardTwo player first second = some paid)
-    (hFind : TrainerCards.removeFirstByName targetName paid.deck = none) :
-    computerSearch player first second targetName = none := by
-  simp [computerSearch, hPay, hFind]
-
-theorem computerSearch_hand_length (player player' : PlayerState) (first second : Card) (targetName : String)
-    (h : computerSearch player first second targetName = some player') :
-    player'.hand.length + 1 = player.hand.length := by
-  unfold computerSearch at h
-  cases hPay : payDiscardTwo player first second with
-  | none =>
-      simp [hPay] at h
-  | some paid =>
-      cases hFind : TrainerCards.removeFirstByName targetName paid.deck with
-      | none =>
-          simp [hPay, hFind] at h
-      | some pair =>
-          rcases pair with ⟨found, rest⟩
-          simp [hPay, hFind] at h
-          cases h
-          have hPayLen : paid.hand.length + 2 = player.hand.length :=
-            payDiscardTwo_hand_length player paid first second hPay
-          have hStep : (found :: paid.hand).length + 1 = paid.hand.length + 2 := by
-            simp [Nat.add_assoc]
-          exact Eq.trans hStep hPayLen
-
-theorem computerSearch_deck_length (player player' : PlayerState) (first second : Card) (targetName : String)
-    (h : computerSearch player first second targetName = some player') :
-    player'.deck.length + 1 = player.deck.length := by
-  unfold computerSearch at h
-  cases hPay : payDiscardTwo player first second with
-  | none =>
-      simp [hPay] at h
-  | some paid =>
-      cases hFind : TrainerCards.removeFirstByName targetName paid.deck with
-      | none =>
-          simp [hPay, hFind] at h
-      | some pair =>
-          rcases pair with ⟨found, rest⟩
-          simp [hPay, hFind] at h
-          cases h
-          have hDeckPay : paid.deck = player.deck :=
-            payDiscardTwo_preserves_deck player paid first second hPay
-          have hFindLen : rest.length + 1 = paid.deck.length :=
-            TrainerCards.removeFirstByName_length targetName paid.deck found rest hFind
-          simpa [hDeckPay] using hFindLen
-
-def ultraBall (player : PlayerState) (first second : Card) (targetName : String) :
-    Option PlayerState :=
-  match payDiscardTwo player first second with
-  | none => none
-  | some paid =>
-      match TrainerCards.removeFirstByName targetName paid.deck with
-      | none => none
-      | some (found, rest) =>
-          if isTrainer found then
-            none
-          else
-            some { paid with deck := rest, hand := found :: paid.hand }
-
-theorem ultraBall_none_if_found_trainer (player paid : PlayerState)
-    (first second found : Card) (targetName : String) (rest : List Card)
-    (hPay : payDiscardTwo player first second = some paid)
-    (hFind : TrainerCards.removeFirstByName targetName paid.deck = some (found, rest))
-    (hTrainer : isTrainer found = true) :
-    ultraBall player first second targetName = none := by
-  simp [ultraBall, hPay, hFind, hTrainer]
-
-theorem ultraBall_some_of_found_pokemon (player paid : PlayerState)
-    (first second found : Card) (targetName : String) (rest : List Card)
-    (hPay : payDiscardTwo player first second = some paid)
-    (hFind : TrainerCards.removeFirstByName targetName paid.deck = some (found, rest))
-    (hTrainer : isTrainer found = false) :
-    ultraBall player first second targetName =
-      some { paid with deck := rest, hand := found :: paid.hand } := by
-  simp [ultraBall, hPay, hFind, hTrainer]
-
-theorem ultraBall_hand_length (player player' : PlayerState) (first second : Card) (targetName : String)
-    (h : ultraBall player first second targetName = some player') :
-    player'.hand.length + 1 = player.hand.length := by
-  unfold ultraBall at h
-  cases hPay : payDiscardTwo player first second with
-  | none =>
-      simp [hPay] at h
-  | some paid =>
-      cases hFind : TrainerCards.removeFirstByName targetName paid.deck with
-      | none =>
-          simp [hPay, hFind] at h
-      | some pair =>
-          rcases pair with ⟨found, rest⟩
-          by_cases hTrainer : isTrainer found
-          · simp [hPay, hFind, hTrainer] at h
-          · simp [hPay, hFind, hTrainer] at h
-            cases h
-            have hPayLen : paid.hand.length + 2 = player.hand.length :=
-              payDiscardTwo_hand_length player paid first second hPay
-            have hStep : (found :: paid.hand).length + 1 = paid.hand.length + 2 := by
-              simp [Nat.add_assoc]
-            exact Eq.trans hStep hPayLen
-
-theorem ultraBall_deck_length (player player' : PlayerState) (first second : Card) (targetName : String)
-    (h : ultraBall player first second targetName = some player') :
-    player'.deck.length + 1 = player.deck.length := by
-  unfold ultraBall at h
-  cases hPay : payDiscardTwo player first second with
-  | none =>
-      simp [hPay] at h
-  | some paid =>
-      cases hFind : TrainerCards.removeFirstByName targetName paid.deck with
-      | none =>
-          simp [hPay, hFind] at h
-      | some pair =>
-          rcases pair with ⟨found, rest⟩
-          by_cases hTrainer : isTrainer found
-          · simp [hPay, hFind, hTrainer] at h
-          · simp [hPay, hFind, hTrainer] at h
-            cases h
-            have hDeckPay : paid.deck = player.deck :=
-              payDiscardTwo_preserves_deck player paid first second hPay
-            have hFindLen : rest.length + 1 = paid.deck.length :=
-              TrainerCards.removeFirstByName_length targetName paid.deck found rest hFind
-            simpa [hDeckPay] using hFindLen
 
 end PokemonLean.HandManagement

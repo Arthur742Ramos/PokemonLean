@@ -1571,9 +1571,9 @@ def clampStage (stage : Int) : StatStage :=
   else
     { val := stage
       lower := by
-        exact Int.le_of_not_gt hLow
+        exact by omega
       upper := by
-        exact Int.le_of_not_gt hHigh }
+        exact by omega }
 
 theorem clampStage_le (stage : Int) : (clampStage stage).val ≤ 6 := by
   unfold clampStage
@@ -1581,7 +1581,7 @@ theorem clampStage_le (stage : Int) : (clampStage stage).val ≤ 6 := by
   · simp [hLow]
   · by_cases hHigh : stage > 6
     · simp [hLow, hHigh]
-    · have hLe : stage ≤ 6 := Int.le_of_not_gt hHigh
+    · have hLe : stage ≤ 6 := by omega
       simp [hLow, hHigh, hLe]
 
 theorem clampStage_ge (stage : Int) : -6 ≤ (clampStage stage).val := by
@@ -1590,16 +1590,16 @@ theorem clampStage_ge (stage : Int) : -6 ≤ (clampStage stage).val := by
   · simp [hLow]
   · by_cases hHigh : stage > 6
     · simp [hLow, hHigh]
-    · have hLe : -6 ≤ stage := Int.le_of_not_gt hLow
+    · have hLe : -6 ≤ stage := by omega
       simp [hLow, hHigh, hLe]
 
 theorem clampStage_id (stage : Int) (hLow : -6 ≤ stage) (hHigh : stage ≤ 6) :
     (clampStage stage).val = stage := by
   unfold clampStage
   have hLow' : ¬ stage < -6 := by
-    exact (Int.not_lt_of_ge hLow)
+    exact (by omega)
   have hHigh' : ¬ stage > 6 := by
-    exact (Int.not_lt_of_ge hHigh)
+    exact (by omega)
   simp [hLow', hHigh']
 
 def stageMultiplier (stage : StatStage) : Int :=
@@ -1708,11 +1708,11 @@ theorem predictionPayoff_false (reward penalty : Nat) :
 
 theorem predictionPayoff_true_nonneg (reward penalty : Nat) :
     0 ≤ predictionPayoff reward penalty true := by
-  simp [predictionPayoff]
+  simp [predictionPayoff]; omega
 
 theorem predictionPayoff_false_nonpos (reward penalty : Nat) :
     predictionPayoff reward penalty false ≤ 0 := by
-  simp [predictionPayoff]
+  simp [predictionPayoff]; omega
 
 theorem predictionPayoff_zero_reward (penalty : Nat) :
     predictionPayoff 0 penalty true = 0 := by

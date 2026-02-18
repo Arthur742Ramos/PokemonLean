@@ -1,5 +1,7 @@
 import PokemonLean.Basic
 
+set_option maxHeartbeats 800000
+
 namespace PokemonLean.TypeChart
 
 open PokemonLean

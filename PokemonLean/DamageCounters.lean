@@ -137,7 +137,7 @@ theorem damageCounters_le_maxCounters (pokemon : PokemonInPlay)
     (hBound : pokemon.damage ≤ pokemon.card.hp) :
     damageCounters pokemon ≤ maxDamageCounters pokemon := by
   simp [damageCounters, maxDamageCounters, damageCounterValue]
-  exact Nat.div_le_div_right hBound
+  omega
 
 theorem placeDamageCounters_zero (pokemon : PokemonInPlay) :
     placeDamageCounters pokemon 0 = pokemon := by

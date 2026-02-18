@@ -168,7 +168,7 @@ theorem takeSinglePrize_taken_inc (pool pool' : PrizePool)
       simp
 
 -- 13. Can't take from empty
-theorem takeSinglePrize_empty :
+theorem takeSinglePrize_empty (t : List Card) :
     takeSinglePrize { remaining := [], taken := t } = none := by
   rfl
 
@@ -224,14 +224,13 @@ theorem takeMultiplePrizes_none_of_gt (pool : PrizePool) (n : Nat)
       | nil =>
           simp [takeMultiplePrizes, takeSinglePrize, hRem]
       | cons p rest =>
-          simp [takeMultiplePrizes, takeSinglePrize, hRem]
+          simp only [takeMultiplePrizes, takeSinglePrize, hRem]
           apply ih
-          rw [hRem] at h
-          simp at h
+          simp [hRem] at h
           omega
 
 -- 18. Empty pool is won
-theorem allPrizesTaken_nil : allPrizesTaken { remaining := [], taken := t } := by
+theorem allPrizesTaken_nil (t : List Card) : allPrizesTaken { remaining := [], taken := t } := by
   unfold allPrizesTaken
   rfl
 
