@@ -1,253 +1,191 @@
 /-
-  PokemonLean/MatchupAnalysis.lean — 6-Deck Metagame Matchup Analysis
+  PokemonLean/MatchupAnalysis.lean -- Real Trainer Hill Top-6 metagame analysis
 
-  Formalizes a realistic TCG metagame with 6 archetypes, matchup matrix,
-  format diversity, ban impact, counter-deck value, and dominance theorems.
-  All proofs via native_decide — zero sorry, zero admit, zero axiom.
+  Data: Trainer Hill, 2026-01-29 to 2026-02-19, 50+ player tournaments.
+  Win rates are stored as percentage * 10 (e.g. 627 = 62.7%).
 -/
 import PokemonLean.Core.Types
 
 namespace PokemonLean.MatchupAnalysis
 
--- ============================================================================
--- (1) ARCHETYPE DEFINITION
--- ============================================================================
+def dataSource : String :=
+  "Data: Trainer Hill, 2026-01-29 to 2026-02-19, 50+ player tournaments"
 
-/-- The six dominant archetypes in the current metagame. -/
+/-! ## 1. Top-6 deck universe -/
+
 inductive Archetype6 where
-  | Charizard_ex
-  | Lugia_VSTAR
-  | Lost_Box
-  | Gardevoir_ex
-  | Miraidon_ex
-  | Control
+  | DragapultDusknoir
+  | GholdengoLunatone
+  | GrimmsnarlFroslass
+  | MegaAbsolBox
+  | Gardevoir
+  | CharizardNoctowl
   deriving DecidableEq, BEq, Repr, Inhabited
 
 open Archetype6
 
-/-- Enumerate all archetypes. -/
 def Archetype6.all : List Archetype6 :=
-  [Charizard_ex, Lugia_VSTAR, Lost_Box, Gardevoir_ex, Miraidon_ex, Control]
-
--- We need a Fintype-like enumeration for decidability of ∀.
--- Instead of Fintype (which may not be available without Mathlib),
--- we prove ∀ by explicit case-splitting via a helper.
+  [DragapultDusknoir, GholdengoLunatone, GrimmsnarlFroslass,
+   MegaAbsolBox, Gardevoir, CharizardNoctowl]
 
 private def Archetype6.forAll (p : Archetype6 → Prop) [DecidablePred p] : Decidable (∀ a, p a) :=
-  if h1 : p Charizard_ex then
-    if h2 : p Lugia_VSTAR then
-      if h3 : p Lost_Box then
-        if h4 : p Gardevoir_ex then
-          if h5 : p Miraidon_ex then
-            if h6 : p Control then
+  if h1 : p DragapultDusknoir then
+    if h2 : p GholdengoLunatone then
+      if h3 : p GrimmsnarlFroslass then
+        if h4 : p MegaAbsolBox then
+          if h5 : p Gardevoir then
+            if h6 : p CharizardNoctowl then
               isTrue (fun a => by cases a <;> assumption)
-            else isFalse (fun h => h6 (h Control))
-          else isFalse (fun h => h5 (h Miraidon_ex))
-        else isFalse (fun h => h4 (h Gardevoir_ex))
-      else isFalse (fun h => h3 (h Lost_Box))
-    else isFalse (fun h => h2 (h Lugia_VSTAR))
-  else isFalse (fun h => h1 (h Charizard_ex))
+            else isFalse (fun h => h6 (h CharizardNoctowl))
+          else isFalse (fun h => h5 (h Gardevoir))
+        else isFalse (fun h => h4 (h MegaAbsolBox))
+      else isFalse (fun h => h3 (h GrimmsnarlFroslass))
+    else isFalse (fun h => h2 (h GholdengoLunatone))
+  else isFalse (fun h => h1 (h DragapultDusknoir))
 
 instance (p : Archetype6 → Prop) [DecidablePred p] : Decidable (∀ a, p a) :=
   Archetype6.forAll p
 
--- ============================================================================
--- (2) 6×6 MATCHUP MATRIX (win rates as Nat percentage)
--- ============================================================================
+/-! ## 2. Real top-6 shares and matchup matrix -/
 
-/-- Win rate of row vs column (percentage points, 0–100).
-    Realistic matchup spread for the 2024–2025 metagame. -/
-def matchupWR (a b : Archetype6) : Nat :=
+/-- Meta share in tenths of a percent (15.5% -> 155). -/
+def metaShareX10 : Archetype6 → Nat
+  | DragapultDusknoir => 155
+  | GholdengoLunatone => 99
+  | GrimmsnarlFroslass => 51
+  | MegaAbsolBox => 50
+  | Gardevoir => 46
+  | CharizardNoctowl => 43
+
+theorem TOP6_SHARE_TOTAL : (Archetype6.all.map metaShareX10).foldl (· + ·) 0 = 444 := by
+  native_decide
+
+/-- Real Trainer Hill top-6 matrix, percentage * 10. -/
+def matchupWRx10 (a b : Archetype6) : Nat :=
   match a, b with
-  | Charizard_ex,  Charizard_ex  => 50
-  | Charizard_ex,  Lugia_VSTAR   => 55
-  | Charizard_ex,  Lost_Box      => 60
-  | Charizard_ex,  Gardevoir_ex  => 55
-  | Charizard_ex,  Miraidon_ex   => 60
-  | Charizard_ex,  Control       => 40
-  | Lugia_VSTAR,   Charizard_ex  => 45
-  | Lugia_VSTAR,   Lugia_VSTAR   => 50
-  | Lugia_VSTAR,   Lost_Box      => 55
-  | Lugia_VSTAR,   Gardevoir_ex  => 45
-  | Lugia_VSTAR,   Miraidon_ex   => 60
-  | Lugia_VSTAR,   Control       => 50
-  | Lost_Box,      Charizard_ex  => 40
-  | Lost_Box,      Lugia_VSTAR   => 45
-  | Lost_Box,      Lost_Box      => 50
-  | Lost_Box,      Gardevoir_ex  => 60
-  | Lost_Box,      Miraidon_ex   => 55
-  | Lost_Box,      Control       => 55
-  | Gardevoir_ex,  Charizard_ex  => 45
-  | Gardevoir_ex,  Lugia_VSTAR   => 55
-  | Gardevoir_ex,  Lost_Box      => 40
-  | Gardevoir_ex,  Gardevoir_ex  => 50
-  | Gardevoir_ex,  Miraidon_ex   => 55
-  | Gardevoir_ex,  Control       => 45
-  | Miraidon_ex,   Charizard_ex  => 40
-  | Miraidon_ex,   Lugia_VSTAR   => 40
-  | Miraidon_ex,   Lost_Box      => 45
-  | Miraidon_ex,   Gardevoir_ex  => 45
-  | Miraidon_ex,   Miraidon_ex   => 50
-  | Miraidon_ex,   Control       => 60
-  | Control,       Charizard_ex  => 60
-  | Control,       Lugia_VSTAR   => 50
-  | Control,       Lost_Box      => 45
-  | Control,       Gardevoir_ex  => 55
-  | Control,       Miraidon_ex   => 40
-  | Control,       Control       => 50
+  | DragapultDusknoir, DragapultDusknoir => 494
+  | DragapultDusknoir, GholdengoLunatone => 436
+  | DragapultDusknoir, GrimmsnarlFroslass => 386
+  | DragapultDusknoir, MegaAbsolBox => 382
+  | DragapultDusknoir, Gardevoir => 343
+  | DragapultDusknoir, CharizardNoctowl => 641
+  | GholdengoLunatone, DragapultDusknoir => 521
+  | GholdengoLunatone, GholdengoLunatone => 488
+  | GholdengoLunatone, GrimmsnarlFroslass => 476
+  | GholdengoLunatone, MegaAbsolBox => 443
+  | GholdengoLunatone, Gardevoir => 441
+  | GholdengoLunatone, CharizardNoctowl => 483
+  | GrimmsnarlFroslass, DragapultDusknoir => 572
+  | GrimmsnarlFroslass, GholdengoLunatone => 467
+  | GrimmsnarlFroslass, GrimmsnarlFroslass => 485
+  | GrimmsnarlFroslass, MegaAbsolBox => 344
+  | GrimmsnarlFroslass, Gardevoir => 566
+  | GrimmsnarlFroslass, CharizardNoctowl => 558
+  | MegaAbsolBox, DragapultDusknoir => 576
+  | MegaAbsolBox, GholdengoLunatone => 512
+  | MegaAbsolBox, GrimmsnarlFroslass => 621
+  | MegaAbsolBox, MegaAbsolBox => 494
+  | MegaAbsolBox, Gardevoir => 558
+  | MegaAbsolBox, CharizardNoctowl => 475
+  | Gardevoir, DragapultDusknoir => 627
+  | Gardevoir, GholdengoLunatone => 493
+  | Gardevoir, GrimmsnarlFroslass => 374
+  | Gardevoir, MegaAbsolBox => 402
+  | Gardevoir, Gardevoir => 480
+  | Gardevoir, CharizardNoctowl => 394
+  | CharizardNoctowl, DragapultDusknoir => 324
+  | CharizardNoctowl, GholdengoLunatone => 480
+  | CharizardNoctowl, GrimmsnarlFroslass => 397
+  | CharizardNoctowl, MegaAbsolBox => 471
+  | CharizardNoctowl, Gardevoir => 558
+  | CharizardNoctowl, CharizardNoctowl => 487
 
--- ============================================================================
--- (3) MATCHUP ADVANTAGE: sum of win rates across all opponents
--- ============================================================================
-
-/-- Total matchup advantage: sum of win rates vs all 6 decks. -/
 def matchupAdvantage (a : Archetype6) : Nat :=
-  (Archetype6.all.map (matchupWR a)).foldl (· + ·) 0
+  (Archetype6.all.map (matchupWRx10 a)).foldl (· + ·) 0
 
--- ============================================================================
--- (4) CHARIZARD BEST SPREAD
--- ============================================================================
+def lossCountVsOthers (a : Archetype6) : Nat :=
+  let opps := Archetype6.all.filter (· != a)
+  opps.foldl (fun acc b => if matchupWRx10 a b < 500 then acc + 1 else acc) 0
 
-/-- Charizard_ex has the highest matchup advantage sum among all 6 archetypes. -/
-theorem CHARIZARD_BEST_SPREAD :
-    ∀ d : Archetype6, matchupAdvantage d ≤ matchupAdvantage Charizard_ex := by
-  decide
+/-! ## 3. Required insights from the real data -/
 
--- ============================================================================
--- (5) FORMAT DIVERSITY (simplified entropy proxy)
--- ============================================================================
+def beatsAllOthers (a : Archetype6) : Bool :=
+  let opps := Archetype6.all.filter (· != a)
+  opps.all (fun b => matchupWRx10 a b > 500)
 
-/-- Mean matchup advantage ×6 (to avoid fractions): sum of all advantages. -/
-def totalAdvantageSum : Nat :=
-  (Archetype6.all.map matchupAdvantage).foldl (· + ·) 0
+/-- No deck is dominant; every deck has at least one sub-50 matchup. -/
+theorem NO_DOMINANT_DECK : ∀ a : Archetype6, beatsAllOthers a = false := by
+  native_decide
 
-/-- Squared deviation of each deck's advantage from the mean (×6). -/
-def deviationSq (a : Archetype6) : Nat :=
-  let scaled := 6 * matchupAdvantage a
-  let total := totalAdvantageSum
-  if scaled ≥ total then (scaled - total) * (scaled - total)
-  else (total - scaled) * (total - scaled)
+/-- Grimmsnarl is checked by Mega Absol in the head-to-head. -/
+theorem GRIMMSNARL_LOSES_TO_MEGA_ABSOL :
+    matchupWRx10 GrimmsnarlFroslass MegaAbsolBox = 344 := by
+  native_decide
 
-/-- Format diversity score: lower total squared deviation = more diverse. -/
-def formatDiversityScore : Nat :=
-  (Archetype6.all.map deviationSq).foldl (· + ·) 0
+/-- Dragapult is the most played deck in this snapshot. -/
+theorem DRAGAPULT_MOST_PLAYED :
+    ∀ d : Archetype6, metaShareX10 d ≤ metaShareX10 DragapultDusknoir := by
+  native_decide
 
--- ============================================================================
--- (6) SYMMETRIC MAX DIVERSITY
--- ============================================================================
+/-- Dragapult loses to four of the other five top decks. -/
+theorem DRAGAPULT_LOSES_TO_FOUR_OF_FIVE :
+    lossCountVsOthers DragapultDusknoir = 4 := by
+  native_decide
 
-/-- A symmetric matchup matrix: all matchups are 50-50. -/
-def symmetricWR (_a _b : Archetype6) : Nat := 50
+/-- Popularity and matchup strength diverge in the real metagame. -/
+theorem POPULARITY_NEQ_OPTIMALITY :
+    matchupAdvantage MegaAbsolBox > matchupAdvantage DragapultDusknoir := by
+  native_decide
 
-def symmetricAdvantage (a : Archetype6) : Nat :=
-  (Archetype6.all.map (symmetricWR a)).foldl (· + ·) 0
-
-def symmetricDeviationSq (a : Archetype6) : Nat :=
-  let scaled := 6 * symmetricAdvantage a
-  let total := (Archetype6.all.map symmetricAdvantage).foldl (· + ·) 0
-  if scaled ≥ total then (scaled - total) * (scaled - total)
-  else (total - scaled) * (total - scaled)
-
-def symmetricDiversityScore : Nat :=
-  (Archetype6.all.map symmetricDeviationSq).foldl (· + ·) 0
-
-/-- Symmetric RPS-like formats maximize diversity (zero deviation). -/
-theorem SYMMETRIC_MAX_DIVERSITY :
-    symmetricDiversityScore = 0 := by decide
-
-/-- The real metagame has strictly positive deviation (less diverse than symmetric). -/
-theorem REAL_FORMAT_LESS_DIVERSE :
-    formatDiversityScore > symmetricDiversityScore := by decide
-
--- ============================================================================
--- (7) POLARIZED DECK THEOREM
--- ============================================================================
-
-/-- Variance proxy for polarized deck: matchups of [80,80,80,20,20,50].
-    Sum of squared deviations from 55 (the consistent deck's WR). -/
-def polarizedVar : Nat :=
-  -- |80-55|^2 * 3 + |20-55|^2 * 2 + |50-55|^2 * 1
-  25 * 25 + 25 * 25 + 25 * 25 + 35 * 35 + 35 * 35 + 5 * 5
-
-/-- Variance proxy for consistent deck: matchups of [55,55,55,55,55,55]. -/
-def consistentVar : Nat := 0  -- all deviations from 55 are zero
-
-/-- A polarized deck has strictly higher matchup variance
-    than a consistent 55%-across-the-board deck, meaning lower equilibrium share
-    in a well-adapted metagame. -/
-theorem POLARIZED_DECK_THEOREM :
-    consistentVar < polarizedVar := by decide
-
--- ============================================================================
--- (8) BAN IMPACT: removing a deck changes remaining equilibrium
--- ============================================================================
-
-/-- Matchup advantage in a format after banning one archetype. -/
-def matchupAdvantageWithout (banned : Archetype6) (a : Archetype6) : Nat :=
-  ((Archetype6.all.filter (· != banned)).map (matchupWR a)).foldl (· + ·) 0
-
-/-- Banning Control changes the advantage landscape.
-    Charizard's relative advantage increases (Control was its worst matchup). -/
-theorem BAN_IMPACT_CONTROL :
-    matchupAdvantageWithout Control Charizard_ex >
-    matchupAdvantageWithout Control Lugia_VSTAR := by decide
-
-/-- Banning Charizard changes who's best — demonstrates metagame shift. -/
-theorem BAN_IMPACT_CHARIZARD :
-    matchupAdvantageWithout Charizard_ex Control ≥
-    matchupAdvantageWithout Charizard_ex Miraidon_ex := by decide
-
--- ============================================================================
--- (9) COUNTER DECK VALUE
--- ============================================================================
-
-/-- Diversity score for the 5-deck format without Control. -/
-def fiveDeckTotal : Nat :=
-  let remaining := Archetype6.all.filter (· != Control)
-  (remaining.map (matchupAdvantageWithout Control)).foldl (· + ·) 0
-
-def fiveDeckDeviationSq (a : Archetype6) : Nat :=
-  let adv := matchupAdvantageWithout Control a
-  let scaled := 5 * adv
-  let total := fiveDeckTotal
-  if scaled ≥ total then (scaled - total) * (scaled - total)
-  else (total - scaled) * (total - scaled)
-
-def fiveDeckDiversityScore : Nat :=
-  let remaining := Archetype6.all.filter (· != Control)
-  (remaining.map fiveDeckDeviationSq).foldl (· + ·) 0
-
-/-- Adding a counter-deck (Control, which beats the #1 Charizard) to a 5-deck meta
-    increases format diversity (the 6-deck format has lower deviation). -/
+/-- Counter-deck value: Mega Absol checks Grimmsnarl despite lower play share. -/
 theorem COUNTER_DECK_VALUE :
-    formatDiversityScore < fiveDeckDiversityScore := by decide
+    matchupWRx10 MegaAbsolBox GrimmsnarlFroslass = 621 ∧
+    metaShareX10 MegaAbsolBox < metaShareX10 GrimmsnarlFroslass := by
+  native_decide
 
--- ============================================================================
--- (10) NO DOMINANT DECK
--- ============================================================================
+/-- Gardevoir is the strongest anti-Dragapult pick in the top-6 set. -/
+theorem GARDEVOIR_HARD_COUNTERS_DRAGAPULT :
+    matchupWRx10 Gardevoir DragapultDusknoir = 627 ∧
+    ∀ d : Archetype6, matchupWRx10 d DragapultDusknoir ≤ matchupWRx10 Gardevoir DragapultDusknoir := by
+  native_decide
 
-/-- A deck has a losing matchup if there exists an opponent with win rate < 50. -/
-def hasLosingMatchup (a : Archetype6) : Bool :=
-  Archetype6.all.any (fun b => matchupWR a b < 50)
+/-- Precomputed Shannon entropy terms (micro-bits) for normalized top-6 shares. -/
+def shannonTermMicroBits : Archetype6 → Nat
+  | DragapultDusknoir => 530034
+  | GholdengoLunatone => 482750
+  | GrimmsnarlFroslass => 358607
+  | MegaAbsolBox => 354793
+  | Gardevoir => 338872
+  | CharizardNoctowl => 326195
 
-/-- In the 6-deck format, every single deck has at least one unfavorable matchup. -/
-theorem NO_DOMINANT_DECK :
-    ∀ d : Archetype6, hasLosingMatchup d = true := by decide
+def observedEntropyTop6MicroBits : Nat :=
+  (Archetype6.all.map shannonTermMicroBits).foldl (· + ·) 0
 
--- ============================================================================
--- BONUS: Additional metagame theorems
--- ============================================================================
+def uniformEntropyTop6MicroBits : Nat := 2584963
 
-/-- Every matchup has a complementary matchup: WR(a,b) + WR(b,a) = 100. -/
-theorem MATCHUP_SYMMETRY :
-    ∀ a b : Archetype6, matchupWR a b + matchupWR b a = 100 := by decide
+/-- The observed top-6 share distribution is less uniform than ideal 1/6. -/
+theorem FORMAT_DIVERSITY_SHANNON :
+    observedEntropyTop6MicroBits < uniformEntropyTop6MicroBits := by
+  native_decide
 
-/-- Mirror matches are always 50-50. -/
-theorem MIRROR_FIFTY :
-    ∀ a : Archetype6, matchupWR a a = 50 := by decide
+/-- If Dragapult is banned, Gholdengo becomes the most-played remaining deck,
+    and the best counter target shifts accordingly. -/
+theorem BAN_DRAGAPULT_META_SHIFTS :
+    (∀ d : Archetype6, d ≠ DragapultDusknoir → metaShareX10 d ≤ metaShareX10 GholdengoLunatone) ∧
+    (∀ d : Archetype6, matchupWRx10 d DragapultDusknoir ≤ matchupWRx10 Gardevoir DragapultDusknoir) ∧
+    (∀ d : Archetype6, d ≠ DragapultDusknoir →
+      matchupWRx10 d GholdengoLunatone ≤ matchupWRx10 MegaAbsolBox GholdengoLunatone) := by
+  native_decide
 
-/-- The total advantage across all decks equals 1800 (6 × 300 average). -/
-theorem TOTAL_ADVANTAGE_SUM :
-    totalAdvantageSum = 1800 := by decide
+/-- From the full 14-deck Trainer Hill matrix: Raging Bolt -> Mega Absol is 67.3%. -/
+def ragingBoltVsMegaAbsolX10 : Nat := 673
+
+/-- Real metagame cycle from the full dataset:
+    Grimmsnarl > Dragapult, Mega Absol > Grimmsnarl, Raging Bolt > Mega Absol. -/
+theorem REAL_METAGAME_CYCLE :
+    matchupWRx10 GrimmsnarlFroslass DragapultDusknoir > 500 ∧
+    matchupWRx10 MegaAbsolBox GrimmsnarlFroslass > 500 ∧
+    ragingBoltVsMegaAbsolX10 > 500 := by
+  native_decide
 
 end PokemonLean.MatchupAnalysis
