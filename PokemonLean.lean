@@ -62,6 +62,7 @@ import PokemonLean.AncientTrait
 import PokemonLean.CardPool
 import PokemonLean.Evolution
 import PokemonLean.MixedStrategy
+import PokemonLean.NashEquilibrium
 import PokemonLean.Mulligan
 import PokemonLean.PrizeCards
 import PokemonLean.SpecialConditions
