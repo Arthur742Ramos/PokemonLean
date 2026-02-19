@@ -6,6 +6,8 @@ import PokemonLean.Semantics
 
 namespace PokemonLean.Replay
 
+open PokemonLean.Semantics
+
 -- ============================================================================
 -- TRACE TYPES
 -- ============================================================================

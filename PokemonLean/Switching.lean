@@ -57,7 +57,7 @@ theorem removeAt?_mem {α : Type} :
       cases idx with
       | zero =>
           simp [removeAt?] at h
-          exact List.mem_cons_of_eq _ h.1.symm
+          rw [h.1]; exact List.Mem.head _
       | succ idx =>
           simp [removeAt?] at h
           cases hRec : removeAt? tail idx with
@@ -65,7 +65,7 @@ theorem removeAt?_mem {α : Type} :
           | some pair =>
               rcases pair with ⟨y, ys⟩
               simp [hRec] at h
-              exact List.mem_cons_of_mem _ (ih idx x ys (by simp [hRec]; exact h))
+              exact List.Mem.tail _ (ih idx x ys (by simp [hRec]; exact h))
 
 
 def switchWithBenchIndex (playerState : PlayerState) (index : Nat) : Option PlayerState :=
