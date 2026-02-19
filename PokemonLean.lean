@@ -48,6 +48,7 @@ import PokemonLean.HandDisruption
 import PokemonLean.PrizeDenial
 import PokemonLean.TurnStructure
 import PokemonLean.DeckConstraints
+import PokemonLean.DeckLegality
 import PokemonLean.GXAttacks
 import PokemonLean.Probability
 import PokemonLean.AbilitySystem

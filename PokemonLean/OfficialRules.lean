@@ -290,7 +290,7 @@ def extStep (state : ExtGameState) (action : ExtAction) : Except ExtStepError Ex
     | none => .error .noActivePokemon
     | some activePoke =>
       -- Rule 7: Stage matching
-      if ¬stageMatchesForEvolution card activePoke then
+      if !stageMatchesForEvolution card activePoke then
         .error .wrongStageEvolution
       -- Rule 1: Evolution timing — first turn of the game
       else if state.turnNumber ≤ 1 then
@@ -632,9 +632,10 @@ theorem basic_cannot_evolve_onto
     (hBasic : card.stage = .basic) :
     ¬ExtLegal state (.evolveActive card) := by
   apply wrong_stage_evolution_illegal state card activePoke hActive
-  simp [stageMatchesForEvolution, hBasic]
+  exact stageMatchesForEvolution_basic card activePoke hBasic
 
-/-- Stage 1 can only evolve from a matching Basic. -/
+/-- Stage 1 can only evolve from a matching Basic. If the active Pokémon is not
+    the correct Basic, evolution is illegal. -/
 theorem stage1_requires_matching_basic
     (state : ExtGameState) (card : ExtCard) (activePoke : ExtPokemonInPlay)
     (hActive : (getExtPlayerState state state.activePlayer).active = some activePoke)
@@ -642,22 +643,16 @@ theorem stage1_requires_matching_basic
     (hMismatch : activePoke.card.stage ≠ .basic ∨ card.evolvesFrom ≠ some activePoke.card.name) :
     ¬ExtLegal state (.evolveActive card) := by
   apply wrong_stage_evolution_illegal state card activePoke hActive
-  unfold stageMatchesForEvolution
-  rw [hStage1]
+  unfold stageMatchesForEvolution; rw [hStage1]
+  rw [Bool.and_eq_false_iff]
   cases hMismatch with
   | inl hNotBasic =>
-    cases h : activePoke.card.stage <;> simp_all [BEq.beq, decide]
+    left; exact bne_iff_ne _ _ |>.mpr hNotBasic
   | inr hWrongName =>
-    have : ¬(card.evolvesFrom == some activePoke.card.name) = true := by
-      intro hc
-      exact hWrongName (eq_of_beq hc)
-    simp [Bool.and_eq_false_iff]
-    cases h : activePoke.card.stage
-    · right; simpa [BEq.beq, decide] using this
-    · left; rfl
-    · left; rfl
+    right; exact bne_iff_ne _ _ |>.mpr hWrongName
 
-/-- Stage 2 can only evolve from a matching Stage 1. -/
+/-- Stage 2 can only evolve from a matching Stage 1. If the active Pokémon is not
+    the correct Stage 1, evolution is illegal. -/
 theorem stage2_requires_matching_stage1
     (state : ExtGameState) (card : ExtCard) (activePoke : ExtPokemonInPlay)
     (hActive : (getExtPlayerState state state.activePlayer).active = some activePoke)
@@ -665,20 +660,13 @@ theorem stage2_requires_matching_stage1
     (hMismatch : activePoke.card.stage ≠ .stage1 ∨ card.evolvesFrom ≠ some activePoke.card.name) :
     ¬ExtLegal state (.evolveActive card) := by
   apply wrong_stage_evolution_illegal state card activePoke hActive
-  unfold stageMatchesForEvolution
-  rw [hStage2]
+  unfold stageMatchesForEvolution; rw [hStage2]
+  rw [Bool.and_eq_false_iff]
   cases hMismatch with
   | inl hNotS1 =>
-    cases h : activePoke.card.stage <;> simp_all [BEq.beq, decide]
+    left; exact bne_iff_ne _ _ |>.mpr hNotS1
   | inr hWrongName =>
-    have : ¬(card.evolvesFrom == some activePoke.card.name) = true := by
-      intro hc
-      exact hWrongName (eq_of_beq hc)
-    simp [Bool.and_eq_false_iff]
-    cases h : activePoke.card.stage
-    · left; rfl
-    · right; simpa [BEq.beq, decide] using this
-    · left; rfl
+    right; exact bne_iff_ne _ _ |>.mpr hWrongName
 
 /-! ====================================================================
     RULE 8 — KNOCKED OUT CLEANUP / PRIZE VALUE
@@ -703,39 +691,57 @@ def takePrizes (attackerPS defenderPS : ExtPlayerState) (n : Nat) :
 theorem takePrizes_decreases_prizes (atkPS defPS : ExtPlayerState) (n : Nat) :
     (takePrizes atkPS defPS n).2.prizes.length ≤ defPS.prizes.length := by
   induction n generalizing atkPS defPS with
-  | zero => simp [takePrizes]
+  | zero => unfold takePrizes; exact Nat.le_refl _
   | succ k ih =>
-    simp only [takePrizes]
     match hP : defPS.prizes with
-    | [] => simp [hP, takePrizes]; exact Nat.le_refl _
+    | [] => unfold takePrizes; rw [hP]; exact Nat.le_refl _
     | prize :: rest =>
-      simp only [hP]
+      unfold takePrizes; rw [hP]
       have h := ih
         { atkPS with hand := prize :: atkPS.hand }
         { defPS with prizes := rest }
-      simp at h
+      have hSimp : ({ defPS with prizes := rest } : ExtPlayerState).prizes = rest := rfl
+      rw [hSimp] at h
       simp only [List.length_cons]
-      omega
+      exact Nat.le_trans h (Nat.le_succ _)
 
 /-- When there are enough prizes, takePrizes removes exactly n. -/
 theorem takePrizes_exact (atkPS defPS : ExtPlayerState) (n : Nat)
     (hEnough : n ≤ defPS.prizes.length) :
     (takePrizes atkPS defPS n).2.prizes.length = defPS.prizes.length - n := by
-  induction n generalizing atkPS defPS with
-  | zero => simp [takePrizes]
-  | succ k ih =>
-    match hP : defPS.prizes with
-    | [] => simp [List.length] at hEnough
-    | prize :: rest =>
-      simp only [takePrizes, hP]
-      have hEnough' : k ≤ rest.length := by
-        simp only [List.length_cons] at hEnough; omega
-      have := ih
-        { atkPS with hand := prize :: atkPS.hand }
-        { defPS with prizes := rest }
-        hEnough'
-      simp only [List.length_cons] at hEnough ⊢
-      simp at this
+  obtain ⟨deck, hand, bench, active, discard, prizes, sp, ea, ret⟩ := defPS
+  simp only at hEnough ⊢
+  -- Now we need to prove it with the explicit structure.
+  -- takePrizes pattern-matches on n and prizes, so we induct on prizes
+  -- generalizing atkPS and n
+  suffices ∀ (atkPS : ExtPlayerState) (n : Nat), n ≤ prizes.length →
+    (takePrizes atkPS
+      { deck := deck, hand := hand, bench := bench, active := active,
+        discard := discard, prizes := prizes, supporterPlayed := sp,
+        energyAttached := ea, retreated := ret } n).2.prizes.length =
+    prizes.length - n from this atkPS n hEnough
+  clear hEnough atkPS n
+  induction prizes with
+  | nil =>
+    intro atkPS n hLen
+    have hn : n = 0 := by omega
+    subst hn; rfl
+  | cons prize rest ih =>
+    intro atkPS n hLen
+    match n with
+    | 0 => rfl
+    | k + 1 =>
+      -- unfold one step of takePrizes
+      show (takePrizes { atkPS with hand := prize :: atkPS.hand }
+            { deck := deck, hand := hand, bench := bench, active := active,
+              discard := discard, prizes := rest, supporterPlayed := sp,
+              energyAttached := ea, retreated := ret } k).2.prizes.length =
+            (prize :: rest).length - (k + 1)
+      have hLen' : k ≤ rest.length := by omega
+      have hIH := ih { atkPS with hand := prize :: atkPS.hand } k hLen'
+      -- hIH says the recursive result has length rest.length - k
+      -- Goal: ... = (prize :: rest).length - (k + 1)
+      simp only [show (prize :: rest).length = rest.length + 1 from rfl] at *
       omega
 
 /-- Prize value is always positive for regular Pokémon (RuleBox.none). -/
@@ -749,11 +755,11 @@ theorem prizeValue_vmax_eq_three : prizeValue .vmax = 3 := rfl
 
 /-- Prize value is always at least 1. -/
 theorem prizeValue_pos (rb : RuleBox) : prizeValue rb ≥ 1 := by
-  cases rb <;> simp [prizeValue] <;> omega
+  cases rb <;> native_decide
 
 /-- Prize value is always at most 3. -/
 theorem prizeValue_le_three (rb : RuleBox) : prizeValue rb ≤ 3 := by
-  cases rb <;> simp [prizeValue] <;> omega
+  cases rb <;> native_decide
 
 /-- After a KO, defender's prize pile shrinks by the KO'd Pokémon's prize value
     (assuming enough prizes remain). -/
@@ -777,12 +783,11 @@ theorem endTurn_resets_flags
     (getExtPlayerState state' nextPlayer).energyAttached = false ∧
     (getExtPlayerState state' nextPlayer).retreated = false := by
   simp only [extStep] at hStep
-  cases hStep
-  constructor
-  · cases state.activePlayer <;> simp [extOtherPlayer, getExtPlayerState, setExtPlayerState]
-  constructor
-  · cases state.activePlayer <;> simp [extOtherPlayer, getExtPlayerState, setExtPlayerState]
-  · cases state.activePlayer <;> simp [extOtherPlayer, getExtPlayerState, setExtPlayerState]
+  have hInj := Except.ok.inj hStep
+  subst hInj
+  refine ⟨?_, ?_, ?_⟩ <;> (
+    cases hEq : state.activePlayer <;>
+      simp [hEq, extOtherPlayer, getExtPlayerState, setExtPlayerState])
 
 /-- extStep is deterministic. -/
 theorem extStep_deterministic
