@@ -37,6 +37,7 @@ import PokemonLean.StatusEffects
 import PokemonLean.TypeChart
 import PokemonLean.EnergyManagement
 import PokemonLean.EnergyAcceleration
+import PokemonLean.EnergyEconomy
 import PokemonLean.Replay
 import PokemonLean.ReplayValidation
 import PokemonLean.Stadium
