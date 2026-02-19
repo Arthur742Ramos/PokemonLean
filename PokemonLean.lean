@@ -48,6 +48,7 @@ import PokemonLean.LostZoneCombos
 import PokemonLean.TournamentRules
 import PokemonLean.OfficialRules
 import PokemonLean.HandManagement
+import PokemonLean.CardAdvantage
 import PokemonLean.Archetypes
 import PokemonLean.ArchetypeMatchups
 import PokemonLean.RetreatMechanics
