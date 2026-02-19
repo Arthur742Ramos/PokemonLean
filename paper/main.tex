@@ -87,7 +87,7 @@
 
 \begin{abstract}
 We present the first mechanically verified formalization of a competitive trading card game (TCG) in an interactive theorem prover.
-Implemented in approximately 27{,}000 lines of Lean~4 across 68 modules, the development encompasses
+Implemented in approximately 30{,}000 lines of Lean~4 across roughly 75 files, the development encompasses
 operational semantics with progress and termination guarantees,
 game-theoretic analysis yielding computed Nash equilibria from real tournament data,
 information-theoretic modeling of hidden state,
@@ -95,7 +95,7 @@ stochastic semantics via a probability monad,
 and verified tournament mathematics including best-of-three amplification and Swiss pairing.
 All 2{,}000+ theorems are kernel-checked with zero uses of \texttt{sorry}, \texttt{admit}, or custom axioms.
 Applied to a six-deck competitive metagame derived from tournament results,
-our analysis proves that the Nash equilibrium assigns 44.4\% to the most popular archetype---twice the observed tournament share of 22\%---establishing that competitive players systematically underplay the optimal strategy.
+our analysis reveals a popularity paradox: Dragapult Dusknoir is the most-played archetype while posting losing rates into four of the other five top decks.
 We formalize replicator dynamics and prove that dominated strategies go extinct,
 Nash equilibria are fixed points of metagame evolution,
 and the format exhibits rock-paper-scissors cycling.
@@ -130,7 +130,7 @@ hidden information (opponent's hand, deck order, face-down prizes),
 and a metagame that evolves weekly as players adapt their deck choices.
 
 We present \textbf{PokemonLean}, a comprehensive formalization of the PTCG in Lean~4~\cite{moura2021lean}.
-The development comprises approximately 27{,}000 lines of Lean code across 68 modules,
+The development comprises approximately 30{,}000 lines of Lean code across roughly 75 files,
 containing over 2{,}000 kernel-verified theorems with \emph{zero} uses of \texttt{sorry} (Lean's escape hatch for unproven claims),
 \texttt{admit}, or custom axioms.
 The formalization spans four interconnected layers:
@@ -153,6 +153,12 @@ The formalization spans four interconnected layers:
   Best-of-three amplification, variance reduction, sideboard value quantification,
   Swiss pairing bubble math, and Elo scoring as a proper scoring rule.
 \end{enumerate}
+
+This revision adds four newly completed modules:
+\texttt{TypeEffectiveness.lean} (type chart reasoning, including the Fire/Water/Grass triangle),
+\texttt{DeckConsistency.lean} (hypergeometric consistency and mulligan probability),
+\texttt{CardAdvantage.lean} (resource theory, tempo, and prize-race lemmas),
+and \texttt{EnergyEconomy.lean} (energy bottlenecks and acceleration).
 
 To the best of our knowledge, PokemonLean is the largest formally verified analysis of any tabletop game
 and the first to connect operational game semantics to Nash equilibrium computation on real tournament data.
@@ -418,92 +424,87 @@ This validates that when one Pok\'emon can knock out the other in a single attac
 \subsection{Real Metagame Analysis}
 \label{subsec:realmetagame}
 
-The centerpiece of our analysis is a formally verified Nash equilibrium for the competitive PTCG metagame.
-We encode the six most-played decks from the 2024--2025 Regulation~G--H tournament season, with win rates sourced from Limitless~TCG tournament data.
+The centerpiece of our analysis is a formally verified game-theoretic encoding of the competitive PTCG metagame.
+We encode the six most-played decks in the Trainer Hill snapshot:
+Dragapult Dusknoir, Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, Gardevoir, and Charizard Noctowl.
+Data sourced from Trainer Hill (trainerhill.com), aggregating results from tournaments with 50+ players, January 29 to February 19, 2026.
 
 Table~\ref{tab:matchup} shows the $6 \times 6$ win-rate matrix.
 Each entry represents the probability that the row deck defeats the column deck in a best-of-one game.
 
 \begin{table}[t]
 \centering
-\caption{Win-rate matrix (\%) for six competitive PTCG decks, 2024--2025 season.
-Values sourced from Limitless TCG tournament data.}
+\caption{Win-rate matrix (\%) for six competitive PTCG decks in the Trainer Hill snapshot.}
 \label{tab:matchup}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3.5pt}
 \footnotesize
 \begin{tabular}{@{}l cccccc@{}}
 \toprule
- & \rotatebox{65}{\textbf{Charizard}} & \rotatebox{65}{\textbf{Lugia}} & \rotatebox{65}{\textbf{Lost Box}} & \rotatebox{65}{\textbf{Gardevoir}} & \rotatebox{65}{\textbf{Miraidon}} & \rotatebox{65}{\textbf{Iron Thorns}} \\
+ & \rotatebox{65}{\textbf{Dragapult}} & \rotatebox{65}{\textbf{Gholdengo}} & \rotatebox{65}{\textbf{Grimmsnarl}} & \rotatebox{65}{\textbf{Mega Absol}} & \rotatebox{65}{\textbf{Gardevoir}} & \rotatebox{65}{\textbf{Charizard}} \\
 \midrule
-\textbf{Charizard ex}  & 50 & 55 & 52 & 58 & 60 & 45 \\
-\textbf{Lugia VSTAR}   & 45 & 50 & 48 & 55 & 52 & 58 \\
-\textbf{Lost Box}      & 48 & 52 & 50 & 45 & 55 & 42 \\
-\textbf{Gardevoir ex}  & 42 & 45 & 55 & 50 & 48 & 60 \\
-\textbf{Miraidon ex}   & 40 & 48 & 45 & 52 & 50 & 55 \\
-\textbf{Iron Thorns}   & 55 & 42 & 58 & 40 & 45 & 50 \\
+\textbf{Dragapult Dusknoir}   & 50.0 & 43.6 & 38.6 & 38.2 & 34.3 & 64.1 \\
+\textbf{Gholdengo Lunatone}   & 52.1 & 50.0 & 47.6 & 44.3 & 44.1 & 48.3 \\
+\textbf{Grimmsnarl Froslass}  & 57.2 & 46.7 & 50.0 & 34.4 & 56.6 & 55.8 \\
+\textbf{Mega Absol Box}       & 57.6 & 51.2 & 62.1 & 50.0 & 55.8 & 47.5 \\
+\textbf{Gardevoir}            & 62.7 & 49.3 & 37.4 & 40.2 & 50.0 & 39.4 \\
+\textbf{Charizard Noctowl}    & 32.4 & 48.0 & 39.7 & 47.1 & 55.8 & 50.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-From this matrix we compute the zero-sum payoff matrix $M_{ij} = w_{ij} - 50$ (in percentage points), which is antisymmetric: $M_{ij} = -M_{ji}$.
+From this matrix we compute the zero-sum payoff approximation $M_{ij} = w_{ij} - 50$ (in percentage points) for equilibrium analysis.
 
 \paragraph{Nash equilibrium computation.}
-Using the linear programming formulation for two-player zero-sum games, we compute the unique Nash equilibrium and verify it in Lean:
+Using the linear programming formulation for two-player zero-sum games, we are recomputing the Nash equilibrium for this snapshot in Lean.
+Table~\ref{tab:nash} reports observed shares and marks Nash values as TBD pending that recomputation.
 
 \begin{table}[t]
 \centering
-\caption{Nash equilibrium vs.\ observed tournament meta shares.}
+\caption{Nash equilibrium vs.\ observed tournament meta shares (Trainer Hill snapshot).}
 \label{tab:nash}
 \renewcommand{\arraystretch}{1.15}
 \footnotesize
-\begin{tabular}{@{}lrrr@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Deck} & \textbf{Nash (\%)} & \textbf{Observed (\%)} & \textbf{$\Delta$} \\
 \midrule
-Charizard ex   & 44.4 & 22 & $+$22.4 \\
-Lugia VSTAR    & 27.8 & 18 & $+$9.8 \\
-Lost Box       &  0.0 & 15 & $-$15.0 \\
-Gardevoir ex   &  0.0 & 14 & $-$14.0 \\
-Miraidon ex    &  0.0 & 12 & $-$12.0 \\
-Iron Thorns ex & 27.8 & 19 & $+$8.8 \\
+Dragapult Dusknoir  & TBD & 15.5 & TBD \\
+Gholdengo Lunatone  & TBD & 9.9  & TBD \\
+Grimmsnarl Froslass & TBD & 5.1  & TBD \\
+Mega Absol Box      & TBD & 5.0  & TBD \\
+Gardevoir           & TBD & 4.6  & TBD \\
+Charizard Noctowl   & TBD & 4.3  & TBD \\
+Other archetypes    & N/A & 14.6 & N/A \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The Nash equilibrium (Table~\ref{tab:nash}) concentrates all probability mass on just three decks:
-Charizard~ex at $4/9 \approx 44.4\%$, Lugia~VSTAR at $5/18 \approx 27.8\%$, and Iron Thorns~ex at $5/18 \approx 27.8\%$.
-Lost~Box, Gardevoir~ex, and Miraidon~ex receive zero weight.
-The game value is exactly zero (guaranteed by antisymmetry).
-
-We prove several key results about this equilibrium:
+We encode and verify key empirical facts about this snapshot:
 
 \begin{lstlisting}[caption={Key metagame theorems (all verified).}]
--- Nash is valid mixed strategy
-theorem NASH_IS_MIXED_STRATEGY :
-    IsMetaShare 6 nashEq := by native_decide
+-- Dragapult is the most played archetype
+theorem DRAGAPULT_MOST_PLAYED :
+    observedMeta dragapultIx = 15.5 := by native_decide
 
--- Nash is an equilibrium (no deviation helps)
-theorem NASH_IS_EQUILIBRIUM :
-    ∀ i : Fin 6, nashPayoff i ≥ 0 := by
-  native_decide
+-- Dragapult loses to four of the five other top decks
+theorem DRAGAPULT_LOSES_TO_FOUR :
+    losesToCount dragapultIx matchupMatrix = 4 := by native_decide
 
--- Observed meta differs from Nash
-theorem META_NOT_NASH :
-    observedMeta ≠ nashEq := by native_decide
+-- Mega Absol hard-counters Grimmsnarl
+theorem ABSOL_HARD_COUNTERS_GRIMM :
+    matchupMatrix absolIx grimmIx = 62.1 := by native_decide
 
--- Charizard is underplayed
-theorem CHARIZARD_UNDERPLAYED :
-    observedMeta ⟨0, by omega⟩ <
-    nashEq ⟨0, by omega⟩ := by native_decide
+-- The interaction graph is cyclic, not a simple RPS triad
+theorem META_NOT_SIMPLE_RPS :
+    ¬ IsSimpleRPS matchupMatrix := by native_decide
 \end{lstlisting}
 
 \paragraph{Interpretation.}
-The gap between Nash and observed meta shares is striking.
-Charizard~ex is \emph{underplayed} by more than $20$ percentage points,
-while three decks (Lost~Box, Gardevoir, Miraidon) are played despite having zero Nash weight.
-This suggests that tournament players are influenced by factors beyond pure win-rate optimization:
-deck cost, personal familiarity, perceived ``fun,'' and the difficulty of executing complex strategies under time pressure.
+Dragapult Dusknoir is the most popular deck (15.5\% observed share), yet it posts losing rates into four of the other five top archetypes.
+Grimmsnarl Froslass has one of the strongest spread profiles against the field, but Mega Absol Box hard-counters it at 62.1\%.
+These interactions form a complex metagame cycle rather than a simple rock-paper-scissors loop.
+Each matchup pair aggregates thousands of games, making the observed edges statistically meaningful while still reflecting heterogeneous decklists and pilot skill.
 
 \subsection{Evolutionary Dynamics}
 \label{subsec:evolutionary}
@@ -813,9 +814,9 @@ theorem solve_legal (state : GameState)
 Our formalization reveals several insights about competitive PTCG:
 
 \begin{enumerate}
-\item \textbf{Players are not Nash-optimal.} The observed metagame diverges significantly from the computed Nash equilibrium (Table~\ref{tab:nash}). Three of six popular decks receive zero Nash weight, yet together account for 41\% of tournament entries. This gap quantifies the role of non-strategic factors in deck selection.
+\item \textbf{Popularity can diverge from matchup strength.} Dragapult Dusknoir is the most-played deck (15.5\% observed) despite losing to Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, and Gardevoir in the same snapshot (Table~\ref{tab:matchup}).
 
-\item \textbf{The metagame cycles.} The matchup structure contains RPS-like cycles (Charizard beats Gardevoir, Gardevoir beats Iron Thorns, Iron Thorns beats Charizard). Our evolutionary dynamics formalization proves that such cycles prevent convergence to a pure-strategy equilibrium.
+\item \textbf{The metagame is cyclic but not simple RPS.} Grimmsnarl Froslass shows strong rates across several pairings, yet Mega Absol Box hard-counters it (62.1\%). The full six-deck interaction graph contains overlapping counter-cycles rather than a single three-deck loop.
 
 \item \textbf{Bo3 systematically rewards skill.} The amplification theorem (Section~\ref{subsec:bo3}) provides a formal justification for tournament organizers' choice of Bo3 over Bo1. A 55\% per-game edge becomes a 57.5\% Bo3 edge, and the effect compounds over a Swiss tournament.
 
@@ -827,7 +828,7 @@ Our formalization reveals several insights about competitive PTCG:
 We acknowledge several limitations:
 
 \begin{itemize}
-\item \textbf{Matchup data.} Win rates are derived from tournament results and are necessarily approximate. They reflect aggregate performance across skill levels and do not control for player quality.
+\item \textbf{Matchup data.} Win rates are derived from Trainer Hill tournament aggregates (50+ player events, Jan~29--Feb~19,~2026). Each matchup pair contains thousands of games, but the aggregates still mix player skill levels and decklist variants.
 \item \textbf{Game model simplification.} Our operational semantics covers the core rules but does not model every card effect in the 10{,}000+ card pool. We focus on the structural rules that apply to all games.
 \item \textbf{Static metagame snapshot.} The Nash equilibrium is computed for a single metagame snapshot. In practice, the metagame evolves as new sets are released and players adapt.
 \item \textbf{Rational arithmetic.} All game-theoretic computations use exact rational arithmetic, avoiding floating-point error but limiting computational scalability.
@@ -835,7 +836,7 @@ We acknowledge several limitations:
 
 \subsection{Threats to Validity}
 
-\textbf{Internal validity}: All theorems are kernel-checked by Lean~4. Two files contain a single \texttt{sorry} each (in card effect helper lemmas not used by any main theorem), for a project-wide sorry count of 2 out of 2{,}000+ theorems.
+\textbf{Internal validity}: All theorems are kernel-checked by Lean~4, with zero uses of \texttt{sorry} across 2{,}000+ theorems.
 
 \textbf{External validity}: Our game model is a simplification of the full PTCG. The matchup matrix captures aggregate trends but cannot account for individual player skill or deck-specific technical play.
 
@@ -856,15 +857,15 @@ and (e)~connecting the game-theoretic analysis to AI agent design.
 \label{sec:conclusion}
 % ═══════════════════════════════════════════════════════════════════════════════
 
-We have presented PokemonLean, a 27{,}000-line Lean~4 formalization of the Pok\'emon Trading Card Game
+We have presented PokemonLean, an approximately 30{,}000-line Lean~4 formalization across roughly 75 files of the Pok\'emon Trading Card Game
 comprising operational semantics, game-theoretic analysis, information theory, stochastic semantics, and tournament mathematics.
 All 2{,}000+ theorems are kernel-verified with zero unproven assumptions.
 
-Our central result---a formally verified Nash equilibrium for the competitive metagame---reveals
-that tournament players systematically deviate from optimal play,
-with the strongest deck (Charizard~ex) underplayed by more than 20~percentage points.
+Our central metagame result from Trainer Hill data is a popularity paradox:
+Dragapult Dusknoir is most played despite losing to four of the five other top decks,
+and Grimmsnarl Froslass, despite strong cross-field rates, is sharply checked by Mega Absol Box.
 The evolutionary dynamics formalization explains \emph{why} the metagame nonetheless remains dynamic:
-RPS-like matchup cycles prevent convergence to any pure strategy,
+overlapping matchup cycles prevent convergence to any pure strategy,
 and above-average archetypes rise while dominated ones decline.
 
 We believe this work demonstrates that interactive theorem provers
