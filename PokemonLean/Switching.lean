@@ -65,7 +65,9 @@ theorem removeAt?_mem {α : Type} :
           | some pair =>
               rcases pair with ⟨y, ys⟩
               simp [hRec] at h
-              exact List.Mem.tail _ (ih idx x ys (by simp [hRec]; exact h))
+              have hMem := ih idx y ys hRec
+              rw [h.1] at hMem
+              exact List.Mem.tail _ hMem
 
 
 def switchWithBenchIndex (playerState : PlayerState) (index : Nat) : Option PlayerState :=
