@@ -9,6 +9,7 @@ import PokemonLean.Corpus
 import PokemonLean.Solver
 import PokemonLean.GameTheory
 import PokemonLean.Semantics
+import PokemonLean.SemanticsDeep
 import PokemonLean.BoardState
 import PokemonLean.DamageCounters
 import PokemonLean.Matchup
@@ -43,6 +44,7 @@ import PokemonLean.PrizeDenial
 import PokemonLean.TurnStructure
 import PokemonLean.DeckConstraints
 import PokemonLean.GXAttacks
+import PokemonLean.Probability
 
 -- === master-branch Core.* modules ===
 import PokemonLean.Core.Types
