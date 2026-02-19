@@ -57,6 +57,7 @@ import PokemonLean.DeckConstraints
 import PokemonLean.DeckLegality
 import PokemonLean.GXAttacks
 import PokemonLean.Probability
+import PokemonLean.DeckConsistency
 import PokemonLean.InformationTheory
 import PokemonLean.AbilitySystem
 import PokemonLean.AncientTrait
