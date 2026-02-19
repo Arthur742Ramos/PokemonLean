@@ -9,6 +9,7 @@
 -/
 import PokemonLean.NashEquilibrium
 import PokemonLean.Core.Types
+import PokemonLean.RealMetagame
 
 namespace PokemonLean.TournamentStrategy
 
@@ -247,5 +248,110 @@ theorem VARIANCE_REDUCTION_FINE :
 theorem VARIANCE_60_BO1 : bernoulliVar (3/5) = 6/25 := by native_decide
 theorem VARIANCE_60_BO3 : bo3Var (3/5) = 3564/15625 := by native_decide
 theorem VARIANCE_60_REDUCTION : bo3Var (3/5) < bernoulliVar (3/5) := by native_decide
+
+/-! ## 11. Real Trainer Hill metagame applications -/
+
+def natToRat (n : Nat) : Rat := ((n : Int) : Rat)
+
+def perThousandToRat (n : Nat) : Rat := natToRat n / 1000
+
+def grimmVsDragapultBo1 : Rat :=
+  perThousandToRat (PokemonLean.RealMetagame.matchupWR
+    .GrimssnarlFroslass .DragapultDusknoir)
+
+def ragingBoltVsMegaAbsolBo1 : Rat :=
+  perThousandToRat (PokemonLean.RealMetagame.matchupWR
+    .RagingBoltOgerpon .MegaAbsolBox)
+
+def gardevoirVsDragapultBo1 : Rat :=
+  perThousandToRat (PokemonLean.RealMetagame.matchupWR
+    .Gardevoir .DragapultDusknoir)
+
+theorem BO3_GRIMMSNARL_VS_DRAGAPULT_RATE :
+    bo3WinProb grimmVsDragapultBo1 = 1186042 / 1953125 := by native_decide
+
+theorem BO3_GRIMMSNARL_VS_DRAGAPULT_AMPLIFIES :
+    bo3WinProb grimmVsDragapultBo1 > grimmVsDragapultBo1 ∧
+    bo3WinProb grimmVsDragapultBo1 > 3 / 5 := by native_decide
+
+theorem BO3_RAGING_BOLT_VS_MEGA_ABSOL_RATE :
+    bo3WinProb ragingBoltVsMegaAbsolBo1 = 374572283 / 500000000 := by native_decide
+
+theorem BO3_RAGING_BOLT_VS_MEGA_ABSOL_AMPLIFIES :
+    bo3WinProb ragingBoltVsMegaAbsolBo1 > ragingBoltVsMegaAbsolBo1 ∧
+    bo3WinProb ragingBoltVsMegaAbsolBo1 > 7 / 10 := by native_decide
+
+theorem BO3_GARDEVOIR_VS_DRAGAPULT_RATE :
+    bo3WinProb gardevoirVsDragapultBo1 = 343201617 / 500000000 := by native_decide
+
+theorem BO3_GARDEVOIR_VS_DRAGAPULT_AMPLIFIES :
+    bo3WinProb gardevoirVsDragapultBo1 > gardevoirVsDragapultBo1 ∧
+    bo3WinProb gardevoirVsDragapultBo1 > 17 / 25 := by native_decide
+
+def top14ShareTotal : Nat :=
+  (PokemonLean.RealMetagame.Deck.all.map PokemonLean.RealMetagame.metaShare).foldl (· + ·) 0
+
+def swissMatchupProbTop14 (d : PokemonLean.RealMetagame.Deck) : Rat :=
+  natToRat (PokemonLean.RealMetagame.metaShare d) / natToRat top14ShareTotal
+
+def expectedSwissMatchupsIn8 (d : PokemonLean.RealMetagame.Deck) : Rat :=
+  8 * swissMatchupProbTop14 d
+
+theorem SWISS_TOP14_SHARE_TOTAL : top14ShareTotal = 695 := by native_decide
+
+theorem SWISS_TOP14_MATCHUP_DISTRIBUTION :
+    (PokemonLean.RealMetagame.Deck.all.map swissMatchupProbTop14).foldl (· + ·) 0 = 1 := by
+  native_decide
+
+theorem SWISS_TOP14_EXPECTED_MATCHUPS_SUM :
+    (PokemonLean.RealMetagame.Deck.all.map expectedSwissMatchupsIn8).foldl (· + ·) 0 = 8 := by
+  native_decide
+
+theorem SWISS_TOP14_EXPECTED_DRAGAPULT_IN_8 :
+    expectedSwissMatchupsIn8 PokemonLean.RealMetagame.Deck.DragapultDusknoir = 248 / 139 := by
+  native_decide
+
+def gardevoirDragapultReadValue : Rat :=
+  perThousandToRat (PokemonLean.RealMetagame.metaShare .DragapultDusknoir) * gardevoirVsDragapultBo1
+
+theorem GARDEVOIR_METAGAME_READ_VALUE :
+    gardevoirDragapultReadValue = 97185 / 1000000 := by native_decide
+
+def top6Decks : List PokemonLean.RealMetagame.Deck :=
+  [.DragapultDusknoir, .GholdengoLunatone, .GrimssnarlFroslass,
+   .MegaAbsolBox, .Gardevoir, .CharizardNoctowl]
+
+def weightedWinRateNumerator (d : PokemonLean.RealMetagame.Deck) : Nat :=
+  (PokemonLean.RealMetagame.Deck.all.map
+    (fun opp => PokemonLean.RealMetagame.metaShare opp * PokemonLean.RealMetagame.matchupWR d opp)).foldl
+    (· + ·) 0
+
+def expectedWinRateVsField (d : PokemonLean.RealMetagame.Deck) : Rat :=
+  natToRat (weightedWinRateNumerator d) / natToRat (top14ShareTotal * 1000)
+
+theorem EXPECTED_WR_DRAGAPULT_VS_FIELD :
+    expectedWinRateVsField .DragapultDusknoir = 324243 / 695000 := by native_decide
+
+theorem EXPECTED_WR_GHOLDENGO_VS_FIELD :
+    expectedWinRateVsField .GholdengoLunatone = 332140 / 695000 := by native_decide
+
+theorem EXPECTED_WR_GRIMMSNARL_VS_FIELD :
+    expectedWinRateVsField .GrimssnarlFroslass = 366061 / 695000 := by native_decide
+
+theorem EXPECTED_WR_MEGA_ABSOL_VS_FIELD :
+    expectedWinRateVsField .MegaAbsolBox = 359377 / 695000 := by native_decide
+
+theorem EXPECTED_WR_GARDEVOIR_VS_FIELD :
+    expectedWinRateVsField .Gardevoir = 346552 / 695000 := by native_decide
+
+theorem EXPECTED_WR_CHARIZARD_NOCTOWL_VS_FIELD :
+    expectedWinRateVsField .CharizardNoctowl = 317721 / 695000 := by native_decide
+
+theorem GRIMMSNARL_HIGHEST_EXPECTED_WR_VS_FIELD :
+    ∀ d ∈ top6Decks, expectedWinRateVsField d ≤ expectedWinRateVsField .GrimssnarlFroslass := by
+  native_decide
+
+theorem DRAGAPULT_EXPECTED_WR_VS_FIELD_BELOW_FIFTY :
+    expectedWinRateVsField .DragapultDusknoir < 1 / 2 := by native_decide
 
 end PokemonLean.TournamentStrategy
