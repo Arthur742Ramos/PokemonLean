@@ -212,28 +212,6 @@ def drawFromDeck (deck : List Card) (n : Nat) : Option (List Card × List Card) 
   else
     none
 
-theorem drawFromDeck_length (deck : List Card) (n : Nat) (drawn rest : List Card)
-    (h : drawFromDeck deck n = some (drawn, rest)) :
-    drawn.length = n ∧ rest.length + n = deck.length := by
-  unfold drawFromDeck at h
-  by_cases hLe : n ≤ deck.length
-  · simp [hLe] at h
-    rcases h with ⟨hTake, hDrop⟩
-    cases hTake.symm
-    cases hDrop.symm
-    constructor
-    · simp [List.length_take, Nat.min_eq_left hLe]
-    · simp [List.length_drop, Nat.sub_add_cancel hLe]
-  · have : False := by
-      simp [hLe] at h
-    exact False.elim this
-
-theorem drawFromDeck_none_of_gt (deck : List Card) (n : Nat)
-    (h : deck.length < n) :
-    drawFromDeck deck n = none := by
-  unfold drawFromDeck
-  have h' : ¬ n ≤ deck.length := Nat.not_le_of_gt h
-  simp [h']
 
 def discardTop (hand : List Card) (n : Nat) : Option (List Card × List Card) :=
   if n ≤ hand.length then
@@ -368,9 +346,6 @@ theorem trainerSequenceLegal_cons_non_supporter (t : TrainerCard) (ts : List Tra
     trainerSequenceLegal (t :: ts) ↔ trainerSequenceLegal ts := by
   simp [trainerSequenceLegal, supporterCount, hSupporter]
 
-theorem playTrainerSequence_nil (state : GameState) :
-    playTrainerSequence state [] = .ok state := by
-  rfl
 
 theorem playTrainerSequence_cons_ok (state : GameState) (trainer : TrainerCard) (rest : List TrainerCard)
     (next : GameState) (h : playTrainerCard state trainer = .ok next) :

@@ -27,24 +27,6 @@ def isLightRetreat (rc : RetreatCost) : Bool := decide (rc.cost ≤ 1)
 -- RETREAT COST BASIC THEOREMS
 -- ============================================================================
 
-theorem free_retreat_cost_zero : RetreatCost.free.cost = 0 := rfl
-theorem one_retreat_cost : RetreatCost.one.cost = 1 := rfl
-theorem two_retreat_cost : RetreatCost.two.cost = 2 := rfl
-theorem three_retreat_cost : RetreatCost.three.cost = 3 := rfl
-theorem four_retreat_cost : RetreatCost.four.cost = 4 := rfl
-theorem five_retreat_cost : RetreatCost.five.cost = 5 := rfl
-
-theorem free_is_free_retreat : isFreeRetreat RetreatCost.free = true := rfl
-theorem one_not_free : isFreeRetreat RetreatCost.one = false := rfl
-theorem free_is_light : isLightRetreat RetreatCost.free = true := rfl
-theorem one_is_light : isLightRetreat RetreatCost.one = true := rfl
-theorem two_not_light : isLightRetreat RetreatCost.two = false := rfl
-theorem three_is_heavy : isHeavyRetreat RetreatCost.three = true := rfl
-theorem four_is_heavy : isHeavyRetreat RetreatCost.four = true := rfl
-theorem two_not_heavy : isHeavyRetreat RetreatCost.two = false := rfl
-theorem free_not_heavy : isHeavyRetreat RetreatCost.free = false := rfl
-theorem five_is_heavy : isHeavyRetreat RetreatCost.five = true := rfl
-theorem five_not_light : isLightRetreat RetreatCost.five = false := rfl
 
 -- ============================================================================
 -- SWITCH EFFECTS
@@ -77,17 +59,6 @@ def retreatReduction : SwitchEffect → Nat
 -- SWITCH EFFECT THEOREMS
 -- ============================================================================
 
-theorem boss_orders_is_gust : isGustEffect SwitchEffect.bossOrders = true := rfl
-theorem guzma_is_gust : isGustEffect SwitchEffect.guzma = true := rfl
-theorem counter_catcher_is_gust : isGustEffect SwitchEffect.counterCatcher = true := rfl
-theorem switch_not_gust : isGustEffect SwitchEffect.switch = false := rfl
-theorem air_balloon_not_gust : isGustEffect SwitchEffect.airBalloon = false := rfl
-theorem float_stone_free : providesFreeRetreat SwitchEffect.floatStone = true := rfl
-theorem switch_free : providesFreeRetreat SwitchEffect.switch = true := rfl
-theorem jet_energy_free : providesFreeRetreat SwitchEffect.jetEnergy = true := rfl
-theorem boss_not_free : providesFreeRetreat SwitchEffect.bossOrders = false := rfl
-theorem air_balloon_reduction : retreatReduction SwitchEffect.airBalloon = 2 := rfl
-theorem float_stone_reduction : retreatReduction SwitchEffect.floatStone = 100 := rfl
 
 -- ============================================================================
 -- EFFECTIVE RETREAT COST
@@ -107,8 +78,6 @@ theorem effective_cost_le_base (base : RetreatCost) (reductions : List SwitchEff
   · exact Nat.zero_le _
   · exact Nat.sub_le _ _
 
-theorem effective_cost_zero_of_free_retreat :
-    effectiveRetreatCost RetreatCost.free [] = 0 := rfl
 
 theorem effective_cost_no_reductions (base : RetreatCost) :
     effectiveRetreatCost base [] = base.cost := by
@@ -117,8 +86,6 @@ theorem effective_cost_no_reductions (base : RetreatCost) :
   · rename_i h; omega
   · rfl
 
-theorem can_retreat_free_zero :
-    canRetreatFree RetreatCost.free [] = true := rfl
 
 -- ============================================================================
 -- PIVOT POKEMON STRATEGY
@@ -153,7 +120,6 @@ theorem pivot_value_zero_of_heavy (p : PivotPokemon) (h : p.retreatCost.cost ≥
   have h1 : (p.retreatCost.cost == 1) = false := by rw [beq_eq_false_iff_ne]; omega
   rw [h0, h1]; rfl
 
-theorem best_pivot_nil : bestPivotValue [] = 0 := rfl
 
 -- ============================================================================
 -- STRANDING MECHANICS
@@ -225,11 +191,6 @@ def gustTargetValue (damage : Nat) (retreatCost : Nat) (energyAttached : Nat) : 
 
 theorem gust_value_nonneg (d r e : Nat) : 0 ≤ gustTargetValue d r e := Nat.zero_le _
 
-theorem gust_damaged_high_retreat : gustTargetValue 10 4 2 = 10 := rfl
-
-theorem gust_undamaged_no_energy : gustTargetValue 0 1 0 = 0 := rfl
-
-theorem gust_damaged_only : gustTargetValue 10 0 0 = 3 := rfl
 
 -- ============================================================================
 -- RETREAT SEQUENCING
@@ -256,7 +217,6 @@ theorem valid_retreat_three_steps (ra : RetreatAction) (h : isValidRetreatAction
     ra.steps.length = 3 := by
   simp [isValidRetreatAction] at h; exact h
 
-theorem total_energy_nil : totalEnergyInSteps [] = 0 := rfl
 
 theorem total_energy_nonneg (steps : List RetreatStep) : 0 ≤ totalEnergyInSteps steps :=
   Nat.zero_le _

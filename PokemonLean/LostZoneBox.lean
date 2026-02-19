@@ -173,10 +173,6 @@ def lzGainFromAction : LostZoneAction → Nat
 -- OPTIMAL PLAY SEQUENCES
 -- ============================================================================
 
-theorem min_flower_to_provision : 4 * 1 = thresholdValue .provision := by decide
-theorem two_colress_reach_provision : 2 * 2 = thresholdValue .provision := by decide
-theorem colress_path_to_mirageGate : 3 * 2 + 1 = thresholdValue .mirageGate := by decide
-theorem five_colress_to_full_power : 5 * 2 = thresholdValue .lostMine := by decide
 
 theorem lostImpact_eq_colress_lz_gain (result : ColressResult) :
     lzGainFromAction .lostImpactAction = lzGainFromAction (.colress result) := by

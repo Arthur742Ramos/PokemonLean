@@ -351,18 +351,11 @@ theorem newTurnState_turn_number (turn : Nat) :
 -- SPECIAL ENERGY VALUE THEOREMS
 -- ============================================================================
 
-theorem doubleColorless_provides_two :
-    SpecialEnergyKind.doubleColorless.energyValue = 2 := by rfl
-
-theorem rainbow_provides_one :
-    SpecialEnergyKind.rainbow.energyValue = 1 := by rfl
 
 theorem special_energy_value_pos (k : SpecialEnergyKind) :
     k.energyValue > 0 := by
   cases k <;> decide
 
-theorem basic_energy_value_one (t : EnergyType) :
-    (EnergyCard.basic t).energyValue = 1 := by rfl
 
 theorem special_energy_ge_basic (k : SpecialEnergyKind) (t : EnergyType) :
     (EnergyCard.special k).energyValue ≥ (EnergyCard.basic t).energyValue := by

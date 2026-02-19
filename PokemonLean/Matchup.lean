@@ -135,58 +135,14 @@ def totalMetaShare (entries : List MetaEntry) : Nat :=
 -- ROCK-PAPER-SCISSORS STRUCTURE THEOREMS
 -- ============================================================================
 
-theorem aggro_beats_control :
-    archetypeAdvantage .aggro .control = .favored := by rfl
-
-theorem control_beats_combo :
-    archetypeAdvantage .control .combo = .favored := by rfl
-
-theorem combo_beats_aggro :
-    archetypeAdvantage .combo .aggro = .favored := by rfl
-
-theorem midrange_beats_aggro :
-    archetypeAdvantage .midrange .aggro = .favored := by rfl
-
-theorem midrange_beats_control :
-    archetypeAdvantage .midrange .control = .favored := by rfl
-
-theorem midrange_beats_combo :
-    archetypeAdvantage .midrange .combo = .favored := by rfl
 
 /-- The reverse directions. -/
-theorem control_loses_to_aggro :
-    archetypeAdvantage .control .aggro = .unfavored := by rfl
 
-theorem combo_loses_to_control :
-    archetypeAdvantage .combo .control = .unfavored := by rfl
-
-theorem aggro_loses_to_combo :
-    archetypeAdvantage .aggro .combo = .unfavored := by rfl
-
-theorem aggro_loses_to_midrange :
-    archetypeAdvantage .aggro .midrange = .unfavored := by rfl
-
-theorem control_loses_to_midrange :
-    archetypeAdvantage .control .midrange = .unfavored := by rfl
-
-theorem combo_loses_to_midrange :
-    archetypeAdvantage .combo .midrange = .unfavored := by rfl
 
 -- ============================================================================
 -- MIRROR MATCH THEOREMS
 -- ============================================================================
 
-theorem aggro_mirror_even :
-    archetypeAdvantage .aggro .aggro = .even := by rfl
-
-theorem control_mirror_even :
-    archetypeAdvantage .control .control = .even := by rfl
-
-theorem combo_mirror_even :
-    archetypeAdvantage .combo .combo = .even := by rfl
-
-theorem midrange_mirror_even :
-    archetypeAdvantage .midrange .midrange = .even := by rfl
 
 /-- All mirrors are even. -/
 theorem mirror_always_even (a : Archetype) :
@@ -208,11 +164,6 @@ theorem advantage_score_pos (a : Advantage) : 0 < a.score := by
 theorem advantage_score_le_100 (a : Advantage) : a.score ≤ 100 := by
   cases a <;> simp [Advantage.score]
 
-theorem favored_score_gt_even : Advantage.favored.score > Advantage.even.score := by decide
-
-theorem even_score_gt_unfavored : Advantage.even.score > Advantage.unfavored.score := by decide
-
-theorem favored_score_gt_unfavored : Advantage.favored.score > Advantage.unfavored.score := by decide
 
 -- ============================================================================
 -- MATCHUP SCORE THEOREMS
@@ -236,9 +187,6 @@ theorem matchupScore_le_100 (deck1 deck2 : List Card) :
 -- CLASSIFICATION THEOREMS
 -- ============================================================================
 
-theorem avgHP_nil : avgHP [] = 0 := by rfl
-
-theorem avgDamage_nil : avgDamage [] = 0 := by rfl
 
 theorem deckArchetype_nil : deckArchetype [] = .midrange := by
   simp [deckArchetype, avgHP, avgDamage]

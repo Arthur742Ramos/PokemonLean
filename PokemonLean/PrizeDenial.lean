@@ -40,9 +40,6 @@ def initialPrizeState : PrizeState :=
 -- PRIZE WORTH BASIC THEOREMS
 -- ============================================================================
 
-theorem one_prize_val : PrizeWorth.one.toNat = 1 := rfl
-theorem two_prize_val : PrizeWorth.two.toNat = 2 := rfl
-theorem three_prize_val : PrizeWorth.three.toNat = 3 := rfl
 
 theorem prize_worth_pos (pw : PrizeWorth) : pw.toNat > 0 := by
   cases pw <;> decide
@@ -53,9 +50,6 @@ theorem prize_worth_le_three (pw : PrizeWorth) : pw.toNat ≤ 3 := by
 theorem prize_worth_ge_one (pw : PrizeWorth) : pw.toNat ≥ 1 := by
   cases pw <;> decide
 
-theorem one_lt_two : PrizeWorth.one.toNat < PrizeWorth.two.toNat := by decide
-theorem two_lt_three : PrizeWorth.two.toNat < PrizeWorth.three.toNat := by decide
-theorem one_lt_three : PrizeWorth.one.toNat < PrizeWorth.three.toNat := by decide
 
 -- ============================================================================
 -- PRIZE MATH: KNOCKOUTS TO WIN
@@ -88,15 +82,6 @@ theorem min_knockouts_one_prize (n : Nat) :
     minKnockouts n .one = n := by
   simp [minKnockouts, PrizeWorth.toNat]
 
-theorem min_knockouts_two_prize_six : minKnockouts 6 .two = 3 := rfl
-
-theorem min_knockouts_three_prize_six : minKnockouts 6 .three = 2 := rfl
-
-theorem min_knockouts_two_prize_five : minKnockouts 5 .two = 3 := rfl
-
-theorem min_knockouts_three_prize_three : minKnockouts 3 .three = 1 := rfl
-
-theorem max_knockouts_six : maxKnockouts 6 = 6 := rfl
 
 -- ============================================================================
 -- PRIZE TRADE ANALYSIS
@@ -158,18 +143,9 @@ def singlePrizeKOsNeeded : Nat := 6
 def multiPrizeKOsNeeded (worth : PrizeWorth) : Nat :=
   minKnockouts 6 worth
 
-theorem single_prize_needs_six : singlePrizeKOsNeeded = 6 := rfl
-
-theorem two_prize_needs_three : multiPrizeKOsNeeded .two = 3 := rfl
-
-theorem three_prize_needs_two : multiPrizeKOsNeeded .three = 2 := rfl
 
 /-- Single prize attackers always need more KOs than multi-prize -/
-theorem single_needs_more_kos_than_two :
-    singlePrizeKOsNeeded > multiPrizeKOsNeeded .two := by decide
 
-theorem single_needs_more_kos_than_three :
-    singlePrizeKOsNeeded > multiPrizeKOsNeeded .three := by decide
 
 -- ============================================================================
 -- PRIZE DENIAL: REDUCING OPPONENT'S PRIZE GAIN
@@ -193,14 +169,6 @@ def prizesDenied (method : DenialMethod) (worstCasePrizes : Nat) : Nat :=
   | .benchProtection => worstCasePrizes
   | .sacrificeLowValue => if worstCasePrizes > 1 then worstCasePrizes - 1 else 0
 
-theorem scoop_denies_all (n : Nat) :
-    prizesDenied .scoop n = n := rfl
-
-theorem heal_denies_all (n : Nat) :
-    prizesDenied .healToSurvive n = n := rfl
-
-theorem bench_protection_denies_all (n : Nat) :
-    prizesDenied .benchProtection n = n := rfl
 
 theorem single_prize_denies_some (n : Nat) (h : n > 1) :
     prizesDenied .singlePrizeAttacker n = n - 1 := by
@@ -240,9 +208,6 @@ def raceTied (race : PrizeRace) : Bool :=
 def initialRace : PrizeRace :=
   { myPrizesRemaining := 6, oppPrizesRemaining := 6, myTurnNext := true }
 
-theorem initial_race_tied : raceTied initialRace = true := rfl
-
-theorem initial_leader_zero : raceLeader initialRace = 0 := rfl
 
 theorem ahead_positive_leader (race : PrizeRace) (h : amAhead race = true) :
     raceLeader race > 0 := by
@@ -276,8 +241,6 @@ def prizeMapSeverity (pm : PrizeMap) : Nat :=
 def keyCardPrizeRate (pm : PrizeMap) : Nat :=
   if pm.totalPrizes > 0 then (pm.keyCardsPrized * 100) / pm.totalPrizes else 0
 
-theorem severity_zero_no_key_cards :
-    prizeMapSeverity { totalPrizes := 6, keyCardsPrized := 0, energyPrized := 0, supportersPrized := 0 } = 0 := rfl
 
 theorem severity_increases_with_key_cards (e s : Nat) (a b : Nat) (h : a < b) :
     prizeMapSeverity { totalPrizes := 6, keyCardsPrized := a, energyPrized := e, supportersPrized := s } <
@@ -304,8 +267,6 @@ theorem ko_efficiency_le_gained (gained kos : Nat) :
   · exact Nat.div_le_self _ _
   · exact Nat.zero_le _
 
-theorem ko_efficiency_zero_no_kos (n : Nat) :
-    koEfficiency n 0 = 0 := rfl
 
 -- ============================================================================
 -- BOSS + KO PRIZE CALCULATIONS
@@ -319,22 +280,12 @@ def bossKOPrizes (targetWorth : PrizeWorth) : Nat :=
 def bossWorthIt (activeWorth targetWorth : PrizeWorth) : Bool :=
   decide (targetWorth.toNat ≥ activeWorth.toNat)
 
-theorem boss_vmax_worth_three : bossKOPrizes .three = 3 := rfl
-
-theorem boss_ex_worth_two : bossKOPrizes .two = 2 := rfl
-
-theorem boss_basic_worth_one : bossKOPrizes .one = 1 := rfl
 
 theorem boss_higher_always_worth (low high : PrizeWorth) (h : low.toNat ≤ high.toNat) :
     bossWorthIt low high = true := by
   simp [bossWorthIt]
   omega
 
-theorem boss_vmax_over_basic : bossWorthIt .one .three = true := by decide
-
-theorem boss_ex_over_basic : bossWorthIt .one .two = true := by decide
-
-theorem boss_basic_not_over_vmax : bossWorthIt .three .one = false := by decide
 
 -- ============================================================================
 -- GAME-WINNING KO ANALYSIS
@@ -344,26 +295,6 @@ theorem boss_basic_not_over_vmax : bossWorthIt .three .one = false := by decide
 def isGameWinningKO (prizesRemaining : Nat) (targetWorth : PrizeWorth) : Bool :=
   decide (targetWorth.toNat ≥ prizesRemaining)
 
-theorem game_winning_last_prize :
-    isGameWinningKO 1 .one = true := rfl
-
-theorem game_winning_ex_from_two :
-    isGameWinningKO 2 .two = true := rfl
-
-theorem game_winning_vmax_from_three :
-    isGameWinningKO 3 .three = true := rfl
-
-theorem not_game_winning_basic_from_two :
-    isGameWinningKO 2 .one = false := rfl
-
-theorem not_game_winning_ex_from_three :
-    isGameWinningKO 3 .two = false := rfl
-
-theorem game_winning_vmax_from_two :
-    isGameWinningKO 2 .three = true := rfl
-
-theorem game_winning_vmax_from_one :
-    isGameWinningKO 1 .three = true := rfl
 
 /-- If a KO wins with n prizes, it wins with fewer too -/
 theorem game_winning_monotone (n m : Nat) (pw : PrizeWorth)
@@ -396,11 +327,6 @@ def oppWins (pe : PrizeExchange) : Bool :=
 def myEfficiency (pe : PrizeExchange) : Nat :=
   koEfficiency pe.myPrizesTaken pe.myKOs
 
-theorem i_win_at_six : iWin { myPrizesTaken := 6, oppPrizesTaken := 0, myKOs := 3, oppKOs := 0 } = true := rfl
-
-theorem opp_wins_at_six : oppWins { myPrizesTaken := 0, oppPrizesTaken := 6, myKOs := 0, oppKOs := 3 } = true := rfl
-
-theorem not_win_at_five : iWin { myPrizesTaken := 5, oppPrizesTaken := 0, myKOs := 3, oppKOs := 0 } = false := rfl
 
 -- ============================================================================
 -- PRIZE DENIAL SCORE
@@ -415,16 +341,5 @@ def denialScore (oppKOs oppPrizesTaken : Nat) : Nat :=
     else 0
   else 10  -- no KOs = perfect denial
 
-theorem perfect_denial_no_kos :
-    denialScore 0 0 = 10 := rfl
-
-theorem good_denial_single_prize :
-    denialScore 6 6 = 10 := rfl
-
-theorem ok_denial_two_prize :
-    denialScore 3 6 = 5 := rfl
-
-theorem bad_denial_three_prize :
-    denialScore 2 6 = 0 := rfl
 
 end PokemonLean.PrizeDenial

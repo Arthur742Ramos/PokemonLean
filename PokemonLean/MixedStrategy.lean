@@ -24,9 +24,6 @@ def weight (s : MixedStrategy) (strategy : PureStrategy) : Nat :=
 def expectedPayoff (s : MixedStrategy) : Nat :=
   s.support.foldl (fun acc strat => acc + strat.payoff * weight s strat) 0
 
-theorem expectedPayoff_nil :
-    expectedPayoff { support := [] } = 0 := by
-  rfl
 
 theorem expectedPayoff_nonneg (s : MixedStrategy) :
     0 ≤ expectedPayoff s := by

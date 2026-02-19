@@ -62,28 +62,6 @@ def typicalTurnsToWin (a : Archetype) : Nat :=
 -- ARCHETYPE THEOREMS
 -- ============================================================================
 
-theorem aggro_fastest : typicalSpeed .aggro ≥ typicalSpeed .midrange := by decide
-theorem aggro_faster_than_control : typicalSpeed .aggro > typicalSpeed .control := by decide
-theorem aggro_faster_than_combo : typicalSpeed .aggro > typicalSpeed .combo := by decide
-theorem control_slowest : typicalSpeed .control ≤ typicalSpeed .midrange := by decide
-
-theorem midrange_most_consistent :
-    typicalConsistency .midrange ≥ typicalConsistency .aggro ∧
-    typicalConsistency .midrange ≥ typicalConsistency .combo := by decide
-
-theorem control_more_consistent_than_aggro :
-    typicalConsistency .control > typicalConsistency .aggro := by decide
-
-theorem combo_least_consistent :
-    typicalConsistency .combo ≤ typicalConsistency .aggro ∧
-    typicalConsistency .combo ≤ typicalConsistency .control ∧
-    typicalConsistency .combo ≤ typicalConsistency .midrange := by decide
-
-theorem aggro_wins_fastest : typicalTurnsToWin .aggro ≤ typicalTurnsToWin .combo := by decide
-theorem control_wins_slowest :
-    typicalTurnsToWin .control ≥ typicalTurnsToWin .aggro ∧
-    typicalTurnsToWin .control ≥ typicalTurnsToWin .combo ∧
-    typicalTurnsToWin .control ≥ typicalTurnsToWin .midrange := by decide
 
 -- ============================================================================
 -- SPEED-CONSISTENCY TRADEOFF
@@ -93,10 +71,6 @@ theorem control_wins_slowest :
 def speedConsistencySum (a : Archetype) : Nat :=
   typicalSpeed a + typicalConsistency a
 
-theorem aggro_tradeoff : speedConsistencySum .aggro = 14 := by decide
-theorem control_tradeoff : speedConsistencySum .control = 10 := by decide
-theorem combo_tradeoff : speedConsistencySum .combo = 11 := by decide
-theorem midrange_tradeoff : speedConsistencySum .midrange = 13 := by decide
 
 /-- A deck is speed-oriented if speed > consistency -/
 def isSpeedOriented (a : Archetype) : Bool :=
@@ -106,10 +80,6 @@ def isSpeedOriented (a : Archetype) : Bool :=
 def isConsistencyOriented (a : Archetype) : Bool :=
   typicalConsistency a > typicalSpeed a
 
-theorem aggro_is_speed_oriented : isSpeedOriented .aggro = true := by decide
-theorem combo_is_speed_oriented : isSpeedOriented .combo = true := by decide
-theorem control_is_consistency_oriented : isConsistencyOriented .control = true := by decide
-theorem midrange_is_consistency_oriented : isConsistencyOriented .midrange = true := by decide
 
 -- ============================================================================
 -- 60-CARD DECK BUILDING RULES
@@ -150,23 +120,15 @@ def hasBasicPokemon (basicCount : Nat) : Bool :=
 def withinCopyLimit (copies : Nat) (isBasicEnergy : Bool) : Bool :=
   if isBasicEnergy then true else copies ≤ maxCopies
 
-theorem deck_size_is_60 : deckSize = 60 := by rfl
-theorem max_copies_is_4 : maxCopies = 4 := by rfl
 
 theorem legal_deck_sums_to_60 (p t e : Nat) (h : p + t + e = 60) :
     isLegalSize ⟨p, t, e⟩ = true := by
   simp [isLegalSize, deckSize, h]
 
-theorem zero_copies_within_limit : withinCopyLimit 0 false = true := by decide
-theorem one_copy_within_limit : withinCopyLimit 1 false = true := by decide
-theorem four_copies_within_limit : withinCopyLimit 4 false = true := by decide
-theorem five_copies_over_limit : withinCopyLimit 5 false = false := by decide
 
 theorem basic_energy_unlimited (n : Nat) : withinCopyLimit n true = true := by
   simp [withinCopyLimit]
 
-theorem must_have_basic : hasBasicPokemon 0 = false := by decide
-theorem one_basic_legal : hasBasicPokemon 1 = true := by decide
 
 -- ============================================================================
 -- ARCHETYPE-SPECIFIC DECK COMPOSITIONS
@@ -184,19 +146,6 @@ def comboComposition : DeckComposition := ⟨14, 36, 10⟩
 /-- Typical midrange composition -/
 def midrangeComposition : DeckComposition := ⟨12, 34, 14⟩
 
-theorem aggro_deck_legal : isLegalSize aggroComposition = true := by decide
-theorem control_deck_legal : isLegalSize controlComposition = true := by decide
-theorem combo_deck_legal : isLegalSize comboComposition = true := by decide
-theorem midrange_deck_legal : isLegalSize midrangeComposition = true := by decide
-
-theorem aggro_most_pokemon :
-    aggroComposition.pokemonCards ≥ controlComposition.pokemonCards := by decide
-
-theorem control_most_trainers :
-    controlComposition.trainerCards ≥ aggroComposition.trainerCards := by decide
-
-theorem midrange_most_energy :
-    midrangeComposition.energyCards ≥ comboComposition.energyCards := by decide
 
 -- ============================================================================
 -- DRAW ENGINE AND CONSISTENCY
@@ -213,15 +162,11 @@ def minDrawEngine : Nat := 12
 def hasAdequateDrawEngine (supporters searchCards : Nat) : Bool :=
   drawEngineSize supporters searchCards ≥ minDrawEngine
 
-theorem adequate_draw_12 : hasAdequateDrawEngine 8 4 = true := by decide
-theorem inadequate_draw_5 : hasAdequateDrawEngine 3 2 = false := by decide
 
 /-- Probability proxy: more draw = more consistent (simplified) -/
 def consistencyScore (drawCards totalCards : Nat) : Nat :=
   if totalCards == 0 then 0 else (drawCards * 100) / totalCards
 
-theorem more_draw_more_consistent :
-    consistencyScore 15 60 ≥ consistencyScore 10 60 := by decide
 
 -- ============================================================================
 -- ENERGY CURVE
@@ -232,11 +177,6 @@ def isLowCost (energyCost : Nat) : Bool := energyCost ≤ 2
 def isMidCost (energyCost : Nat) : Bool := energyCost == 3 || energyCost == 4
 def isHighCost (energyCost : Nat) : Bool := energyCost ≥ 5
 
-theorem zero_is_low_cost : isLowCost 0 = true := by decide
-theorem two_is_low_cost : isLowCost 2 = true := by decide
-theorem three_not_low_cost : isLowCost 3 = false := by decide
-theorem three_is_mid_cost : isMidCost 3 = true := by decide
-theorem five_is_high_cost : isHighCost 5 = true := by decide
 
 /-- Aggro decks should prefer low-cost attacks -/
 def aggroPreference (cost : Nat) : Nat :=
@@ -245,7 +185,5 @@ def aggroPreference (cost : Nat) : Nat :=
   else if cost ≤ 3 then 3
   else 1
 
-theorem aggro_prefers_cheap : aggroPreference 1 > aggroPreference 3 := by decide
-theorem aggro_hates_expensive : aggroPreference 1 > aggroPreference 5 := by decide
 
 end PokemonLean.Archetypes

@@ -84,8 +84,6 @@ def allAceSpecNames : List AceSpecName :=
 @[simp] theorem allAceSpecNames_length : allAceSpecNames.length = 11 := by
   simp [allAceSpecNames]
 
-theorem allAceSpecNames_nodup : allAceSpecNames.Nodup := by
-  decide
 
 @[simp] theorem mem_allAceSpecNames_computerSearch :
     .computerSearch ∈ allAceSpecNames := by

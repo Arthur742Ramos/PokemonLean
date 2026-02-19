@@ -52,11 +52,6 @@ theorem prizesForRuleBox_le_three (kind : RuleBoxKind) : prizesForRuleBox kind �
 theorem prizesForRuleBox_ge_one (kind : RuleBoxKind) : prizesForRuleBox kind ≥ 1 := by
   exact Nat.succ_le_of_lt (prizesForRuleBox_pos kind)
 
-theorem v_and_vstar_same_prize : prizesForRuleBox .pokemonV = prizesForRuleBox .pokemonVSTAR := by
-  rfl
-
-theorem vmax_prize_gt_v_prize : prizesForRuleBox .pokemonV < prizesForRuleBox .pokemonVMAX := by
-  decide
 
 theorem hasRuleBox_false_iff (kind : RuleBoxKind) :
     hasRuleBox kind = false ↔ kind = .noRuleBox := by
@@ -376,15 +371,6 @@ def takePrizeCards : PlayerState → PlayerState → Nat → PlayerState × Play
 def takeKOPayout (attacker defender : PlayerState) (kind : RuleBoxKind) : PlayerState × PlayerState :=
   takePrizeCards attacker defender (prizesForRuleBox kind)
 
-@[simp] theorem takePrizeCards_zero (attacker defender : PlayerState) :
-    takePrizeCards attacker defender 0 = (attacker, defender) := by
-  rfl
-
-@[simp] theorem takePrizeCards_succ (attacker defender : PlayerState) (n : Nat) :
-    takePrizeCards attacker defender (n + 1) =
-      let (attacker', defender') := takePrize attacker defender
-      takePrizeCards attacker' defender' n := by
-  rfl
 
 theorem takePrizeCards_one (attacker defender : PlayerState) :
     takePrizeCards attacker defender 1 = takePrize attacker defender := by

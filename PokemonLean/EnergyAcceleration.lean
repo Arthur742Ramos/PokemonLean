@@ -146,17 +146,6 @@ def auroraAttach (hand : List EnergyType) (discardCost providedType : EnergyType
 
 -- State and helper theorems
 
-theorem initialAccelerationState_manual_unused :
-    initialAccelerationState.manualAttachUsed = false := by
-  rfl
-
-theorem initialAccelerationState_effects_zero :
-    initialAccelerationState.effectsUsed = 0 := by
-  rfl
-
-theorem initialAccelerationState_cardsDrawn_zero :
-    initialAccelerationState.cardsDrawn = 0 := by
-  rfl
 
 theorem markAcceleration_effectsUsed (state : AccelerationState) :
     (markAcceleration state).effectsUsed = state.effectsUsed + 1 := by
@@ -366,23 +355,6 @@ theorem accelerateFromZone_adds_energy (source : List EnergyType) (pokemon : Pok
       subst hp
       exact attachFromZone_adds_energy source pokemon energyType src pkm hAttach
 
-theorem accelerateFromHand_eq (hand : List EnergyType) (pokemon : PokemonInPlay)
-    (energyType : EnergyType) (state : AccelerationState) :
-    accelerateFromHand hand pokemon energyType state =
-      accelerateFromZone hand pokemon energyType state := by
-  rfl
-
-theorem accelerateFromDeck_eq (deck : List EnergyType) (pokemon : PokemonInPlay)
-    (energyType : EnergyType) (state : AccelerationState) :
-    accelerateFromDeck deck pokemon energyType state =
-      accelerateFromZone deck pokemon energyType state := by
-  rfl
-
-theorem accelerateFromDiscard_eq (discard : List EnergyType) (pokemon : PokemonInPlay)
-    (energyType : EnergyType) (state : AccelerationState) :
-    accelerateFromDiscard discard pokemon energyType state =
-      accelerateFromZone discard pokemon energyType state := by
-  rfl
 
 -- Specific trainer/supporter acceleration effects
 
@@ -484,11 +456,6 @@ theorem welder_hand_length (hand : List EnergyType) (pokemon : PokemonInPlay)
 
 -- Dark Patch (discard -> attach dark)
 
-theorem darkPatch_eq (discard : List EnergyType) (pokemon : PokemonInPlay)
-    (state : AccelerationState) :
-    darkPatch discard pokemon state =
-      accelerateFromDiscard discard pokemon .dark state := by
-  rfl
 
 theorem darkPatch_adds_dark (discard : List EnergyType) (pokemon : PokemonInPlay)
     (state : AccelerationState) (discard' : List EnergyType)
@@ -508,9 +475,6 @@ theorem darkPatch_effectsUsed (discard : List EnergyType) (pokemon : PokemonInPl
 
 -- Max Elixir (deck -> bench, basic only)
 
-theorem isBasicEnergy_colorless :
-    isBasicEnergy .colorless = false := by
-  rfl
 
 theorem removeFirstBasicEnergy_head (energyType : EnergyType) (deck : List EnergyType)
     (hBasic : isBasicEnergy energyType = true) :
@@ -790,13 +754,6 @@ theorem moveEnergy_preserves_target_card (source target : PokemonInPlay) (energy
       obtain ⟨_, ht⟩ := h
       exact ht ▸ rfl
 
-theorem arcanineEnergyTrans_eq (source target : PokemonInPlay) :
-    arcanineEnergyTrans source target = moveEnergy source target .fire := by
-  rfl
-
-theorem blastoiseEnergyTrans_eq (source target : PokemonInPlay) :
-    blastoiseEnergyTrans source target = moveEnergy source target .water := by
-  rfl
 
 theorem arcanineEnergyTrans_adds_fire (source target : PokemonInPlay)
     (source' target' : PokemonInPlay)
@@ -812,9 +769,6 @@ theorem blastoiseEnergyTrans_adds_water (source target : PokemonInPlay)
 
 -- Double Turbo Energy
 
-theorem doubleTurboProvided_two :
-    doubleTurboProvided = 2 := by
-  rfl
 
 theorem applyDoubleTurboPenalty_le_base (baseDamage : Nat) :
     applyDoubleTurboPenalty baseDamage ≤ baseDamage := by
@@ -825,13 +779,6 @@ theorem applyDoubleTurboPenalty_zero_of_small (baseDamage : Nat)
     applyDoubleTurboPenalty baseDamage = 0 := by
   simp [applyDoubleTurboPenalty, Nat.sub_eq_zero_of_le hSmall]
 
-theorem applyDoubleTurboPenalty_eq_sub (baseDamage : Nat) :
-    applyDoubleTurboPenalty baseDamage = baseDamage - 20 := by
-  rfl
-
-theorem doubleTurboDamage_eq (baseDamage bonusDamage : Nat) :
-    doubleTurboDamage baseDamage bonusDamage = (baseDamage + bonusDamage) - 20 := by
-  rfl
 
 -- Aurora Energy (discard cost on attach)
 

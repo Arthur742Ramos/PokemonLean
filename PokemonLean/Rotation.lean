@@ -141,13 +141,6 @@ theorem isFreeRetreat_cons_false (head : EnergyType) (tail : List EnergyType) :
     ¬ isFreeRetreat (head :: tail) := by
   simp [isFreeRetreat]
 
-theorem isFreeRetreat_iff (cost : List EnergyType) :
-    isFreeRetreat cost ↔ cost = [] := by
-  rfl
-
-theorem stranded_iff_bench_nil (playerState : PlayerState) :
-    stranded playerState ↔ playerState.bench = [] := by
-  rfl
 
 theorem stranded_of_bench_eq_nil (playerState : PlayerState) (h : playerState.bench = []) :
     stranded playerState := by
@@ -157,9 +150,6 @@ theorem not_stranded_of_bench_ne_nil (playerState : PlayerState) (h : playerStat
     ¬ stranded playerState := by
   simpa [stranded] using h
 
-theorem promoteBenchAt_eq_removeAt (playerState : PlayerState) (index : Nat) :
-    promoteBenchAt playerState index = removeAt? playerState.bench index := by
-  rfl
 
 theorem promoteBenchAt_some_mem (playerState : PlayerState) (index : Nat) (pivot : PokemonInPlay)
     (rest : List PokemonInPlay) (h : promoteBenchAt playerState index = some (pivot, rest)) :
@@ -175,15 +165,6 @@ theorem pivotAt?_eq_listGet (playerState : PlayerState) (index : Nat) :
     pivotAt? playerState index = listGet? playerState.bench index := by
   rfl
 
-theorem pivotAt?_zero (playerState : PlayerState) :
-    pivotAt? playerState 0 = listGet? playerState.bench 0 := by
-  rfl
-
-theorem pivotAt?_none_of_stranded (playerState : PlayerState) (index : Nat)
-    (hStranded : stranded playerState) :
-    pivotAt? playerState index = none := by
-  unfold pivotAt? stranded at *
-  simp [hStranded, listGet?]
 
 theorem stranded_implies_no_promoteBenchAt (playerState : PlayerState) (index : Nat)
     (hStranded : stranded playerState) :
@@ -324,9 +305,6 @@ theorem retreatWithCostAt_preserves_player_cards (playerState : PlayerState) (co
     simpa [List.length_append] using hLen
   simp [hActive, hBenchLen]
 
-theorem freeRetreatAt_def (playerState : PlayerState) (index : Nat) :
-    freeRetreatAt playerState index = retreatWithCostAt playerState [] index := by
-  rfl
 
 theorem freeRetreatAt_some_iff (playerState : PlayerState) (index : Nat) (newState : PlayerState) :
     freeRetreatAt playerState index = some newState ↔
@@ -352,9 +330,6 @@ theorem freeRetreatAt_preserves_prizes (playerState : PlayerState) (index : Nat)
     newState.prizes = playerState.prizes := by
   exact retreatWithCostAt_preserves_prizes playerState [] index newState h
 
-theorem switchOwnActive_eq_switchActive (state : GameState) (index : Nat) :
-    switchOwnActive state index = switchActive state index := by
-  rfl
 
 theorem switchOwnActive_preserves_total_cards (state : GameState) (index : Nat) (state' : GameState)
     (h : switchOwnActive state index = some state') :

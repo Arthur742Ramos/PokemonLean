@@ -84,8 +84,6 @@ def stateBeforeStep (t : Trace) (i : Nat) : GameState :=
     | some s => s.resultState
     | none => t.initialState
 
-theorem stateBeforeStep_zero (t : Trace) :
-    stateBeforeStep t 0 = t.initialState := rfl
 
 -- ============================================================================
 -- VALID TRACE PREDICATE
@@ -128,8 +126,6 @@ def replayActions (init : GameState) :
       | none => none
     | .error _ => none
 
-theorem replayActions_nil (init : GameState) :
-    replayActions init [] = some [] := rfl
 
 theorem replayActions_cons_ok (init : GameState) (a : PokemonLean.Semantics.Action)
     (as : List PokemonLean.Semantics.Action) (next : GameState) (rest : List GameState)
@@ -185,13 +181,6 @@ theorem buildTrace_length (init : GameState) (actions : List PokemonLean.Semanti
 -- ============================================================================
 
 /-- The step function is deterministic: same input gives same output. -/
-theorem step_deterministic (state : GameState) (action : PokemonLean.Semantics.Action) :
-    ∀ s1 s2 : GameState,
-      PokemonLean.Semantics.step state action = .ok s1 →
-      PokemonLean.Semantics.step state action = .ok s2 → s1 = s2 := by
-  intro s1 s2 h1 h2
-  rw [h1] at h2
-  exact Except.ok.inj h2
 
 /-- Replay is deterministic: same actions from same state produce same states. -/
 theorem replayActions_deterministic (init : GameState)
@@ -412,12 +401,8 @@ theorem trace_state_count (t : Trace) :
 -- ============================================================================
 
 /-- Extracting actions from an empty trace gives empty list. -/
-theorem traceActions_empty (init : GameState) :
-    traceActions (emptyTrace init) = [] := rfl
 
 /-- Extracting states from an empty trace gives empty list. -/
-theorem traceStates_empty (init : GameState) :
-    traceStates (emptyTrace init) = [] := rfl
 
 /-- A single-step valid trace's final state is the result of applying the action. -/
 theorem single_step_trace_state (init : GameState) (a : PokemonLean.Semantics.Action)

@@ -13,8 +13,6 @@ namespace PokemonLean.Mulligan
 def isBasicPokemon (card : Card) : Bool :=
   !isTrainer card
 
-theorem isBasicPokemon_eq (card : Card) :
-    isBasicPokemon card = !isTrainer card := rfl
 
 theorem isBasicPokemon_of_attacks_nonempty (card : Card) (a : Attack) (as : List Attack)
     (h : card.attacks = a :: as) :
@@ -133,14 +131,6 @@ def initMulligan (deck : List Card) : MulliganState :=
   , mulligans := 0
   , opponentExtras := 0 }
 
-theorem initMulligan_mulligans (deck : List Card) :
-    (initMulligan deck).mulligans = 0 := rfl
-
-theorem initMulligan_opponentExtras (deck : List Card) :
-    (initMulligan deck).opponentExtras = 0 := rfl
-
-theorem initMulligan_hand (deck : List Card) :
-    (initMulligan deck).hand = deck.take initialHandSize := rfl
 
 theorem initMulligan_hand_length (deck : List Card) (h : initialHandSize ≤ deck.length) :
     (initMulligan deck).hand.length = initialHandSize := by
@@ -174,19 +164,12 @@ def doMulligan (ms : MulliganState) (reshuffled : List Card) : MulliganState :=
   , mulligans := ms.mulligans + 1
   , opponentExtras := ms.opponentExtras + 1 }
 
-theorem doMulligan_mulligans (ms : MulliganState) (reshuffled : List Card) :
-    (doMulligan ms reshuffled).mulligans = ms.mulligans + 1 := rfl
-
-theorem doMulligan_opponentExtras (ms : MulliganState) (reshuffled : List Card) :
-    (doMulligan ms reshuffled).opponentExtras = ms.opponentExtras + 1 := rfl
 
 theorem doMulligan_opponentExtras_eq_mulligans (ms : MulliganState)
     (reshuffled : List Card) (h : ms.opponentExtras = ms.mulligans) :
     (doMulligan ms reshuffled).opponentExtras = (doMulligan ms reshuffled).mulligans := by
   simp [doMulligan, h]
 
-theorem doMulligan_hand (ms : MulliganState) (reshuffled : List Card) :
-    (doMulligan ms reshuffled).hand = reshuffled.take initialHandSize := rfl
 
 theorem doMulligan_hand_length (ms : MulliganState) (reshuffled : List Card)
     (h : initialHandSize ≤ reshuffled.length) :
@@ -197,8 +180,6 @@ theorem doMulligan_hand_length (ms : MulliganState) (reshuffled : List Card)
 -- OPPONENT EXTRA CARDS TRACKING
 -- ============================================================================
 
-theorem opponentExtras_eq_mulligans_init (deck : List Card) :
-    (initMulligan deck).opponentExtras = (initMulligan deck).mulligans := rfl
 
 /-- After any number of mulligans, opponentExtras always equals mulligans. -/
 theorem opponentExtras_eq_mulligans (ms : MulliganState)

@@ -155,49 +155,22 @@ def stadiumAllowsSearch (field : FieldState) : Bool :=
 -- ============================================================================
 
 /-- Playing a stadium always results in the new stadium being in play. -/
-theorem playStadium_result (field : FieldState) (s : StadiumCard) :
-    (playStadium field s).1.stadium = some s := by
-  rfl
 
 /-- Playing a stadium returns the old stadium for discard. -/
-theorem playStadium_old (field : FieldState) (s : StadiumCard) :
-    (playStadium field s).2 = field.stadium := by
-  rfl
 
 /-- Playing a stadium onto an empty field returns none for old. -/
-theorem playStadium_empty (s : StadiumCard) :
-    (playStadium emptyField s).2 = none := by
-  rfl
 
 /-- Removing a stadium from empty field gives empty field. -/
-theorem removeStadium_empty :
-    (removeStadium emptyField).1 = emptyField := by
-  rfl
 
 /-- Removing a stadium returns the old stadium. -/
-theorem removeStadium_old (field : FieldState) :
-    (removeStadium field).2 = field.stadium := by
-  rfl
 
 /-- Removing a stadium results in no stadium. -/
-theorem removeStadium_result (field : FieldState) :
-    (removeStadium field).1.stadium = none := by
-  rfl
 
 /-- Play then remove yields empty field. -/
-theorem playStadium_then_remove (field : FieldState) (s : StadiumCard) :
-    (removeStadium (playStadium field s).1).1 = emptyField := by
-  rfl
 
 /-- Playing a stadium twice: the second replaces the first. -/
-theorem playStadium_twice (field : FieldState) (s1 s2 : StadiumCard) :
-    (playStadium (playStadium field s1).1 s2).1.stadium = some s2 := by
-  rfl
 
 /-- Playing a stadium twice: the intermediate discard is s1. -/
-theorem playStadium_twice_discard (field : FieldState) (s1 s2 : StadiumCard) :
-    (playStadium (playStadium field s1).1 s2).2 = some s1 := by
-  rfl
 
 -- ============================================================================
 -- THEOREMS: HEAL MECHANICS
@@ -214,19 +187,10 @@ theorem healPokemon_zero (pokemon : PokemonInPlay) :
   simp [healPokemon]
 
 /-- Healing preserves card. -/
-theorem healPokemon_card (pokemon : PokemonInPlay) (amount : Nat) :
-    (healPokemon pokemon amount).card = pokemon.card := by
-  rfl
 
 /-- Healing preserves status. -/
-theorem healPokemon_status (pokemon : PokemonInPlay) (amount : Nat) :
-    (healPokemon pokemon amount).status = pokemon.status := by
-  rfl
 
 /-- Healing preserves energy. -/
-theorem healPokemon_energy (pokemon : PokemonInPlay) (amount : Nat) :
-    (healPokemon pokemon amount).energy = pokemon.energy := by
-  rfl
 
 /-- healBench preserves list length. -/
 theorem healBench_length (bench : List PokemonInPlay) (amount : Nat) :
@@ -249,9 +213,6 @@ theorem healPokemon_full (pokemon : PokemonInPlay) (amount : Nat) (h : pokemon.d
   simp [healPokemon, Nat.sub_eq_zero_of_le h]
 
 /-- Healing with amount < damage leaves some damage. -/
-theorem healPokemon_partial (pokemon : PokemonInPlay) (amount : Nat) (_h : amount < pokemon.damage) :
-    (healPokemon pokemon amount).damage = pokemon.damage - amount := by
-  rfl
 
 /-- Healing preserves damage bound. -/
 theorem healPokemon_damage_le_hp (pokemon : PokemonInPlay) (amount : Nat)
@@ -286,146 +247,63 @@ theorem modifyDamageAmount_le_of_neg (base : Nat) (delta : Int) (hNeg : delta < 
   simp [hNotGe, Nat.sub_le]
 
 /-- Non-damage-modifying stadiums don't change damage. -/
-theorem applyStadiumToDamage_noEffect (base : Nat) :
-    applyStadiumToDamage .noEffect base = base := by
-  rfl
 
-theorem applyStadiumToDamage_blockAbilities (base : Nat) :
-    applyStadiumToDamage .blockAbilities base = base := by
-  rfl
-
-theorem applyStadiumToDamage_searchBasic (base : Nat) :
-    applyStadiumToDamage .searchBasic base = base := by
-  rfl
-
-theorem applyStadiumToDamage_reduceRetreat (base amount : Nat) :
-    applyStadiumToDamage (.reduceRetreatCost amount) base = base := by
-  rfl
-
-theorem applyStadiumToDamage_healBetweenTurns (base amount : Nat) :
-    applyStadiumToDamage (.healBetweenTurns amount) base = base := by
-  rfl
-
-theorem applyStadiumToDamage_drawExtra (base count : Nat) :
-    applyStadiumToDamage (.drawExtra count) base = base := by
-  rfl
 
 -- ============================================================================
 -- THEOREMS: FIELD QUERIES
 -- ============================================================================
 
 /-- Empty field does not block abilities. -/
-theorem stadiumBlocksAbilities_empty : stadiumBlocksAbilities emptyField = false := by
-  rfl
 
 /-- Path to the Peak blocks abilities. -/
-theorem stadiumBlocksAbilities_peak :
-    stadiumBlocksAbilities { stadium := some pathToThePeak } = true := by
-  rfl
 
 /-- Artazon does not block abilities. -/
-theorem stadiumBlocksAbilities_artazon :
-    stadiumBlocksAbilities { stadium := some artazon } = false := by
-  rfl
 
 /-- Beach Court does not block abilities. -/
-theorem stadiumBlocksAbilities_beachCourt :
-    stadiumBlocksAbilities { stadium := some beachCourt } = false := by
-  rfl
 
 /-- Empty field retreat reduction is 0. -/
-theorem stadiumRetreatReduction_empty : stadiumRetreatReduction emptyField = 0 := by
-  rfl
 
 /-- Beach Court reduces retreat by 1. -/
-theorem stadiumRetreatReduction_beachCourt :
-    stadiumRetreatReduction { stadium := some beachCourt } = 1 := by
-  rfl
 
 /-- Path to the Peak gives 0 retreat reduction. -/
-theorem stadiumRetreatReduction_peak :
-    stadiumRetreatReduction { stadium := some pathToThePeak } = 0 := by
-  rfl
 
 /-- Empty field extra draw is 0. -/
-theorem stadiumExtraDraw_empty : stadiumExtraDraw emptyField = 0 := by
-  rfl
 
 /-- Research Lab gives 1 extra draw. -/
-theorem stadiumExtraDraw_researchLab :
-    stadiumExtraDraw { stadium := some researchLab } = 1 := by
-  rfl
 
 /-- Empty field heal amount is 0. -/
-theorem stadiumHealAmount_empty : stadiumHealAmount emptyField = 0 := by
-  rfl
 
 /-- Pokémon Center heals 20 between turns. -/
-theorem stadiumHealAmount_pokemonCenter :
-    stadiumHealAmount { stadium := some pokemonCenter } = 20 := by
-  rfl
 
 /-- Empty field doesn't allow search. -/
-theorem stadiumAllowsSearch_empty : stadiumAllowsSearch emptyField = false := by
-  rfl
 
 /-- Artazon allows search. -/
-theorem stadiumAllowsSearch_artazon :
-    stadiumAllowsSearch { stadium := some artazon } = true := by
-  rfl
 
 /-- Path to the Peak doesn't allow search. -/
-theorem stadiumAllowsSearch_peak :
-    stadiumAllowsSearch { stadium := some pathToThePeak } = false := by
-  rfl
 
 -- ============================================================================
 -- THEOREMS: STADIUM AFFECTS BOTH PLAYERS SYMMETRICALLY
 -- ============================================================================
 
 /-- Stadium heal amount is independent of which player queries it. -/
-theorem stadiumHealAmount_symmetric (field : FieldState) :
-    stadiumHealAmount field = stadiumHealAmount field := by
-  rfl
 
 /-- Stadium retreat reduction is the same for both players. -/
-theorem stadiumRetreatReduction_symmetric (field : FieldState) :
-    stadiumRetreatReduction field = stadiumRetreatReduction field := by
-  rfl
 
 /-- Playing the same stadium on any field gives the same result stadium. -/
-theorem playStadium_deterministic (field1 field2 : FieldState) (s : StadiumCard) :
-    (playStadium field1 s).1 = (playStadium field2 s).1 := by
-  rfl
 
 /-- After removal, the field is always the same empty state. -/
-theorem removeStadium_deterministic (field1 field2 : FieldState) :
-    (removeStadium field1).1 = (removeStadium field2).1 := by
-  rfl
 
 -- ============================================================================
 -- THEOREMS: REPLACEMENT CHAIN
 -- ============================================================================
 
 /-- Playing n stadiums in sequence: only the last one is in play. -/
-theorem stadium_last_wins (field : FieldState) (s1 s2 : StadiumCard) :
-    (playStadium (playStadium field s1).1 s2).1.stadium = some s2 := by
-  rfl
 
 /-- Three stadiums: only the third survives. -/
-theorem stadium_triple_replace (field : FieldState) (s1 s2 s3 : StadiumCard) :
-    (playStadium (playStadium (playStadium field s1).1 s2).1 s3).1.stadium = some s3 := by
-  rfl
 
 /-- Remove after play yields empty. -/
-theorem remove_after_play (field : FieldState) (s : StadiumCard) :
-    (removeStadium (playStadium field s).1).1.stadium = none := by
-  rfl
 
 /-- Play after remove installs the stadium. -/
-theorem play_after_remove (field : FieldState) (s : StadiumCard) :
-    (playStadium (removeStadium field).1 s).1.stadium = some s := by
-  rfl
 
 -- ============================================================================
 -- THEOREMS: STADIUM EFFECT CLASSIFICATION

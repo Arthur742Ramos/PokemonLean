@@ -107,25 +107,18 @@ theorem prizesForCategory_pos (cat : PokemonCategory) : prizesForCategory cat > 
   cases cat <;> decide
 
 -- 2. Basic prizes are 1
-theorem basic_gives_one : prizesForCategory .basic = 1 := by rfl
 
 -- 3. EX gives 2
-theorem ex_gives_two : prizesForCategory .ex = 2 := by rfl
 
 -- 4. VSTAR gives 2
-theorem vstar_gives_two : prizesForCategory .vstar = 2 := by rfl
 
 -- 5. VMAX gives 3
-theorem vmax_gives_three : prizesForCategory .vmax = 3 := by rfl
 
 -- 6. Tag Team gives 3
-theorem tag_team_gives_three : prizesForCategory .tagTeam = 3 := by rfl
 
 -- 7. GX gives 2
-theorem gx_gives_two : prizesForCategory .gx = 2 := by rfl
 
 -- 8. V gives 2
-theorem v_gives_two : prizesForCategory .v = 2 := by rfl
 
 -- 9. Prize values bounded by 3
 theorem prizesForCategory_le_three (cat : PokemonCategory) : prizesForCategory cat ≤ 3 := by
@@ -168,14 +161,8 @@ theorem takeSinglePrize_taken_inc (pool pool' : PrizePool)
       simp
 
 -- 13. Can't take from empty
-theorem takeSinglePrize_empty (t : List Card) :
-    takeSinglePrize { remaining := [], taken := t } = none := by
-  rfl
 
 -- 14. Take zero is identity
-theorem takeMultiplePrizes_zero (pool : PrizePool) :
-    takeMultiplePrizes pool 0 = some pool := by
-  rfl
 
 -- 15. Total invariant for multiple takes
 theorem takeMultiplePrizes_total (pool pool' : PrizePool) (n : Nat)
@@ -244,9 +231,6 @@ theorem mkPrizePool_total (prizes : List Card) :
   simp [mkPrizePool, totalPrizes]
 
 -- 21. Fresh pool has nothing taken
-theorem mkPrizePool_taken_empty (prizes : List Card) :
-    (mkPrizePool prizes).taken = [] := by
-  rfl
 
 -- 22. KO basic takes 1 prize
 theorem ko_basic_takes_one (pool : PrizePool) (pkmn : CategorizedPokemon)

@@ -23,8 +23,6 @@ def drawCards (player : PlayerState) (count : Nat) : Option PlayerState :=
   else
     none
 
-theorem handSize_eq_length (player : PlayerState) :
-    handSize player = player.hand.length := rfl
 
 theorem drawCards_zero (player : PlayerState) :
     drawCards player 0 = some player := by
@@ -84,8 +82,6 @@ theorem drawCards_preserves_prizes (player player' : PlayerState) (count : Nat)
 def drawPhase (player : PlayerState) : Option PlayerState :=
   drawCards player drawPhaseCount
 
-theorem drawPhase_eq_drawCards (player : PlayerState) :
-    drawPhase player = drawCards player drawPhaseCount := rfl
 
 theorem drawPhase_none_of_empty_deck (player : PlayerState)
     (h : player.deck = []) :
@@ -205,27 +201,15 @@ def putHandOnBottom (player : PlayerState) : PlayerState :=
     deck := player.deck ++ player.hand
     hand := [] }
 
-theorem putHandOnBottom_hand (player : PlayerState) :
-    (putHandOnBottom player).hand = [] := rfl
-
-theorem putHandOnBottom_deck (player : PlayerState) :
-    (putHandOnBottom player).deck = player.deck ++ player.hand := rfl
 
 theorem putHandOnBottom_deck_length (player : PlayerState) :
     (putHandOnBottom player).deck.length = player.deck.length + player.hand.length := by
   simp [putHandOnBottom]
 
-theorem putHandOnBottom_preserves_discard (player : PlayerState) :
-    (putHandOnBottom player).discard = player.discard := rfl
 
 def marnieBottomOpponentHand (opponent : PlayerState) : PlayerState :=
   putHandOnBottom opponent
 
-theorem marnieBottomOpponentHand_hand (opponent : PlayerState) :
-    (marnieBottomOpponentHand opponent).hand = [] := rfl
-
-theorem marnieBottomOpponentHand_deck (opponent : PlayerState) :
-    (marnieBottomOpponentHand opponent).deck = opponent.deck ++ opponent.hand := rfl
 
 def marnieSelf (player : PlayerState) : Option PlayerState :=
   drawCards (putHandOnBottom player) marnieSelfCount
@@ -295,8 +279,6 @@ def playN (current opponent : PlayerState) : Option (PlayerState × PlayerState)
   | some current', some opponent' => some (current', opponent')
   | _, _ => none
 
-theorem nDrawCount_eq_prizes_length (player : PlayerState) :
-    nDrawCount player = player.prizes.length := rfl
 
 theorem nSingle_hand_length (player player' : PlayerState)
     (h : nSingle player = some player') :
@@ -349,24 +331,6 @@ def applyHandDisruption (current opponent : PlayerState) :
   | .judge count => judge current opponent count
   | .opponentHandBottom => some (current, putHandOnBottom opponent)
 
-theorem applyHandDisruption_professorsResearch (current opponent : PlayerState) :
-    applyHandDisruption current opponent .professorsResearch =
-      match professorsResearch current with
-      | some current' => some (current', opponent)
-      | none => none := rfl
-
-theorem applyHandDisruption_marnie (current opponent : PlayerState) :
-    applyHandDisruption current opponent .marnie = playMarnie current opponent := rfl
-
-theorem applyHandDisruption_n (current opponent : PlayerState) :
-    applyHandDisruption current opponent .n = playN current opponent := rfl
-
-theorem applyHandDisruption_judge (current opponent : PlayerState) (count : Nat) :
-    applyHandDisruption current opponent (.judge count) = judge current opponent count := rfl
-
-theorem applyHandDisruption_opponentHandBottom (current opponent : PlayerState) :
-    applyHandDisruption current opponent .opponentHandBottom =
-      some (current, putHandOnBottom opponent) := rfl
 
 def discardTwo (hand : List Card) (first second : Card) : Option (List Card × List Card) :=
   match removeFirst first hand with

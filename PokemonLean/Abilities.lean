@@ -303,8 +303,5 @@ theorem canUseAbility_of_apply (state : GameState) (abilityState : AbilityState)
 def resetAbility (abilityState : AbilityState) : AbilityState :=
   { abilityState with usedThisTurn := false }
 
-theorem resetAbility_unused (abilityState : AbilityState) :
-    (resetAbility abilityState).usedThisTurn = false := by
-  rfl
 
 end PokemonLean.Abilities

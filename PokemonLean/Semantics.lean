@@ -538,9 +538,6 @@ theorem runEffectStack_progress (state : GameState) (stack : EffectStack) :
     ∃ state', state' = runEffectStack state stack := by
   exact ⟨runEffectStack state stack, rfl⟩
 
-theorem runEffectStack_empty (state : GameState) :
-    runEffectStack state ([] : EffectStack) = state := by
-  rfl
 
 theorem runEffectStack_terminates (state : GameState) (stack : EffectStack) :
     ∃ state', runEffectStack state stack = state' := by
@@ -1302,7 +1299,6 @@ theorem pokemonDamageBound_heal (pokemon : PokemonInPlay) (amount : Nat) :
   exact Nat.le_trans (Nat.sub_le _ _) hBound
 
 
-
 def initialPlayer : PlayerState :=
   standardStartingPlayer [] [] (List.replicate standardPrizeCount samplePikachu)
 
@@ -1312,9 +1308,6 @@ def initialState : GameState :=
 theorem initial_valid : ValidState initialState := by
   simp [ValidState, initialState, initialPlayer, standardStartingPlayer, benchLimit]
 
-theorem takePrize_prizes_length_le' (attacker defender : PlayerState) :
-    (takePrize attacker defender).2.prizes.length ≤ defender.prizes.length := by
-  cases h : defender.prizes <;> simp [takePrize, h]
 
 theorem playBench_preserves_player_cards (playerState : PlayerState) (card : Card) (newHand : List Card)
     (h : removeFirst card playerState.hand = some newHand) :

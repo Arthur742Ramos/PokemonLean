@@ -25,7 +25,6 @@ def initialOncePerGame : OncePerGameState :=
 -- 1
 theorem initial_gx_available : initialOncePerGame.gxUsed = false := rfl
 -- 2
-theorem initial_vstar_available : initialOncePerGame.vstarUsed = false := rfl
 
 -- ============================================================================
 -- GX ATTACK MODEL
@@ -57,7 +56,6 @@ theorem canUseGX_false_after_use (s : OncePerGameState) : canUseGX (useGX s) = f
 theorem canUseGX_iff (s : OncePerGameState) : canUseGX s = true ↔ s.gxUsed = false := by
   simp [canUseGX]
 -- 9
-theorem gx_idempotent (s : OncePerGameState) : useGX (useGX s) = useGX s := rfl
 
 -- ============================================================================
 -- VSTAR POWER MODEL
@@ -94,7 +92,6 @@ theorem canUseVStar_false_after_use (s : OncePerGameState) : canUseVStar (useVSt
 theorem canUseVStar_iff (s : OncePerGameState) : canUseVStar s = true ↔ s.vstarUsed = false := by
   simp [canUseVStar]
 -- 16
-theorem vstar_idempotent (s : OncePerGameState) : useVStar (useVStar s) = useVStar s := rfl
 
 -- ============================================================================
 -- INDEPENDENCE OF GX AND VSTAR
@@ -159,8 +156,6 @@ theorem six_regular_kos_win : PrizeValue.one.toNat * 6 = 6 := rfl
 -- 32
 theorem v_plus_vmax_is_five : PrizeValue.two.toNat + PrizeValue.three.toNat = 5 := rfl
 -- 33
-theorem two_v_plus_one_regular :
-    PrizeValue.two.toNat + PrizeValue.two.toNat + PrizeValue.one.toNat = 5 := rfl
 
 -- ============================================================================
 -- POWER BUDGET / HP SCALING
@@ -198,8 +193,6 @@ theorem vstar_hp_gt_v : vstarBudget.minHP > vBudget.maxHP := by decide
 theorem higher_hp_higher_prize_v :
     vBudget.prizeValue.toNat > regularBudget.prizeValue.toNat := by decide
 -- 43
-theorem higher_hp_higher_prize_vmax :
-    vmaxBudget.prizeValue.toNat > vBudget.prizeValue.toNat := by decide
 
 -- ============================================================================
 -- GX ATTACK DAMAGE CALCULATION
@@ -293,8 +286,6 @@ theorem set_p2_preserves_p1 (egs : ExtendedGameState) (s : OncePerGameState) :
 theorem set_preserves_base_p1 (egs : ExtendedGameState) (s : OncePerGameState) :
     (setOncePerGame egs .playerOne s).base = egs.base := rfl
 -- 60
-theorem set_preserves_base_p2 (egs : ExtendedGameState) (s : OncePerGameState) :
-    (setOncePerGame egs .playerTwo s).base = egs.base := rfl
 
 -- ============================================================================
 -- PRIZE MATH
@@ -311,7 +302,6 @@ theorem one_vmax_ko_leaves_three : prizesRemaining 6 3 = 3 := rfl
 -- 64
 theorem two_v_kos_leaves_two : prizesRemaining 6 4 = 2 := rfl
 -- 65
-theorem three_regular_kos_leaves_three : prizesRemaining 6 3 = 3 := rfl
 
 -- ============================================================================
 -- PRIZE TRADE EFFICIENCY
@@ -329,6 +319,5 @@ theorem even_trade_v_vs_v : prizeTradeRatio .two .two = true := rfl
 -- 69
 theorem unfavorable_trade_vmax_vs_regular : prizeTradeRatio .three .one = false := rfl
 -- 70
-theorem unfavorable_trade_v_vs_regular : prizeTradeRatio .two .one = false := rfl
 
 end PokemonLean.GXAttacks

@@ -43,31 +43,11 @@ theorem countByName_le_length (deck : List DeckCard) (name : String) :
 def pokemonCount (deck : List DeckCard) : Nat :=
   deck.countP (fun c => c.category == .pokemon)
 
-@[simp] theorem pokemonCount_nil : pokemonCount [] = 0 := by
-  simp [pokemonCount]
-
-@[simp] theorem pokemonCount_cons (c : DeckCard) (deck : List DeckCard) :
-    pokemonCount (c :: deck) = (if c.category == .pokemon then 1 else 0) + pokemonCount deck := by
-  simp [pokemonCount, List.countP_cons, Nat.add_comm]
-
-theorem pokemonCount_le_length (deck : List DeckCard) : pokemonCount deck ≤ deck.length := by
-  simpa [pokemonCount] using
-    (List.countP_le_length (p := fun c : DeckCard => c.category == .pokemon) (l := deck))
 
 /-- Number of Trainer cards. -/
 def trainerCount (deck : List DeckCard) : Nat :=
   deck.countP (fun c => c.category == .trainer)
 
-@[simp] theorem trainerCount_nil : trainerCount [] = 0 := by
-  simp [trainerCount]
-
-@[simp] theorem trainerCount_cons (c : DeckCard) (deck : List DeckCard) :
-    trainerCount (c :: deck) = (if c.category == .trainer then 1 else 0) + trainerCount deck := by
-  simp [trainerCount, List.countP_cons, Nat.add_comm]
-
-theorem trainerCount_le_length (deck : List DeckCard) : trainerCount deck ≤ deck.length := by
-  simpa [trainerCount] using
-    (List.countP_le_length (p := fun c : DeckCard => c.category == .trainer) (l := deck))
 
 /-- Number of Energy cards. -/
 def energyCount (deck : List DeckCard) : Nat :=
@@ -322,8 +302,6 @@ theorem classifyArchetype_aggro (drawSupporters pokemonSearch : Nat)
 def classifyDeck (deck : List DeckCard) : Archetype :=
   classifyArchetype (drawSupporterCount deck) (pokemonSearchCount deck)
 
-theorem classifyDeck_eq (deck : List DeckCard) :
-    classifyDeck deck = classifyArchetype (drawSupporterCount deck) (pokemonSearchCount deck) := rfl
 
 theorem classifyDeck_combo (deck : List DeckCard)
     (hDraw : 12 ≤ drawSupporterCount deck) (hSearch : 8 ≤ pokemonSearchCount deck) :

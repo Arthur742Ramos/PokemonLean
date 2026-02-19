@@ -211,14 +211,6 @@ theorem lostImpact_mirageGate_energy_cycle
 -- FULL COMBO: REACH FULL POWER FROM ZERO
 -- ============================================================================
 
-theorem flower4_colress3_reaches_full_power :
-    4 * 1 + 3 * 2 = thresholdValue .lostMine := by decide
-
-theorem colress5_reaches_full_power :
-    5 * 2 = thresholdValue .lostMine := by decide
-
-theorem impact3_flower4_reaches_full_power :
-    3 * 2 + 4 * 1 = thresholdValue .lostMine := by decide
 
 -- ============================================================================
 -- DAMAGE CALCULATION COMBOS

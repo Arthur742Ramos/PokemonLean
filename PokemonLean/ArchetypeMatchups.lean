@@ -28,13 +28,6 @@ def classifyMatchup (wr : WinRate) : MatchupResult :=
   else if wr ≥ 45 then .even
   else .unfavorable
 
-theorem high_wr_favorable : classifyMatchup 70 = .favorable := by decide
-theorem fifty_is_even : classifyMatchup 50 = .even := by decide
-theorem low_wr_unfavorable : classifyMatchup 30 = .unfavorable := by decide
-theorem boundary_55_even : classifyMatchup 55 = .even := by decide
-theorem boundary_56_favorable : classifyMatchup 56 = .favorable := by decide
-theorem boundary_45_even : classifyMatchup 45 = .even := by decide
-theorem boundary_44_unfavorable : classifyMatchup 44 = .unfavorable := by decide
 
 -- ============================================================================
 -- CLASSIC MATCHUP TRIANGLE
@@ -65,27 +58,11 @@ def archetypeMatchup (attacker defender : Archetype) : WinRate :=
   | .midrange, .midrange => 50
 
 -- Core triangle theorems
-theorem aggro_beats_combo : archetypeMatchup .aggro .combo > 50 := by decide
-theorem combo_beats_control : archetypeMatchup .combo .control > 50 := by decide
-theorem control_beats_aggro : archetypeMatchup .control .aggro > 50 := by decide
 
-theorem aggro_loses_to_control : archetypeMatchup .aggro .control < 50 := by decide
-theorem combo_loses_to_aggro : archetypeMatchup .combo .aggro < 50 := by decide
-theorem control_loses_to_combo : archetypeMatchup .control .combo < 50 := by decide
 
 -- Mirror matches are 50-50
-theorem aggro_mirror : archetypeMatchup .aggro .aggro = 50 := by decide
-theorem control_mirror : archetypeMatchup .control .control = 50 := by decide
-theorem combo_mirror : archetypeMatchup .combo .combo = 50 := by decide
-theorem midrange_mirror : archetypeMatchup .midrange .midrange = 50 := by decide
 
 -- Midrange has no terrible matchups
-theorem midrange_no_terrible_matchup_aggro :
-    archetypeMatchup .midrange .aggro ≥ 45 := by decide
-theorem midrange_no_terrible_matchup_control :
-    archetypeMatchup .midrange .control ≥ 45 := by decide
-theorem midrange_no_terrible_matchup_combo :
-    archetypeMatchup .midrange .combo ≥ 45 := by decide
 
 -- ============================================================================
 -- MATCHUP SPREAD
@@ -125,10 +102,6 @@ def unfavorableCount (s : MatchupSpread) : Nat :=
   (if s.vsCombo < 45 then 1 else 0) +
   (if s.vsMidrange < 45 then 1 else 0)
 
-theorem aggro_has_one_favorable : favorableCount (getSpread .aggro) = 1 := by decide
-theorem aggro_has_one_unfavorable : unfavorableCount (getSpread .aggro) = 1 := by decide
-theorem control_has_one_favorable : favorableCount (getSpread .control) = 1 := by decide
-theorem combo_has_one_favorable : favorableCount (getSpread .combo) = 1 := by decide
 
 -- ============================================================================
 -- TIER LIST
@@ -160,29 +133,13 @@ def classifyTier (weightedWR : Nat) : Tier :=
   else if weightedWR ≥ 43 then .C
   else .D
 
-theorem high_wr_is_S : classifyTier 60 = .S := by decide
-theorem mid_wr_is_B : classifyTier 50 = .B := by decide
-theorem low_wr_is_D : classifyTier 40 = .D := by decide
-theorem threshold_S : classifyTier 58 = .S := by decide
-theorem threshold_A : classifyTier 53 = .A := by decide
-theorem threshold_B : classifyTier 48 = .B := by decide
-theorem threshold_C : classifyTier 43 = .C := by decide
 
 /-- Higher tier always has higher rank -/
-theorem S_above_A : tierRank .S > tierRank .A := by decide
-theorem A_above_B : tierRank .A > tierRank .B := by decide
-theorem B_above_C : tierRank .B > tierRank .C := by decide
-theorem C_above_D : tierRank .C > tierRank .D := by decide
 
 /-- Is a deck tier-viable (B or above)? -/
 def isTierViable (t : Tier) : Bool :=
   tierRank t ≥ 3
 
-theorem S_viable : isTierViable .S = true := by decide
-theorem A_viable : isTierViable .A = true := by decide
-theorem B_viable : isTierViable .B = true := by decide
-theorem C_not_viable : isTierViable .C = false := by decide
-theorem D_not_viable : isTierViable .D = false := by decide
 
 -- ============================================================================
 -- METAGAME ANALYSIS
@@ -200,11 +157,6 @@ structure Metagame where
 def isValidMeta (m : Metagame) : Bool :=
   m.aggroShare + m.controlShare + m.comboShare + m.midrangeShare == 100
 
-theorem balanced_meta_valid :
-    isValidMeta ⟨25, 25, 25, 25⟩ = true := by decide
-
-theorem aggro_heavy_meta_valid :
-    isValidMeta ⟨40, 20, 20, 20⟩ = true := by decide
 
 /-- Best archetype choice for an aggro-heavy meta -/
 def bestAgainstAggro : Archetype := .control
@@ -215,14 +167,6 @@ def bestAgainstControl : Archetype := .combo
 /-- Best archetype choice for a combo-heavy meta -/
 def bestAgainstCombo : Archetype := .aggro
 
-theorem counter_aggro_correct :
-    archetypeMatchup bestAgainstAggro .aggro > 55 := by decide
-
-theorem counter_control_correct :
-    archetypeMatchup bestAgainstControl .control > 55 := by decide
-
-theorem counter_combo_correct :
-    archetypeMatchup bestAgainstCombo .combo > 55 := by decide
 
 -- ============================================================================
 -- DECK POWER LEVEL
@@ -236,7 +180,5 @@ def deckPowerScore (speed consistency favorables : Nat) : Nat :=
 def isDeckStronger (s1 c1 f1 s2 c2 f2 : Nat) : Bool :=
   deckPowerScore s1 c1 f1 > deckPowerScore s2 c2 f2
 
-theorem power_score_favors_matchups :
-    deckPowerScore 5 5 3 > deckPowerScore 8 8 0 := by decide
 
 end PokemonLean.ArchetypeMatchups

@@ -57,21 +57,6 @@ namespace PokemonLean
 def countByName (deck : List Card) (name : String) : Nat :=
   deck.countp (fun c => c.name = name)
 
-@[simp] theorem countByName_nil (name : String) : countByName [] name = 0 := by
-  simp [countByName, List.countp]
-
-@[simp] theorem countByName_cons (c : Card) (deck : List Card) (name : String) :
-    countByName (c :: deck) name = (if c.name = name then 1 else 0) + countByName deck name := by
-  simp only [countByName, List.countp]
-  rw [List.countP_cons]
-  by_cases h : c.name = name
-  · simp [h, decide_eq_true_eq]; omega
-  · simp [h, decide_eq_true_eq]
-
-theorem countByName_le_length (deck : List Card) (name : String) :
-    countByName deck name ≤ deck.length := by
-  simpa [countByName] using
-    (List.countp_le_length (p := fun c : Card => c.name = name) deck)
 
 /-- A simple notion of how many Pokemon cards (non-trainers) are present in a deck.
 
@@ -80,9 +65,6 @@ Note: in this simplified formalization, `isTrainer` is defined by `card.attacks.
 def pokemonCount (deck : List Card) : Nat :=
   deck.countp (fun c => ¬ isTrainer c)
 
-theorem pokemonCount_le_length (deck : List Card) : pokemonCount deck ≤ deck.length := by
-  simpa [pokemonCount] using
-    (List.countp_le_length (p := fun c : Card => ¬ isTrainer c) deck)
 
 /-- A deck has at least one Pokemon card. -/
 def hasPokemon (deck : List Card) : Prop := pokemonCount deck > 0

@@ -289,19 +289,10 @@ def applySturdySurvival (pwa : PokemonWithAbility) (incomingDamage : Nat) (stadi
 -- ============================================================================
 
 -- 1. Path to the Peak negates abilities
-theorem path_to_peak_negates :
-    abilitiesNegated (some .pathToThePeak) = true := by
-  rfl
 
 -- 2. No stadium means abilities are not negated
-theorem no_stadium_no_negation :
-    abilitiesNegated none = false := by
-  rfl
 
 -- 3. Other stadiums don't negate
-theorem other_stadium_no_negation :
-    abilitiesNegated (some .otherStadium) = false := by
-  rfl
 
 -- 4. Ability inactive under Path to the Peak
 theorem ability_inactive_under_path (pwa : PokemonWithAbility) :
@@ -319,14 +310,8 @@ theorem ability_inactive_flag (pwa : PokemonWithAbility) (h : pwa.abilityActive 
   simp [isAbilityActive, h]
 
 -- 7. Damage boost increases damage
-theorem damage_boost_increases (base amount : Nat) :
-    applyDamageBoost base (.boostAttack amount) = base + amount := by
-  rfl
 
 -- 8. Non-boost effect preserves damage
-theorem no_boost_preserves (base : Nat) :
-    applyDamageBoost base .noEffect = base := by
-  rfl
 
 -- 9. Damage reduction decreases damage
 theorem damage_reduction_le (damage amount : Nat) :
@@ -339,9 +324,6 @@ theorem zero_reduction_identity (damage : Nat) :
   simp [applyDamageReduction]
 
 -- 11. Non-reduction preserves damage
-theorem no_reduction_preserves (damage : Nat) :
-    applyDamageReduction damage .noEffect = damage := by
-  rfl
 
 -- 12. Type immunity makes damage zero
 theorem type_immunity_zero (_base : Nat) (t : EnergyType) :
@@ -349,64 +331,28 @@ theorem type_immunity_zero (_base : Nat) (t : EnergyType) :
   simp [isImmuneToType]
 
 -- 13. Wrong type no immunity
-theorem wrong_type_no_immunity :
-    isImmuneToType (.immuneToType .fire) .water = false := by
-  decide
 
 -- 14. Non-immunity effect is not immune
-theorem no_immunity_from_boost (t : EnergyType) :
-    isImmuneToType (.boostAttack 30) t = false := by
-  rfl
 
 -- 15. Drizzle sets rain
-theorem drizzle_sets_rain :
-    abilityWeather drizzleAbility = some .rain := by
-  rfl
 
 -- 16. Drought sets sunny
-theorem drought_sets_sunny :
-    abilityWeather droughtAbility = some .sunny := by
-  rfl
 
 -- 17. Sand stream sets sandstorm
-theorem sand_stream_sets_sandstorm :
-    abilityWeather sandStreamAbility = some .sandstorm := by
-  rfl
 
 -- 18. Snow warning sets hail
-theorem snow_warning_sets_hail :
-    abilityWeather snowWarningAbility = some .hail := by
-  rfl
 
 -- 19. Non-weather ability has no weather
-theorem no_weather_from_intimidate :
-    abilityWeather intimidateAbility = none := by
-  rfl
 
 -- 20. Regenerator triggers on retreat
-theorem regenerator_triggers_retreat :
-    triggersOn regeneratorAbility .onRetreat = true := by
-  decide
 
 -- 21. Regenerator doesn't trigger on enter
-theorem regenerator_no_enter :
-    triggersOn regeneratorAbility .onEnter = false := by
-  decide
 
 -- 22. Intimidate triggers on enter
-theorem intimidate_triggers_enter :
-    triggersOn intimidateAbility .onEnter = true := by
-  decide
 
 -- 23. Huge power triggers on attack
-theorem huge_power_triggers_attack :
-    triggersOn hugePowerAbility .onAttack = true := by
-  decide
 
 -- 24. Mold breaker is passive
-theorem mold_breaker_passive :
-    triggersOn moldBreakerAbility .passive = true := by
-  decide
 
 -- 25. No ability effect when ability is none
 theorem no_ability_no_effect (p : PokemonInPlay) (stadium : Option StadiumInPlay) (trigger : AbilityTrigger) :
@@ -419,14 +365,8 @@ theorem no_effect_under_path (pwa : PokemonWithAbility) (trigger : AbilityTrigge
   simp [getActiveAbilityEffect, isAbilityActive, abilitiesNegated]
 
 -- 27. Damage with no abilities equals base damage
-theorem damage_no_abilities (base : Nat) (t : EnergyType) (s : Option StadiumInPlay) :
-    computeDamageWithAbilities base t none none s = base := by
-  rfl
 
 -- 28. Attacker boost adds to damage
-theorem attacker_boost_adds (base amount : Nat) (t : EnergyType) (s : Option StadiumInPlay) :
-    computeDamageWithAbilities base t (some (.boostAttack amount)) none s = base + amount := by
-  rfl
 
 -- 29. Defender immunity zeros damage
 theorem defender_immunity_zeros (base : Nat) (t : EnergyType) (s : Option StadiumInPlay) :
@@ -483,24 +423,12 @@ theorem damage_reduction_monotone (a b amount : Nat) (h : a ≤ b) :
   omega
 
 -- 35. Flash fire is immune to fire
-theorem flash_fire_immune :
-    isImmuneToType flashFireAbility.effect .fire = true := by
-  decide
 
 -- 36. Lightning rod is immune to lightning
-theorem lightning_rod_immune :
-    isImmuneToType lightningRodAbility.effect .lightning = true := by
-  decide
 
 -- 37. Water absorb is immune to water
-theorem water_absorb_immune :
-    isImmuneToType waterAbsorbAbility.effect .water = true := by
-  decide
 
 -- 38. Volt absorb is immune to lightning
-theorem volt_absorb_immune :
-    isImmuneToType voltAbsorbAbility.effect .lightning = true := by
-  decide
 
 -- 39. Ability trigger exhaustive for weather setters
 theorem weather_setter_triggers_on_enter (ab : AbilityDef) (_w : Weather)

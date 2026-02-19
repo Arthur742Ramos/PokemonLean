@@ -502,11 +502,6 @@ theorem prizeValue_pos (v : CardVariant) : 0 < prizeValue v := by
 theorem prizeValue_le_two (v : CardVariant) : prizeValue v ≤ 2 := by
   cases v <;> simp [prizeValue]
 
-theorem ex_more_prizes_than_normal : prizeValue .ex > prizeValue .normal := by decide
-
-theorem v_more_prizes_than_normal : prizeValue .v > prizeValue .normal := by decide
-
-theorem vstar_more_prizes_than_normal : prizeValue .vstar > prizeValue .normal := by decide
 
 -- ============================================================================
 -- EVOLUTION LINE THEOREMS

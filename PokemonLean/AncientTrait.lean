@@ -222,19 +222,6 @@ def prismStarCountByName (deck : List PrismStarCard) (name : String) : Nat :=
 def prismStarDeckLegal (deck : List PrismStarCard) : Prop :=
   ∀ name : String, prismStarCountByName deck name ≤ 1
 
-@[simp] theorem prismStarCountByName_nil (name : String) :
-    prismStarCountByName [] name = 0 := by
-  simp [prismStarCountByName]
-
-@[simp] theorem prismStarCountByName_cons (c : PrismStarCard) (deck : List PrismStarCard) (name : String) :
-    prismStarCountByName (c :: deck) name =
-      (if c.card.name == name then 1 else 0) + prismStarCountByName deck name := by
-  simp [prismStarCountByName, List.countP_cons, Nat.add_comm]
-
-theorem prismStarCountByName_le_length (deck : List PrismStarCard) (name : String) :
-    prismStarCountByName deck name ≤ deck.length := by
-  simpa [prismStarCountByName] using
-    (List.countP_le_length (p := fun c : PrismStarCard => c.card.name == name) (l := deck))
 
 theorem prismStarDeckLegal_nil : prismStarDeckLegal [] := by
   intro name

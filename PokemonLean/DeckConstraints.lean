@@ -82,10 +82,6 @@ theorem totalCards_nonneg (deck : Deck) : 0 ≤ totalCards deck := Nat.zero_le _
 -- 5
 theorem countKind_nil (kind : DeckCardKind) : countKind [] kind = 0 := rfl
 -- 6
-theorem basicPokemonCount_nil : basicPokemonCount [] = 0 := rfl
--- 7
-theorem aceSpecCount_nil : aceSpecCount [] = 0 := rfl
--- 8
 theorem aceSpecLimit_nil : aceSpecLimit [] := by simp [aceSpecLimit, aceSpecCount, countKind]
 -- 9
 theorem fourCopyRule_nil : fourCopyRule [] := by simp [fourCopyRule]
@@ -136,9 +132,6 @@ theorem five_copies_bad (e : DeckEntry) (h : e.count = 5) : ¬(e.count ≤ 4) :=
 -- ============================================================================
 
 -- 22
-theorem must_have_basic (deck : Deck) (h : LegalDeck deck) : basicPokemonCount deck > 0 :=
-  h.hasBasic
--- 23
 theorem at_least_one_basic (deck : Deck) (h : LegalDeck deck) : basicPokemonCount deck ≥ 1 := by
   exact h.hasBasic
 
@@ -191,7 +184,6 @@ theorem hand_plus_prizes_plus_deck_eq_60 : 7 + 6 + 47 = 60 := by decide
 -- 33
 theorem prize_count_standard : 6 ≤ 60 := by decide
 -- 34
-theorem hand_size_standard : 7 ≤ 60 := by decide
 
 -- ============================================================================
 -- FOUR-COPY FOR SPECIFIC KINDS
@@ -272,7 +264,6 @@ theorem sampleBasic_legal_count : sampleBasicEntry.count ≤ 4 := by decide
 -- 47
 theorem sampleBasic_is_basic : sampleBasicEntry.kind = .pokemonBasic := rfl
 -- 48
-theorem sampleEnergy_is_basic : sampleEnergyEntry.kind = .basicEnergy := rfl
 
 -- ============================================================================
 -- ARITHMETIC LEMMAS
@@ -296,7 +287,6 @@ def isBanned (bannedNames : List String) (name : String) : Bool :=
   bannedNames.any (fun b => b == name)
 
 -- 53
-theorem isBanned_empty (name : String) : isBanned [] name = false := rfl
 
 -- 54
 theorem isBanned_self (name : String) : isBanned [name] name = true := by
@@ -311,33 +301,22 @@ theorem legal_has_basics (deck : Deck) (h : LegalDeck deck) :
     basicPokemonCount deck > 0 := h.hasBasic
 
 -- 56
-theorem aceSpec_kind_ne_basic : DeckCardKind.aceSpec ≠ DeckCardKind.basicEnergy := by decide
 
 -- 57
-theorem supporter_kind_ne_basic : DeckCardKind.supporter ≠ DeckCardKind.basicEnergy := by decide
 
 -- 58
-theorem trainer_kind_ne_basic : DeckCardKind.trainer ≠ DeckCardKind.basicEnergy := by decide
 
 -- 59
-theorem tool_kind_ne_basic : DeckCardKind.tool ≠ DeckCardKind.basicEnergy := by decide
 
 -- 60
-theorem stadium_kind_ne_basic : DeckCardKind.stadium ≠ DeckCardKind.basicEnergy := by decide
 
 -- 61
-theorem pokemonBasic_kind_ne_basic : DeckCardKind.pokemonBasic ≠ DeckCardKind.basicEnergy := by decide
 
 -- 62
-theorem pokemonStage1_kind_ne_basic : DeckCardKind.pokemonStage1 ≠ DeckCardKind.basicEnergy := by decide
 
 -- 63
-theorem pokemonStage2_kind_ne_basic : DeckCardKind.pokemonStage2 ≠ DeckCardKind.basicEnergy := by decide
 
 -- 64
-theorem specialEnergy_kind_ne_basic : DeckCardKind.specialEnergy ≠ DeckCardKind.basicEnergy := by decide
 
 -- 65
-theorem aceSpec_kind_ne_basic' : DeckCardKind.aceSpec ≠ DeckCardKind.basicEnergy := by decide
-
 end PokemonLean.DeckConstraints

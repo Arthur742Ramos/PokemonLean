@@ -225,17 +225,6 @@ theorem setupPlayer_hand_length (deck : List Card) (player : PlayerState) (rest 
 def addPrizesToPlayer (player : PlayerState) (prizes : List Card) : PlayerState :=
   { player with prizes := prizes }
 
-theorem addPrizesToPlayer_prizes (player : PlayerState) (prizes : List Card) :
-    (addPrizesToPlayer player prizes).prizes = prizes := by
-  rfl
-
-theorem addPrizesToPlayer_preserves_deck (player : PlayerState) (prizes : List Card) :
-    (addPrizesToPlayer player prizes).deck = player.deck := by
-  rfl
-
-theorem addPrizesToPlayer_preserves_hand (player : PlayerState) (prizes : List Card) :
-    (addPrizesToPlayer player prizes).hand = player.hand := by
-  rfl
 
 def setupPrizes (player : PlayerState) (count : Nat) : Option PlayerState :=
   match dealPrizes player.deck count with

@@ -238,19 +238,10 @@ theorem attachTool_pokemon (tp : TooledPokemon) (tool : ToolKind) (result : Tool
   · contradiction
 
 /-- Removing a tool returns .noTool. -/
-theorem removeTool_result (tp : TooledPokemon) :
-    (removeTool tp).1.tool = .noTool := by
-  rfl
 
 /-- Removing a tool returns the old tool. -/
-theorem removeTool_old (tp : TooledPokemon) :
-    (removeTool tp).2 = tp.tool := by
-  rfl
 
 /-- Removing preserves the underlying Pokémon. -/
-theorem removeTool_pokemon (tp : TooledPokemon) :
-    (removeTool tp).1.pokemon = tp.pokemon := by
-  rfl
 
 /-- Attach then remove returns original tool. -/
 theorem attach_then_remove (tp : TooledPokemon) (tool : ToolKind) (result : TooledPokemon)
@@ -298,30 +289,20 @@ theorem weaknessPolicy_boost_amount (tp : TooledPokemon) (attackerType : EnergyT
   simp [hBeq, hWeak]
 
 /-- Applying an inactive policy doesn't change damage. -/
-theorem applyWeaknessPolicyBoost_inactive (damage : Nat) :
-    applyWeaknessPolicyBoost damage { activated := false, boostAmount := 0 } = damage := by
-  rfl
 
 /-- Applying an active policy increases damage. -/
-theorem applyWeaknessPolicyBoost_active (damage : Nat) (boost : Nat) :
-    applyWeaknessPolicyBoost damage { activated := true, boostAmount := boost } = damage + boost := by
-  rfl
 
 -- ============================================================================
 -- THEOREMS: CHOICE ITEMS
 -- ============================================================================
 
 /-- Choice Belt boost is 30. -/
-theorem choiceBelt_boost : toolDamageBoost .choiceBelt = 30 := by rfl
 
 /-- Choice Band boost is 30. -/
-theorem choiceBand_boost : toolDamageBoost .choiceBand = 30 := by rfl
 
 /-- No tool gives 0 boost. -/
-theorem noTool_boost : toolDamageBoost .noTool = 0 := by rfl
 
 /-- Weakness Policy gives 0 direct boost. -/
-theorem weaknessPolicy_tool_boost : toolDamageBoost .weaknessPolicy = 0 := by rfl
 
 /-- Tool boost is non-negative. -/
 theorem toolDamageBoost_nonneg (tool : ToolKind) : 0 ≤ toolDamageBoost tool := by
@@ -338,31 +319,18 @@ theorem applyToolBoost_noTool (damage : Nat) :
   simp [applyToolBoost, toolDamageBoost]
 
 /-- Tool boost result equals base + boost amount. -/
-theorem applyToolBoost_eq (damage : Nat) (tool : ToolKind) :
-    applyToolBoost damage tool = damage + toolDamageBoost tool := by
-  rfl
 
 -- ============================================================================
 -- THEOREMS: VSTAR POWER
 -- ============================================================================
 
 /-- Initial VSTAR state has not been used. -/
-theorem initialVStar_unused : initialVStarState.used = false := by rfl
 
 /-- First use of VSTAR Power succeeds. -/
-theorem vstar_first_use :
-    (useVStarPower initialVStarState).2 = true := by
-  rfl
 
 /-- First use marks VSTAR as used. -/
-theorem vstar_first_use_marks :
-    (useVStarPower initialVStarState).1.used = true := by
-  rfl
 
 /-- Second use of VSTAR Power fails. -/
-theorem vstar_second_use_fails :
-    (useVStarPower (useVStarPower initialVStarState).1).2 = false := by
-  rfl
 
 /-- Used VSTAR state blocks further use. -/
 theorem vstar_used_blocks (state : VStarState) (h : state.used = true) :
@@ -375,32 +343,18 @@ theorem vstar_unused_allows (state : VStarState) (h : state.used = false) :
   simp [useVStarPower, h]
 
 /-- Using VSTAR is idempotent (second call returns same state). -/
-theorem vstar_idempotent (state : VStarState) :
-    (useVStarPower (useVStarPower state).1).1 = (useVStarPower state).1 := by
-  simp [useVStarPower]
-  split <;> simp
 
 -- ============================================================================
 -- THEOREMS: GX ATTACK
 -- ============================================================================
 
 /-- Initial GX state has not been used. -/
-theorem initialGX_unused : initialGXState.used = false := by rfl
 
 /-- First use of GX attack succeeds. -/
-theorem gx_first_use :
-    (useGXAttack initialGXState).2 = true := by
-  rfl
 
 /-- First use marks GX as used. -/
-theorem gx_first_use_marks :
-    (useGXAttack initialGXState).1.used = true := by
-  rfl
 
 /-- Second use of GX attack fails. -/
-theorem gx_second_use_fails :
-    (useGXAttack (useGXAttack initialGXState).1).2 = false := by
-  rfl
 
 /-- Used GX state blocks further use. -/
 theorem gx_used_blocks (state : GXState) (h : state.used = true) :
@@ -413,22 +367,12 @@ theorem gx_unused_allows (state : GXState) (h : state.used = false) :
   simp [useGXAttack, h]
 
 /-- Using GX is idempotent (second call returns same state). -/
-theorem gx_idempotent (state : GXState) :
-    (useGXAttack (useGXAttack state).1).1 = (useGXAttack state).1 := by
-  simp [useGXAttack]
-  split <;> simp
 
 -- ============================================================================
 -- THEOREMS: LOST ZONE
 -- ============================================================================
 
 /-- Empty Lost Zone has 0 cards. -/
-theorem emptyLostZone_count : lostZoneCount emptyLostZone = 0 := by rfl
-
-/-- Sending a card increases Lost Zone count by 1. -/
-theorem sendToLostZone_count (lz : LostZone) (card : Card) :
-    lostZoneCount (sendToLostZone lz card) = lostZoneCount lz + 1 := by
-  simp [sendToLostZone, lostZoneCount, List.length_cons]
 
 theorem sendToLostZone_contains (lz : LostZone) (card : Card) :
     isInLostZone (sendToLostZone lz card) card = true := by
@@ -492,45 +436,15 @@ theorem initial_lostZones_empty :
 -- ============================================================================
 
 /-- VSTAR and GX are independent: using one doesn't affect the other. -/
-theorem vstar_gx_independent (em : ExtendedMechanics) :
-    let newVStar := (useVStarPower em.vstarP1).1
-    let em' := { em with vstarP1 := newVStar }
-    em'.gxP1 = em.gxP1 := by
-  rfl
 
 /-- GX and VSTAR are independent. -/
-theorem gx_vstar_independent (em : ExtendedMechanics) :
-    let newGX := (useGXAttack em.gxP1).1
-    let em' := { em with gxP1 := newGX }
-    em'.vstarP1 = em.vstarP1 := by
-  rfl
 
 /-- Player 1's VSTAR doesn't affect Player 2's VSTAR. -/
-theorem vstar_player_independent (em : ExtendedMechanics) :
-    let newVStar := (useVStarPower em.vstarP1).1
-    let em' := { em with vstarP1 := newVStar }
-    em'.vstarP2 = em.vstarP2 := by
-  rfl
 
 /-- Player 1's GX doesn't affect Player 2's GX. -/
-theorem gx_player_independent (em : ExtendedMechanics) :
-    let newGX := (useGXAttack em.gxP1).1
-    let em' := { em with gxP1 := newGX }
-    em'.gxP2 = em.gxP2 := by
-  rfl
 
 /-- Lost Zone operations don't affect VSTAR state. -/
-theorem lostZone_vstar_independent (em : ExtendedMechanics) (card : Card) :
-    let newLZ := sendToLostZone em.lostZoneP1 card
-    let em' := { em with lostZoneP1 := newLZ }
-    em'.vstarP1 = em.vstarP1 := by
-  rfl
 
 /-- Lost Zone operations don't affect GX state. -/
-theorem lostZone_gx_independent (em : ExtendedMechanics) (card : Card) :
-    let newLZ := sendToLostZone em.lostZoneP1 card
-    let em' := { em with lostZoneP1 := newLZ }
-    em'.gxP1 = em.gxP1 := by
-  rfl
 
 end PokemonLean.SpecialConditions

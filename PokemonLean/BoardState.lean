@@ -67,9 +67,6 @@ def benchLimit (state : BoardState) : Nat :=
 
 @[simp] theorem isSkyField_none : isSkyField none = false := rfl
 
-theorem isSkyField_some_eq (card : Card) :
-    isSkyField (some card) = (card.name == skyFieldName) := by
-  rfl
 
 theorem benchLimit_no_stadium (state : BoardState) (h : state.stadium = none) :
     benchLimit state = defaultBenchLimit := by
@@ -207,22 +204,6 @@ def totalCardsInvariant (state : BoardState) : Prop :=
 def boardInvariant (state : BoardState) : Prop :=
   prizesInvariant state ∧ benchInvariant state ∧ totalCardsInvariant state
 
-theorem prizesInvariant_iff (state : BoardState) :
-    prizesInvariant state ↔ state.prizes.length = prizeCardCount := by
-  rfl
-
-theorem benchInvariant_iff (state : BoardState) :
-    benchInvariant state ↔ state.bench.length ≤ benchLimit state := by
-  rfl
-
-theorem totalCardsInvariant_iff (state : BoardState) :
-    totalCardsInvariant state ↔ totalCardCount state = totalCardsTarget := by
-  rfl
-
-theorem boardInvariant_iff (state : BoardState) :
-    boardInvariant state ↔
-      prizesInvariant state ∧ benchInvariant state ∧ totalCardsInvariant state := by
-  rfl
 
 -- ============================================================================
 -- BOARD TRANSITIONS (GAME ACTIONS)

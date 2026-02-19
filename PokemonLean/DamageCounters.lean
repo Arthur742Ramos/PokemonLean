@@ -71,9 +71,6 @@ theorem remainingHP_pos_of_not_ko (pokemon : PokemonInPlay)
   simp [isKnockedOut] at hNotKO
   simp [remainingHP]; omega
 
-theorem remainingHP_eq_hp_minus_damage (pokemon : PokemonInPlay) :
-    remainingHP pokemon = pokemon.card.hp - pokemon.damage := by
-  rfl
 
 theorem remainingHP_zero_damage (pokemon : PokemonInPlay)
     (hZero : pokemon.damage = 0) :
@@ -311,9 +308,6 @@ theorem remove_then_place_ge (pokemon : PokemonInPlay) (n : Nat) :
 -- MAX DAMAGE COUNTERS THEOREMS
 -- ============================================================================
 
-theorem maxDamageCounters_eq (pokemon : PokemonInPlay) :
-    maxDamageCounters pokemon = pokemon.card.hp / damageCounterValue := by
-  rfl
 
 theorem ko_if_counters_ge_max (pokemon : PokemonInPlay) (n : Nat)
     (hZero : pokemon.damage = 0)

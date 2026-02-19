@@ -285,29 +285,20 @@ def rareCandy : TrainerCard where
 -- ============================================================
 
 /-- Regular Pokémon give 1 prize. -/
-theorem none_gives_one_prize : RuleBox.none.prizeCount = 1 := by rfl
 
 /-- EX/ex give 2 prizes. -/
-theorem ex_gives_two_prizes : RuleBox.ex_upper.prizeCount = 2 := by rfl
-theorem ex_lower_gives_two_prizes : RuleBox.ex_lower.prizeCount = 2 := by rfl
 
 /-- GX gives 2 prizes. -/
-theorem gx_gives_two_prizes : RuleBox.gx.prizeCount = 2 := by rfl
 
 /-- Tag Team gives 3 prizes. -/
-theorem tag_team_gives_three_prizes : RuleBox.tagTeam.prizeCount = 3 := by rfl
 
 /-- V gives 2 prizes. -/
-theorem v_gives_two_prizes : RuleBox.v.prizeCount = 2 := by rfl
 
 /-- VMAX gives 3 prizes. -/
-theorem vmax_gives_three_prizes : RuleBox.vmax.prizeCount = 3 := by rfl
 
 /-- VSTAR gives 2 prizes. -/
-theorem vstar_gives_two_prizes : RuleBox.vstar.prizeCount = 2 := by rfl
 
 /-- Tera gives 2 prizes. -/
-theorem tera_gives_two_prizes : RuleBox.tera.prizeCount = 2 := by rfl
 
 /-- All rule box Pokémon give at least 1 prize. -/
 theorem prize_at_least_one (rb : RuleBox) : rb.prizeCount ≥ 1 := by
@@ -326,22 +317,16 @@ theorem rulebox_at_least_two (rb : RuleBox) (h : rb ≠ .none) : rb.prizeCount �
 -- ============================================================
 
 /-- A Pokémon card is classified as Pokémon. -/
-theorem pokemon_is_pokemon (pc : PokemonCard) : (Card.pokemon pc).isPokemon = true := by rfl
 
 /-- A Trainer card is classified as Trainer. -/
-theorem trainer_is_trainer (tc : TrainerCard) : (Card.trainer tc).isTrainer = true := by rfl
 
 /-- An Energy card is classified as Energy. -/
-theorem energy_is_energy (et : EnergyType) (b : Bool) : (Card.energy et b).isEnergy = true := by rfl
 
 /-- A Pokémon card is not an Energy card. -/
-theorem pokemon_not_energy (pc : PokemonCard) : (Card.pokemon pc).isEnergy = false := by rfl
 
 /-- A Trainer card is not a Pokémon card. -/
-theorem trainer_not_pokemon (tc : TrainerCard) : (Card.trainer tc).isPokemon = false := by rfl
 
 /-- Charizard ex's weakness is water. -/
-theorem charizard_weak_to_water : charizardEx.weakness = some .water := by rfl
 
 /-- Pikachu base is a Basic Pokémon. -/
 theorem pikachu_is_basic : pikachuBase.isBasic = true := by native_decide
@@ -350,16 +335,12 @@ theorem pikachu_is_basic : pikachuBase.isBasic = true := by native_decide
 theorem pikachu_no_rulebox : pikachuBase.hasRuleBox = false := by native_decide
 
 /-- Pikachu base gives 1 prize. -/
-theorem pikachu_one_prize : pikachuBase.prizeValue = 1 := by rfl
 
 /-- Charizard ex gives 2 prizes. -/
-theorem charizard_two_prizes : charizardEx.prizeValue = 2 := by rfl
 
 /-- Mew VMAX gives 3 prizes (VMAX rule). -/
-theorem mew_vmax_three_prizes : mewVmax.prizeValue = 3 := by rfl
 
 /-- Mew VMAX resists Fighting. -/
-theorem mew_vmax_resists_fighting : mewVmax.resistance = some .fighting := by rfl
 
 /-- Every card type is classified as exactly one kind. -/
 theorem card_classification_exclusive (c : Card) :

@@ -38,9 +38,6 @@ theorem hasThresholdMet_iff (player : LostZonePlayerState) (t : LostZoneThreshol
 -- THRESHOLD ORDERING
 -- ============================================================================
 
-theorem provision_le_mirageGate : thresholdValue .provision ≤ thresholdValue .mirageGate := by decide
-theorem mirageGate_le_lostMine : thresholdValue .mirageGate ≤ thresholdValue .lostMine := by decide
-theorem provision_le_lostMine : thresholdValue .provision ≤ thresholdValue .lostMine := by decide
 
 theorem mirageGate_met_implies_provision (player : LostZonePlayerState)
     (h : thresholdMet player .mirageGate) : thresholdMet player .provision := by

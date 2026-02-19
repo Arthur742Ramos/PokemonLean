@@ -311,18 +311,8 @@ inductive EvolutionChain : List Card → Prop
       EvolutionChain (evolved :: base :: chain)
 
 /-- Evolution preserves damage. -/
-theorem evolution_preserves_damage (pokemon : PokemonInPlay) (evolved : Card)
-    (_hEvolves : EvolvesFrom evolved pokemon.card) :
-    let evolvedPokemon := { pokemon with card := evolved }
-    evolvedPokemon.damage = pokemon.damage := by
-  rfl
 
 /-- Evolution preserves energy attachments. -/
-theorem evolution_preserves_energy (pokemon : PokemonInPlay) (evolved : Card)
-    (_hEvolves : EvolvesFrom evolved pokemon.card) :
-    let evolvedPokemon := { pokemon with card := evolved }
-    evolvedPokemon.energy = pokemon.energy := by
-  rfl
 
 theorem EvolvesFrom_refl (card : Card) : EvolvesFrom card card := by
   simp [EvolvesFrom]
@@ -353,11 +343,6 @@ theorem evolutionChain_length_pos (chain : List Card) (h : EvolutionChain chain)
   | single card => simp
   | evolve evolved chain base hChain hEvolves => simp
 
-theorem evolution_preserves_status (pokemon : PokemonInPlay) (evolved : Card)
-    (_hEvolves : EvolvesFrom evolved pokemon.card) :
-    let evolvedPokemon := { pokemon with card := evolved }
-    evolvedPokemon.status = pokemon.status := by
-  rfl
 
 theorem evolution_preserves_damage_le (pokemon : PokemonInPlay) (evolved : Card)
     (hEvolves : EvolvesFrom evolved pokemon.card)
@@ -452,13 +437,6 @@ def applyStadiumEffect (stadium : Stadium) (state : GameState) : GameState :=
   | .modifyRetreatCost _ => state
   | .drawOnAttach _ => state
 
-theorem applyStadiumEffect_modifyRetreatCost (state : GameState) (delta : Int) :
-    applyStadiumEffect { name := "", effect := .modifyRetreatCost delta } state = state := by
-  rfl
-
-theorem applyStadiumEffect_drawOnAttach (state : GameState) (count : Nat) :
-    applyStadiumEffect { name := "", effect := .drawOnAttach count } state = state := by
-  rfl
 
 theorem applyStadiumEffect_healAll_active_none (state : GameState) (amount : Nat)
     (hNone : state.playerOne.active = none) :
@@ -479,7 +457,6 @@ theorem applyStadiumEffect_damageAll_preserves_bench_length (state : GameState) 
     (applyStadiumEffect { name := "", effect := .damageAllPokemon amount } state).playerOne.bench.length =
       state.playerOne.bench.length := by
   simp [applyStadiumEffect, List.length_map]
-
 
 
 theorem applyStadiumEffect_healAll_preserves_active_none (state : GameState) (amount : Nat)
@@ -540,7 +517,6 @@ theorem progressMetric_pos_of_prizes (player : PlayerId) (state : GameState)
         | some p => p.card.hp - p.damage := by
       exact Nat.lt_of_lt_of_le hPos (Nat.le_add_right _ _)
     simpa [progressMetric, h] using hSum
-
 
 
 theorem progressMetric_ge_active_hp (player : PlayerId) (state : GameState) :
@@ -745,9 +721,6 @@ theorem typeMultiplier_eq_one_or_two (attacker defender : EnergyType) :
     typeMultiplier attacker defender = 1 ∨ typeMultiplier attacker defender = 2 := by
   cases attacker <;> cases defender <;> simp [typeMultiplier]
 
-theorem typeEffective_iff (attacker defender : EnergyType) :
-    TypeEffective attacker defender ↔ typeMultiplier attacker defender = 2 := by
-  rfl
 
 theorem typeEffective_not_self (t : EnergyType) : ¬ TypeEffective t t := by
   simp [TypeEffective, typeMultiplier]
@@ -1828,7 +1801,6 @@ theorem winRate_playerOne_allWins (stats : MatchupStats) (hGames : stats.totalGa
   have hDiv : stats.totalGames * 100 / stats.totalGames = 100 := by
     simpa [Nat.mul_comm] using Nat.mul_div_right 100 hPos
   simp [winRate, hWins, hNe, hDiv]
-
 
 
 theorem winRate_playerTwo_allWins (stats : MatchupStats) (hGames : stats.totalGames > 0)

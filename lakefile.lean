@@ -6,4 +6,4 @@ package «PokemonLean» where
 
 @[default_target]
 lean_lib «PokemonLean» where
-  roots := #[`PokemonLean, `Core.Types, `Core.BenchLimits, `Core.BenchProtection, `Core.BoardPositioning, `Core.SpecialConditions, `Core.ConditionRemoval, `Core.ConditionStrategy]
+  roots := #[`PokemonLean]

@@ -123,17 +123,6 @@ def setReleaseDate : TCGSet → ReleaseDate
 @[simp] theorem setReleaseDate_stellarCrown :
     setReleaseDate .stellarCrown = { year := 2024, month := 9, day := 13 } := rfl
 
-theorem blackWhite_before_scarletViolet :
-    releaseDateBeforeOrOn (setReleaseDate .blackWhiteBase) (setReleaseDate .scarletViolet) := by
-  decide
-
-theorem scarletViolet_before_paldeaEvolved :
-    releaseDateBeforeOrOn (setReleaseDate .scarletViolet) (setReleaseDate .paldeaEvolved) := by
-  decide
-
-theorem temporalForces_before_stellarCrown :
-    releaseDateBeforeOrOn (setReleaseDate .temporalForces) (setReleaseDate .stellarCrown) := by
-  decide
 
 -- ============================================================================
 -- ERAS
@@ -304,13 +293,6 @@ def turnOneAttackAllowed (format : TCGFormat) (isStartingPlayer : Bool) : Bool :
     turnOneAttackAllowed format true = firstPlayerCanAttackTurnOne format := by
   simp [turnOneAttackAllowed]
 
-theorem standard_blocks_first_turn_attack :
-    turnOneAttackAllowed .standard true = false := by
-  simp
-
-theorem unlimited_allows_first_turn_attack :
-    turnOneAttackAllowed .unlimited true = true := by
-  simp
 
 -- ============================================================================
 -- BAN LISTS

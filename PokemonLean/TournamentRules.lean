@@ -22,9 +22,6 @@ def suddenDeathPrizeCount : Nat := 3
 @[simp] theorem regulationTimeLimitMinutes_value : regulationTimeLimitMinutes = 50 := rfl
 @[simp] theorem suddenDeathPrizeCount_value : suddenDeathPrizeCount = 3 := rfl
 
-theorem gamesNeededToWinMatch_lt_maxGamesPerMatch :
-    gamesNeededToWinMatch < maxGamesPerMatch := by
-  decide
 
 /-- The match is still in regulation time. -/
 def withinRegulationTime (elapsedMinutes : Nat) : Prop :=

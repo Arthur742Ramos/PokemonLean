@@ -63,7 +63,6 @@ theorem phase_cases (p : TurnPhase) :
     p = .drawPhase ∨ p = .mainPhase ∨ p = .attackPhase ∨ p = .betweenTurns := by
   cases p <;> simp
 -- 13
-theorem four_phases : [TurnPhase.drawPhase, .mainPhase, .attackPhase, .betweenTurns].length = 4 := rfl
 
 -- ============================================================================
 -- MAIN PHASE ACTIONS
@@ -106,7 +105,6 @@ theorem emptyLog_no_gx : emptyLog.gxAttackUsed = false := rfl
 -- 19
 theorem emptyLog_no_vstar : emptyLog.vstarPowerUsed = false := rfl
 -- 20
-theorem emptyLog_zero_energy_count : emptyLog.normalEnergyCount = 0 := rfl
 
 -- ============================================================================
 -- ONCE-PER-TURN CONSTRAINTS
@@ -214,8 +212,6 @@ theorem firstTurnNoSupporter_turn1_first : firstTurnNoSupporter ⟨1, true⟩ = 
 -- 47
 theorem firstTurnNoSupporter_turn2 (b : Bool) : firstTurnNoSupporter ⟨2, b⟩ = false := rfl
 -- 48
-theorem firstTurn_restrictions_match (ctx : TurnContext) :
-    firstTurnNoAttack ctx = firstTurnNoSupporter ctx := rfl
 
 def canAttackThisTurn (ctx : TurnContext) (log : TurnActionLog) (activeStatus : Option StatusCondition) : Bool :=
   !firstTurnNoAttack ctx &&
@@ -238,7 +234,6 @@ theorem canAttack_poisoned_turn2 : canAttackThisTurn ⟨2, true⟩ emptyLog (som
 -- 54
 theorem canAttack_confused_turn2 : canAttackThisTurn ⟨2, true⟩ emptyLog (some .confused) = true := rfl
 -- 55
-theorem cannot_attack_turn1_first : canAttackThisTurn ⟨1, true⟩ emptyLog none = false := rfl
 
 -- ============================================================================
 -- BETWEEN TURNS

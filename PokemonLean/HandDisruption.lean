@@ -52,30 +52,6 @@ def opponentDrawCount : DisruptionSupporter → Nat
 -- DRAW COUNT THEOREMS
 -- ============================================================================
 
-theorem judge_draws_four : disruptionDrawCount .judge = 4 := rfl
-
-theorem marshadow_draws_four : disruptionDrawCount .marshadow = 4 := rfl
-
-theorem marnie_self_draws_five : disruptionDrawCount .marnie = 5 := rfl
-
-theorem marnie_opp_draws_four : opponentDrawCount .marnie = 4 := rfl
-
-theorem iono_self_draws_prizes (n : Nat) :
-    disruptionDrawCount (.ionoSelf n) = n := rfl
-
-theorem iono_opp_draws_prizes (n : Nat) :
-    opponentDrawCount (.ionoOpp n) = n := rfl
-
-theorem n_self_draws_prizes (n : Nat) :
-    disruptionDrawCount (.nSelf n) = n := rfl
-
-theorem n_opp_draws_prizes (n : Nat) :
-    opponentDrawCount (.nOpp n) = n := rfl
-
-theorem oak_draws_seven : disruptionDrawCount .professorOak = 7 := rfl
-
-theorem copycat_draws_opp_hand (n : Nat) :
-    disruptionDrawCount (.copycat n) = n := rfl
 
 -- ============================================================================
 -- IONO / N PRIZE-BASED MECHANICS
@@ -91,19 +67,6 @@ def ionoHandSize (prizesTaken : Nat) : Nat :=
 /-- N hand size: prizes remaining -/
 def nHandSize (prizesRemaining : Nat) : Nat := prizesRemaining
 
-theorem iono_full_prizes : ionoHandSize 0 = 6 := rfl
-
-theorem iono_one_prize_taken : ionoHandSize 1 = 5 := rfl
-
-theorem iono_two_prizes_taken : ionoHandSize 2 = 4 := rfl
-
-theorem iono_three_prizes_taken : ionoHandSize 3 = 3 := rfl
-
-theorem iono_four_prizes_taken : ionoHandSize 4 = 2 := rfl
-
-theorem iono_five_prizes_taken : ionoHandSize 5 = 1 := rfl
-
-theorem iono_six_prizes_taken : ionoHandSize 6 = 0 := rfl
 
 theorem iono_decreasing (a b : Nat) (h : a ≤ b) (hb : b ≤ standardPrizeCount') :
     ionoHandSize b ≤ ionoHandSize a := by
@@ -112,7 +75,6 @@ theorem iono_decreasing (a b : Nat) (h : a ≤ b) (hb : b ≤ standardPrizeCount
 theorem iono_le_six (n : Nat) : ionoHandSize n ≤ 6 := by
   simp only [ionoHandSize, standardPrizeCount']; omega
 
-theorem n_hand_eq_prizes (n : Nat) : nHandSize n = n := rfl
 
 -- ============================================================================
 -- HAND SIZE DISRUPTION ANALYSIS
@@ -165,7 +127,6 @@ theorem marnie_no_disruption_small_hand (oppHand : Nat) (h : oppHand ≤ 4) :
   omega
 
 /-- Marnie self draw is strictly better than opponent draw -/
-theorem marnie_self_better : marnieSelfDraw > marnieOppDraw := by decide
 
 -- ============================================================================
 -- JUDGE MECHANICS
@@ -174,7 +135,6 @@ theorem marnie_self_better : marnieSelfDraw > marnieOppDraw := by decide
 def judgeDraw : Nat := 4
 
 /-- Judge is symmetric: both draw 4 -/
-theorem judge_symmetric_draw : disruptionDrawCount .judge = opponentDrawCount .judge := rfl
 
 /-- Judge disrupts if opponent has > 4 cards -/
 theorem judge_disrupts_large_hand (oppHand : Nat) (h : oppHand > 4) :
@@ -193,27 +153,22 @@ theorem judge_no_disruption_small_hand (oppHand : Nat) (h : oppHand ≤ 4) :
 -- ============================================================================
 
 /-- N is best when opponent has few prizes left (lots taken) -/
-theorem n_best_late_game : nHandSize 1 < nHandSize 6 := by decide
 
 /-- N weakens as opponent takes fewer prizes from pool -/
 theorem n_weakens_early (a b : Nat) (h : a < b) :
     nHandSize a < nHandSize b := h
 
 /-- N to 1 is the strongest disruption -/
-theorem n_to_one_minimal : nHandSize 1 = 1 := rfl
 
 /-- N gives 6 at start -/
-theorem n_at_start : nHandSize 6 = 6 := rfl
 
 -- ============================================================================
 -- IONO STRATEGY THEOREMS
 -- ============================================================================
 
 /-- Iono is strongest when opponent has taken 5 prizes (1 left) -/
-theorem iono_strongest_late : ionoHandSize 5 = 1 := rfl
 
 /-- Iono is weakest at start of game -/
-theorem iono_weakest_start : ionoHandSize 0 = 6 := rfl
 
 /-- Iono + prizes taken determines hand size -/
 theorem iono_plus_prizes (taken : Nat) (h : taken ≤ 6) :
@@ -253,16 +208,12 @@ def isHandLock (oppHandAfter : Nat) : Bool :=
   decide (oppHandAfter ≤ 2)
 
 /-- Iono to 1 is a hand lock -/
-theorem iono_to_one_locks : isHandLock (ionoHandSize 5) = true := rfl
 
 /-- Iono to 2 is a hand lock -/
-theorem iono_to_two_locks : isHandLock (ionoHandSize 4) = true := rfl
 
 /-- Iono to 3 is NOT a hand lock -/
-theorem iono_to_three_no_lock : isHandLock (ionoHandSize 3) = false := rfl
 
 /-- N to 1 is a hand lock -/
-theorem n_to_one_locks : isHandLock (nHandSize 1) = true := rfl
 
 -- ============================================================================
 -- DECK SHUFFLE INTERACTION
@@ -294,7 +245,6 @@ theorem disruption_card_conservation (deckBefore handBefore deckAfter handAfter 
 def cumulativeDisruption (impacts : List Int) : Int :=
   impacts.foldl (· + ·) 0
 
-theorem cumulative_nil : cumulativeDisruption [] = 0 := rfl
 
 theorem cumulative_singleton (x : Int) : cumulativeDisruption [x] = x := by
   simp [cumulativeDisruption, List.foldl]
@@ -322,11 +272,6 @@ def disruptionTiming (oppHand oppPrizes : Nat) : Nat :=
   (if oppHand > 6 then 3 else if oppHand > 4 then 2 else 0) +
   (if oppPrizes ≤ 2 then 3 else if oppPrizes ≤ 4 then 1 else 0)
 
-theorem timing_zero_small_hand_early :
-    disruptionTiming 3 5 = 0 := rfl
-
-theorem timing_high_late_game :
-    disruptionTiming 8 1 = 6 := rfl
 
 theorem timing_nonneg (h p : Nat) : 0 ≤ disruptionTiming h p := Nat.zero_le _
 

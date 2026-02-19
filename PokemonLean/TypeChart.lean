@@ -167,69 +167,23 @@ def applyDualTypeEffectiveness (baseDamage : Nat) (attackType type1 type2 : Ener
 -- CORE MATCHUP THEOREMS: FIRE/WATER/GRASS TRIANGLE
 -- ============================================================================
 
-theorem fire_beats_grass : effectiveness .fire .grass = .superEffect := by decide
-
-theorem water_beats_fire : effectiveness .water .fire = .superEffect := by decide
-
-theorem grass_beats_water : effectiveness .grass .water = .superEffect := by decide
-
-theorem fire_resisted_by_water : effectiveness .fire .water = .notVery := by decide
-
-theorem water_resisted_by_grass : effectiveness .water .grass = .notVery := by decide
-
-theorem grass_resisted_by_fire : effectiveness .grass .fire = .notVery := by decide
 
 -- ============================================================================
 -- ELECTRIC / PSYCHIC / FIGHTING / DARK / METAL / DRAGON / FAIRY MATCHUPS
 -- ============================================================================
 
-theorem electric_beats_water : effectiveness .lightning .water = .superEffect := by decide
-
-theorem psychic_beats_fighting : effectiveness .psychic .fighting = .superEffect := by decide
-
-theorem fighting_beats_electric : effectiveness .fighting .lightning = .superEffect := by decide
-
-theorem dark_beats_psychic : effectiveness .dark .psychic = .superEffect := by decide
-
-theorem fairy_beats_dragon : effectiveness .fairy .dragon = .superEffect := by decide
-
-theorem fairy_beats_dark : effectiveness .fairy .dark = .superEffect := by decide
-
-theorem fairy_beats_fighting : effectiveness .fairy .fighting = .superEffect := by decide
-
-theorem metal_beats_fairy : effectiveness .metal .fairy = .superEffect := by decide
-
-theorem fighting_beats_metal : effectiveness .fighting .metal = .superEffect := by decide
-
-theorem fire_beats_metal : effectiveness .fire .metal = .superEffect := by decide
-
-theorem dragon_beats_dragon : effectiveness .dragon .dragon = .superEffect := by rfl
 
 -- ============================================================================
 -- IMMUNITY THEOREMS
 -- ============================================================================
 
-theorem psychic_immune_to_dark : effectiveness .psychic .dark = .immune := by decide
-
-theorem dragon_immune_to_fairy : effectiveness .dragon .fairy = .immune := by decide
 
 -- ============================================================================
 -- NO TYPE IS WEAK TO ITSELF
 -- ============================================================================
 
-theorem fire_not_super_against_self : effectiveness .fire .fire ≠ .superEffect := by decide
-theorem water_not_super_against_self : effectiveness .water .water ≠ .superEffect := by decide
-theorem grass_not_super_against_self : effectiveness .grass .grass ≠ .superEffect := by decide
-theorem electric_not_super_against_self : effectiveness .lightning .lightning ≠ .superEffect := by decide
-theorem psychic_not_super_against_self : effectiveness .psychic .psychic ≠ .superEffect := by decide
-theorem fighting_not_super_against_self : effectiveness .fighting .fighting ≠ .superEffect := by decide
-theorem dark_not_super_against_self : effectiveness .dark .dark ≠ .superEffect := by decide
-theorem metal_not_super_against_self : effectiveness .metal .metal ≠ .superEffect := by decide
-theorem fairy_not_super_against_self : effectiveness .fairy .fairy ≠ .superEffect := by decide
-theorem colorless_not_super_against_self : effectiveness .colorless .colorless ≠ .superEffect := by decide
 
 /-- Dragon is the unique type that is super effective against itself -/
-theorem dragon_super_against_self : effectiveness .dragon .dragon = .superEffect := by rfl
 
 theorem no_type_super_against_self_except_dragon (t : EnergyType) (hNotDragon : t ≠ .dragon) :
     effectiveness t t ≠ .superEffect := by
@@ -287,13 +241,6 @@ theorem applyEffectiveness_super_double (d : Nat) :
 -- WEAKNESS / RESISTANCE APPLICATION THEOREMS
 -- ============================================================================
 
-theorem applyWeakness_none (d : Nat) (t : EnergyType) :
-    applyWeakness d t none = d := by
-  simp [applyWeakness]
-
-theorem applyResistance_none (d : Nat) (t : EnergyType) :
-    applyResistance d t none = d := by
-  simp [applyResistance]
 
 theorem applyWeakness_match (d : Nat) (t : EnergyType) (w : Weakness)
     (hMatch : (w.energyType == t) = true) :

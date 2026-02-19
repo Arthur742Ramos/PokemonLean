@@ -35,11 +35,6 @@ def prizeCount (prizes : List PrizeCard) : Nat :=
 def prizeValueTotal (prizes : List PrizeCard) : Nat :=
   (prizes.map prizeCardValue).sum
 
-theorem prizeCount_nil : prizeCount [] = 0 := by
-  rfl
-
-theorem prizeValueTotal_nil : prizeValueTotal [] = 0 := by
-  rfl
 
 theorem prizeValueTotal_cons (pc : PrizeCard) (rest : List PrizeCard) :
     prizeValueTotal (pc :: rest) = prizeCardValue pc + prizeValueTotal rest := by
@@ -92,15 +87,6 @@ def takePrizeCards (attacker defender : PlayerState) : Nat → PlayerState × Pl
       let (attacker', defender') := takePrize attacker defender
       takePrizeCards attacker' defender' n
 
-theorem takePrizeCards_zero (attacker defender : PlayerState) :
-    takePrizeCards attacker defender 0 = (attacker, defender) := by
-  rfl
-
-theorem takePrizeCards_succ (attacker defender : PlayerState) (n : Nat) :
-    takePrizeCards attacker defender (n + 1) =
-      let (attacker', defender') := takePrize attacker defender
-      takePrizeCards attacker' defender' n := by
-  rfl
 
 theorem takePrizeCards_prizes_length_le (attacker defender : PlayerState) (n : Nat) :
     (takePrizeCards attacker defender n).2.prizes.length ≤ defender.prizes.length := by

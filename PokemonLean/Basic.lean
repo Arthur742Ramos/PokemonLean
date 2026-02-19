@@ -398,7 +398,6 @@ theorem applyStatusEndTurn_burned_damage (pokemon : PokemonInPlay)
   simp [applyStatusEndTurn, hStatus]
 
 
-
 theorem applyStatusEndTurn_damage_eq (pokemon : PokemonInPlay) :
     (applyStatusEndTurn pokemon).damage =
       match pokemon.status with
@@ -563,7 +562,6 @@ theorem applyStealthRock_damage_ge (pokemon : PokemonInPlay)
     pokemon.damage ≤ (applyStealthRock pokemon).damage := by
   simp [applyStealthRock]
   exact (Nat.le_min).2 ⟨Nat.le_add_right _ _, hBound⟩
-
 
 
 theorem applyStealthRock_damage_eq (pokemon : PokemonInPlay) :
