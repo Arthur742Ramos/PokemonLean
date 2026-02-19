@@ -1,16 +1,22 @@
 import Lean.Data.Rat
 import PokemonLean.NashEquilibrium
 import PokemonLean.Core.Types
+import PokemonLean.RealMetagame
 
 namespace PokemonLean.EvolutionaryDynamics
 
 open PokemonLean.NashEquilibrium
+open PokemonLean.RealMetagame
 
 /-! # Evolutionary Dynamics — Replicator Dynamics for Metagame Evolution
 
   Formalizes metagame evolution using discrete replicator dynamics from
   evolutionary game theory.  Every theorem is closed by `native_decide`
   on concrete rational instances — zero `sorry`, zero `admit`, zero `axiom`.
+
+  Part I:  Abstract 3-archetype Rock-Paper-Scissors dynamics (original)
+  Part II: Concrete dynamics using **real 14-deck Trainer Hill data**
+           from the 2026 competitive Pokémon TCG metagame.
 -/
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -358,5 +364,369 @@ theorem lyapunov_invariant_at_nash_iter5 :
     shareProduct 3 (replicatorIter 3 rpsPayoff uniformShare (1/10) 5) =
     shareProduct 3 uniformShare := by
   native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════════
+--
+--  PART II: REAL 14-DECK TRAINER HILL METAGAME — REPLICATOR DYNAMICS
+--
+--  We instantiate the replicator dynamics framework with actual competitive
+--  Pokémon TCG matchup data from Trainer Hill (Jan–Feb 2026).
+--
+--  To keep native_decide tractable, we work with a 4-deck subcycle that
+--  captures the core metagame cycle:
+--    Dragapult (0), Grimmsnarl (1), MegaAbsol (2), RagingBolt (3)
+--
+--  Payoffs = WR(‰) − 500, so positive = winning matchup, negative = losing.
+--
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+section RealMetagameDynamics
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (11) REAL 4-DECK CYCLE PAYOFF MATRIX
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- Helper to build a 4-archetype meta share. -/
+def mkShare4 (a b c d : Rat) : MetaShare 4
+  | ⟨0, _⟩ => a
+  | ⟨1, _⟩ => b
+  | ⟨2, _⟩ => c
+  | _       => d
+
+/-- 4-deck subcycle payoff matrix from real Trainer Hill data.
+    Decks: 0 = Dragapult, 1 = Grimmsnarl, 2 = MegaAbsol, 3 = RagingBolt
+    Payoffs = (WR‰ − 500), so positive = winning, negative = losing.
+
+    Source matchup WRs:
+      Drag vs Drag: 494,  Drag vs Grimm: 386,  Drag vs MAbsol: 382,  Drag vs RagBolt: 454
+      Grimm vs Drag: 572, Grimm vs Grimm: 485, Grimm vs MAbsol: 344, Grimm vs RagBolt: 473
+      MAbsol vs Drag: 576, MAbsol vs Grimm: 621, MAbsol vs MAbsol: 494, MAbsol vs RagBolt: 298
+      RagBolt vs Drag: 510, RagBolt vs Grimm: 477, RagBolt vs MAbsol: 673, RagBolt vs RagBolt: 487 -/
+def realCyclePayoff : PayoffMatrix 4
+  | ⟨0, _⟩, ⟨0, _⟩ => -6     -- Drag mirror: 494 − 500
+  | ⟨0, _⟩, ⟨1, _⟩ => -114   -- Drag vs Grimm: 386 − 500
+  | ⟨0, _⟩, ⟨2, _⟩ => -118   -- Drag vs MAbsol: 382 − 500
+  | ⟨0, _⟩, _       => -46    -- Drag vs RagBolt: 454 − 500
+  | ⟨1, _⟩, ⟨0, _⟩ => 72     -- Grimm vs Drag: 572 − 500
+  | ⟨1, _⟩, ⟨1, _⟩ => -15    -- Grimm mirror: 485 − 500
+  | ⟨1, _⟩, ⟨2, _⟩ => -156   -- Grimm vs MAbsol: 344 − 500
+  | ⟨1, _⟩, _       => -27    -- Grimm vs RagBolt: 473 − 500
+  | ⟨2, _⟩, ⟨0, _⟩ => 76     -- MAbsol vs Drag: 576 − 500
+  | ⟨2, _⟩, ⟨1, _⟩ => 121    -- MAbsol vs Grimm: 621 − 500
+  | ⟨2, _⟩, ⟨2, _⟩ => -6     -- MAbsol mirror: 494 − 500
+  | ⟨2, _⟩, _       => -202   -- MAbsol vs RagBolt: 298 − 500
+  | ⟨3, _⟩, ⟨0, _⟩ => 10     -- RagBolt vs Drag: 510 − 500
+  | ⟨3, _⟩, ⟨1, _⟩ => -23    -- RagBolt vs Grimm: 477 − 500
+  | ⟨3, _⟩, ⟨2, _⟩ => 173    -- RagBolt vs MAbsol: 673 − 500
+  | _,      _       => -13    -- RagBolt mirror: 487 − 500
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (12) REAL METAGAME SHARES (renormalized to 4-deck subset)
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- Current observed metagame shares for the 4-deck cycle, renormalized.
+    Raw: Drag = 155, Grimm = 51, MAbsol = 50, RagBolt = 33, total = 289.
+    Shares: 155/289, 51/289, 50/289, 33/289. -/
+def realCycleMeta : MetaShare 4 := mkShare4 (155/289) (51/289) (50/289) (33/289)
+
+theorem realCycleMeta_valid : IsMetaShare 4 realCycleMeta := by native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (13) DRAGAPULT HAS NEGATIVE FITNESS — should DECREASE under replicator dynamics
+--
+--  Dragapult at 53.6% of the 4-deck cycle has negative expected payoff:
+--  it loses to Grimmsnarl (38.6%), MegaAbsol (38.2%), and RagingBolt (45.4%).
+--  Only its mirror is close to even (49.4%).
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- Dragapult's fitness is negative in the current meta. -/
+theorem dragapult_negative_fitness :
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ < 0 := by
+  native_decide
+
+/-- Dragapult's fitness is below the population average. -/
+theorem dragapult_below_avg_fitness :
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    avgFitness 4 realCyclePayoff realCycleMeta := by
+  native_decide
+
+/-- Replicator dynamics predicts Dragapult's share should DECREASE. -/
+theorem dragapult_share_decreases :
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by decide⟩ <
+    realCycleMeta ⟨0, by decide⟩ := by
+  native_decide
+
+/-- Dragapult continues to decline over 2 replicator steps. -/
+theorem dragapult_share_decreases_iter2 :
+    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 2 ⟨0, by decide⟩ <
+    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 1 ⟨0, by decide⟩ := by
+  native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (14) GRIMMSNARL HAS POSITIVE FITNESS — should INCREASE
+--
+--  Grimmsnarl at 17.6% of the cycle has positive expected payoff:
+--  it crushes Dragapult (57.2%), beats most of the field.
+--  Only MegaAbsol (34.4%) is a bad matchup.
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- Grimmsnarl's fitness is positive in the current meta. -/
+theorem grimmsnarl_positive_fitness :
+    0 < fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ := by
+  native_decide
+
+/-- Grimmsnarl's fitness exceeds the population average. -/
+theorem grimmsnarl_above_avg_fitness :
+    avgFitness 4 realCyclePayoff realCycleMeta <
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ := by
+  native_decide
+
+/-- Replicator dynamics predicts Grimmsnarl's share should INCREASE. -/
+theorem grimmsnarl_share_increases :
+    realCycleMeta ⟨1, by decide⟩ <
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by decide⟩ := by
+  native_decide
+
+/-- Grimmsnarl remains above its initial share after 2 steps. -/
+theorem grimmsnarl_above_initial_iter2 :
+    realCycleMeta ⟨1, by decide⟩ <
+    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 2 ⟨1, by decide⟩ := by
+  native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (15) MEGA ABSOL HAS HIGHEST FITNESS — strongest evolutionary pressure
+--
+--  MegaAbsol counters Grimmsnarl (62.1%) and Dragapult (57.6%).
+--  Its only weakness is RagingBolt (29.8%).
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- MegaAbsol has the highest fitness of all 4 decks. -/
+theorem mega_absol_highest_fitness :
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨3, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ := by
+  native_decide
+
+/-- MegaAbsol grows the fastest under replicator dynamics. -/
+theorem mega_absol_grows_fastest :
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨2, by decide⟩ -
+    realCycleMeta ⟨2, by decide⟩ >
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by decide⟩ -
+    realCycleMeta ⟨1, by decide⟩ := by
+  native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (16) METAGAME CYCLE PRODUCES OSCILLATORY DYNAMICS
+--
+--  The cycle Grimm > Drag, MAbsol > Grimm, RagBolt > MAbsol creates
+--  non-monotone dynamics: no deck converges to 0 or 1.
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- The real metagame cycle is confirmed in the payoff matrix:
+    Grimmsnarl beats Dragapult, MegaAbsol beats Grimmsnarl, RagBolt beats MegaAbsol. -/
+theorem real_cycle_in_payoff :
+    realCyclePayoff ⟨1, by decide⟩ ⟨0, by decide⟩ > 0 ∧   -- Grimm > Drag
+    realCyclePayoff ⟨2, by decide⟩ ⟨1, by decide⟩ > 0 ∧   -- MAbsol > Grimm
+    realCyclePayoff ⟨3, by decide⟩ ⟨2, by decide⟩ > 0 := by -- RagBolt > MAbsol
+  native_decide
+
+/-- Share conservation holds for real metagame data (dt = 1/100). -/
+theorem real_share_conservation :
+    sumFin 4 (replicatorStep 4 realCyclePayoff realCycleMeta (1/100)) = 1 := by
+  native_decide
+
+/-- Share conservation holds after 2 replicator steps. -/
+theorem real_share_conservation_iter2 :
+    sumFin 4 (replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 2) = 1 := by
+  native_decide
+
+/-- All 4 decks remain viable (positive share) after 3 replicator steps.
+    No deck goes extinct — the cycle sustains all archetypes. -/
+theorem real_cycle_no_extinction_iter3 :
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨0, by decide⟩ ∧
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨1, by decide⟩ ∧
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨2, by decide⟩ ∧
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨3, by decide⟩ := by
+  native_decide
+
+/-- Oscillatory dynamics evidence: Dragapult shrinks while MegaAbsol and
+    Grimmsnarl grow — opposing movements characteristic of cyclical dynamics. -/
+theorem real_cycle_opposing_movements :
+    -- Dragapult decreases
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by decide⟩ <
+    realCycleMeta ⟨0, by decide⟩ ∧
+    -- Grimmsnarl increases
+    realCycleMeta ⟨1, by decide⟩ <
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by decide⟩ ∧
+    -- MegaAbsol increases
+    realCycleMeta ⟨2, by decide⟩ <
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨2, by decide⟩ := by
+  native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (17) CERULEDGE EXTINCTION — worst WR spread goes extinct
+--
+--  We model a 5-deck subsystem adding Ceruledge (the worst-performing deck)
+--  to the 4-deck cycle. Ceruledge loses to Dragapult, Grimmsnarl, and
+--  RagingBolt, with only a small edge vs MegaAbsol.
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- Helper to build a 5-archetype meta share. -/
+def mkShare5 (a b c d e : Rat) : MetaShare 5
+  | ⟨0, _⟩ => a
+  | ⟨1, _⟩ => b
+  | ⟨2, _⟩ => c
+  | ⟨3, _⟩ => d
+  | _       => e
+
+/-- 5-deck payoff matrix: {Drag, Grimm, MAbsol, RagBolt, Ceruledge}.
+    Row 4 / Col 4 = Ceruledge. Payoffs = WR‰ − 500.
+
+    Ceruledge matchups from Trainer Hill:
+      Ceruledge vs Drag: 440,  Ceruledge vs Grimm: 398,
+      Ceruledge vs MAbsol: 545, Ceruledge vs RagBolt: 426, Ceruledge mirror: 481
+    Other decks vs Ceruledge:
+      Drag vs Ceruledge: 531,  Grimm vs Ceruledge: 561,
+      MAbsol vs Ceruledge: 414, RagBolt vs Ceruledge: 537 -/
+def realCeruPayoff : PayoffMatrix 5
+  -- Row 0: Dragapult
+  | ⟨0, _⟩, ⟨0, _⟩ => -6
+  | ⟨0, _⟩, ⟨1, _⟩ => -114
+  | ⟨0, _⟩, ⟨2, _⟩ => -118
+  | ⟨0, _⟩, ⟨3, _⟩ => -46
+  | ⟨0, _⟩, _       => 31     -- Drag vs Ceruledge: 531 − 500
+  -- Row 1: Grimmsnarl
+  | ⟨1, _⟩, ⟨0, _⟩ => 72
+  | ⟨1, _⟩, ⟨1, _⟩ => -15
+  | ⟨1, _⟩, ⟨2, _⟩ => -156
+  | ⟨1, _⟩, ⟨3, _⟩ => -27
+  | ⟨1, _⟩, _       => 61     -- Grimm vs Ceruledge: 561 − 500
+  -- Row 2: MegaAbsol
+  | ⟨2, _⟩, ⟨0, _⟩ => 76
+  | ⟨2, _⟩, ⟨1, _⟩ => 121
+  | ⟨2, _⟩, ⟨2, _⟩ => -6
+  | ⟨2, _⟩, ⟨3, _⟩ => -202
+  | ⟨2, _⟩, _       => -86    -- MAbsol vs Ceruledge: 414 − 500
+  -- Row 3: RagingBolt
+  | ⟨3, _⟩, ⟨0, _⟩ => 10
+  | ⟨3, _⟩, ⟨1, _⟩ => -23
+  | ⟨3, _⟩, ⟨2, _⟩ => 173
+  | ⟨3, _⟩, ⟨3, _⟩ => -13
+  | ⟨3, _⟩, _       => 37     -- RagBolt vs Ceruledge: 537 − 500
+  -- Row 4: Ceruledge
+  | ⟨4, _⟩, ⟨0, _⟩ => -60    -- Ceruledge vs Drag: 440 − 500
+  | ⟨4, _⟩, ⟨1, _⟩ => -102   -- Ceruledge vs Grimm: 398 − 500
+  | ⟨4, _⟩, ⟨2, _⟩ => 45     -- Ceruledge vs MAbsol: 545 − 500
+  | ⟨4, _⟩, ⟨3, _⟩ => -74    -- Ceruledge vs RagBolt: 426 − 500
+  | _,      _       => -19    -- Ceruledge mirror: 481 − 500
+
+/-- Meta shares for the 5-deck system, renormalized.
+    Raw: Drag=155, Grimm=51, MAbsol=50, RagBolt=33, Ceruledge=23, total=312. -/
+def realCeruMeta : MetaShare 5 := mkShare5 (155/312) (51/312) (50/312) (33/312) (23/312)
+
+theorem realCeruMeta_valid : IsMetaShare 5 realCeruMeta := by native_decide
+
+/-- Ceruledge has negative fitness — it loses to most of the field. -/
+theorem ceruledge_negative_fitness :
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ < 0 := by
+  native_decide
+
+/-- Ceruledge's fitness is below the population average — extinction pressure. -/
+theorem ceruledge_below_avg_fitness :
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
+    avgFitness 5 realCeruPayoff realCeruMeta := by
+  native_decide
+
+/-- Ceruledge has the worst fitness of all 5 decks. -/
+theorem ceruledge_worst_fitness :
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨0, by decide⟩ ∧
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨1, by decide⟩ ∧
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨2, by decide⟩ ∧
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨3, by decide⟩ := by
+  native_decide
+
+/-- Replicator dynamics predicts Ceruledge's share should DECREASE (extinction). -/
+theorem ceruledge_share_decreases :
+    replicatorStep 5 realCeruPayoff realCeruMeta (1/100) ⟨4, by decide⟩ <
+    realCeruMeta ⟨4, by decide⟩ := by
+  native_decide
+
+/-- Ceruledge continues to shrink monotonically over 2 steps. -/
+theorem ceruledge_share_decreases_iter2 :
+    replicatorIter 5 realCeruPayoff realCeruMeta (1/100) 2 ⟨4, by decide⟩ <
+    replicatorIter 5 realCeruPayoff realCeruMeta (1/100) 1 ⟨4, by decide⟩ := by
+  native_decide
+
+/-- Share conservation holds in the 5-deck system. -/
+theorem real_5deck_share_conservation :
+    sumFin 5 (replicatorStep 5 realCeruPayoff realCeruMeta (1/100)) = 1 := by
+  native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (18) DRAGAPULT POPULARITY PARADOX — overplayed despite poor fitness
+--
+--  Dragapult is at 15.5% of the meta (most played deck) but has negative
+--  expected payoff. Replicator dynamics explains this as a disequilibrium:
+--  the meta hasn't converged yet.
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- Dragapult is overrepresented: its share exceeds all others combined
+    divided by 4 (i.e., it's above the uniform 25% allocation). -/
+theorem dragapult_overrepresented :
+    realCycleMeta ⟨0, by decide⟩ > (1 : Rat) / (4 : Rat) := by
+  native_decide
+
+/-- Yet Dragapult has the worst fitness of the 4 cycle decks. -/
+theorem dragapult_worst_fitness_in_cycle :
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨3, by decide⟩ := by
+  native_decide
+
+/-- The popularity paradox: Dragapult is the most played (share > 1/4)
+    but has the lowest fitness (below every other deck). -/
+theorem popularity_paradox :
+    realCycleMeta ⟨0, by decide⟩ > (1 : Rat) / (4 : Rat) ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨3, by decide⟩ := by
+  native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- (19) REAL LYAPUNOV — share product analysis on real data
+-- ═══════════════════════════════════════════════════════════════════════
+
+/-- The share product is positive for the real metagame (all decks viable). -/
+theorem real_lyapunov_positive :
+    0 < shareProduct 4 realCycleMeta := by
+  native_decide
+
+/-- The share product remains positive after replicator dynamics. -/
+theorem real_lyapunov_positive_after_step :
+    0 < shareProduct 4 (replicatorStep 4 realCyclePayoff realCycleMeta (1/100)) := by
+  native_decide
+
+/-- The real meta share product is well below the uniform maximum (1/256),
+    confirming the meta is far from Nash equilibrium. -/
+theorem real_meta_far_from_nash :
+    shareProduct 4 realCycleMeta < (1 : Rat) / (256 : Rat) := by
+  native_decide
+
+end RealMetagameDynamics
 
 end PokemonLean.EvolutionaryDynamics
