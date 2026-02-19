@@ -154,23 +154,23 @@ def stadiumAllowsSearch (field : FieldState) : Bool :=
 -- THEOREMS: PLACEMENT RULES
 -- ============================================================================
 
-/-- Playing a stadium always results in the new stadium being in play. -/
+-- Playing a stadium always results in the new stadium being in play.
 
-/-- Playing a stadium returns the old stadium for discard. -/
+-- Playing a stadium returns the old stadium for discard.
 
-/-- Playing a stadium onto an empty field returns none for old. -/
+-- Playing a stadium onto an empty field returns none for old.
 
-/-- Removing a stadium from empty field gives empty field. -/
+-- Removing a stadium from empty field gives empty field.
 
-/-- Removing a stadium returns the old stadium. -/
+-- Removing a stadium returns the old stadium.
 
-/-- Removing a stadium results in no stadium. -/
+-- Removing a stadium results in no stadium.
 
-/-- Play then remove yields empty field. -/
+-- Play then remove yields empty field.
 
-/-- Playing a stadium twice: the second replaces the first. -/
+-- Playing a stadium twice: the second replaces the first.
 
-/-- Playing a stadium twice: the intermediate discard is s1. -/
+-- Playing a stadium twice: the intermediate discard is s1.
 
 -- ============================================================================
 -- THEOREMS: HEAL MECHANICS
@@ -186,11 +186,11 @@ theorem healPokemon_zero (pokemon : PokemonInPlay) :
     healPokemon pokemon 0 = pokemon := by
   simp [healPokemon]
 
-/-- Healing preserves card. -/
+-- Healing preserves card.
 
-/-- Healing preserves status. -/
+-- Healing preserves status.
 
-/-- Healing preserves energy. -/
+-- Healing preserves energy.
 
 /-- healBench preserves list length. -/
 theorem healBench_length (bench : List PokemonInPlay) (amount : Nat) :
@@ -212,7 +212,7 @@ theorem healPokemon_full (pokemon : PokemonInPlay) (amount : Nat) (h : pokemon.d
     (healPokemon pokemon amount).damage = 0 := by
   simp [healPokemon, Nat.sub_eq_zero_of_le h]
 
-/-- Healing with amount < damage leaves some damage. -/
+-- Healing with amount < damage leaves some damage.
 
 /-- Healing preserves damage bound. -/
 theorem healPokemon_damage_le_hp (pokemon : PokemonInPlay) (amount : Nat)
@@ -246,64 +246,64 @@ theorem modifyDamageAmount_le_of_neg (base : Nat) (delta : Int) (hNeg : delta < 
   have hNotGe : ¬ (delta ≥ 0) := Int.not_le.mpr hNeg
   simp [hNotGe, Nat.sub_le]
 
-/-- Non-damage-modifying stadiums don't change damage. -/
+-- Non-damage-modifying stadiums don't change damage.
 
 
 -- ============================================================================
 -- THEOREMS: FIELD QUERIES
 -- ============================================================================
 
-/-- Empty field does not block abilities. -/
+-- Empty field does not block abilities.
 
-/-- Path to the Peak blocks abilities. -/
+-- Path to the Peak blocks abilities.
 
-/-- Artazon does not block abilities. -/
+-- Artazon does not block abilities.
 
-/-- Beach Court does not block abilities. -/
+-- Beach Court does not block abilities.
 
-/-- Empty field retreat reduction is 0. -/
+-- Empty field retreat reduction is 0.
 
-/-- Beach Court reduces retreat by 1. -/
+-- Beach Court reduces retreat by 1.
 
-/-- Path to the Peak gives 0 retreat reduction. -/
+-- Path to the Peak gives 0 retreat reduction.
 
-/-- Empty field extra draw is 0. -/
+-- Empty field extra draw is 0.
 
-/-- Research Lab gives 1 extra draw. -/
+-- Research Lab gives 1 extra draw.
 
-/-- Empty field heal amount is 0. -/
+-- Empty field heal amount is 0.
 
-/-- Pokémon Center heals 20 between turns. -/
+-- Pokémon Center heals 20 between turns.
 
-/-- Empty field doesn't allow search. -/
+-- Empty field doesn't allow search.
 
-/-- Artazon allows search. -/
+-- Artazon allows search.
 
-/-- Path to the Peak doesn't allow search. -/
+-- Path to the Peak doesn't allow search.
 
 -- ============================================================================
 -- THEOREMS: STADIUM AFFECTS BOTH PLAYERS SYMMETRICALLY
 -- ============================================================================
 
-/-- Stadium heal amount is independent of which player queries it. -/
+-- Stadium heal amount is independent of which player queries it.
 
-/-- Stadium retreat reduction is the same for both players. -/
+-- Stadium retreat reduction is the same for both players.
 
-/-- Playing the same stadium on any field gives the same result stadium. -/
+-- Playing the same stadium on any field gives the same result stadium.
 
-/-- After removal, the field is always the same empty state. -/
+-- After removal, the field is always the same empty state.
 
 -- ============================================================================
 -- THEOREMS: REPLACEMENT CHAIN
 -- ============================================================================
 
-/-- Playing n stadiums in sequence: only the last one is in play. -/
+-- Playing n stadiums in sequence: only the last one is in play.
 
-/-- Three stadiums: only the third survives. -/
+-- Three stadiums: only the third survives.
 
-/-- Remove after play yields empty. -/
+-- Remove after play yields empty.
 
-/-- Play after remove installs the stadium. -/
+-- Play after remove installs the stadium.
 
 -- ============================================================================
 -- THEOREMS: STADIUM EFFECT CLASSIFICATION

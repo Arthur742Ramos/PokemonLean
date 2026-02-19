@@ -284,22 +284,6 @@ def rareCandy : TrainerCard where
 -- §10  Theorems — Rule Box and Prizes
 -- ============================================================
 
-/-- Regular Pokémon give 1 prize. -/
-
-/-- EX/ex give 2 prizes. -/
-
-/-- GX gives 2 prizes. -/
-
-/-- Tag Team gives 3 prizes. -/
-
-/-- V gives 2 prizes. -/
-
-/-- VMAX gives 3 prizes. -/
-
-/-- VSTAR gives 2 prizes. -/
-
-/-- Tera gives 2 prizes. -/
-
 /-- All rule box Pokémon give at least 1 prize. -/
 theorem prize_at_least_one (rb : RuleBox) : rb.prizeCount ≥ 1 := by
   cases rb <;> simp [RuleBox.prizeCount]
@@ -316,31 +300,11 @@ theorem rulebox_at_least_two (rb : RuleBox) (h : rb ≠ .none) : rb.prizeCount �
 -- §11  Theorems — Card classification
 -- ============================================================
 
-/-- A Pokémon card is classified as Pokémon. -/
-
-/-- A Trainer card is classified as Trainer. -/
-
-/-- An Energy card is classified as Energy. -/
-
-/-- A Pokémon card is not an Energy card. -/
-
-/-- A Trainer card is not a Pokémon card. -/
-
-/-- Charizard ex's weakness is water. -/
-
 /-- Pikachu base is a Basic Pokémon. -/
 theorem pikachu_is_basic : pikachuBase.isBasic = true := by native_decide
 
 /-- Pikachu base has no rule box. -/
 theorem pikachu_no_rulebox : pikachuBase.hasRuleBox = false := by native_decide
-
-/-- Pikachu base gives 1 prize. -/
-
-/-- Charizard ex gives 2 prizes. -/
-
-/-- Mew VMAX gives 3 prizes (VMAX rule). -/
-
-/-- Mew VMAX resists Fighting. -/
 
 /-- Every card type is classified as exactly one kind. -/
 theorem card_classification_exclusive (c : Card) :

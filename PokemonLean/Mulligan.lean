@@ -114,13 +114,13 @@ def mulliganDeckSize : Nat := 60
 
 /-- State during the mulligan phase before the game begins. -/
 structure MulliganState where
-  /-- The full deck (shuffled). -/
+  -- The full deck (shuffled).
   deck : List Card
-  /-- The current hand (first 7 cards). -/
+  -- The current hand (first 7 cards).
   hand : List Card
-  /-- Number of mulligans taken so far. -/
+  -- Number of mulligans taken so far.
   mulligans : Nat
-  /-- Extra cards the opponent has drawn (one per mulligan). -/
+  -- Extra cards the opponent has drawn (one per mulligan).
   opponentExtras : Nat
   deriving Repr, BEq, DecidableEq
 

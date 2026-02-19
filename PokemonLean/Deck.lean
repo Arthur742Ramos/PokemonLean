@@ -57,6 +57,11 @@ namespace PokemonLean
 def countByName (deck : List Card) (name : String) : Nat :=
   deck.countp (fun c => c.name = name)
 
+@[simp] theorem countByName_cons (c : Card) (deck : List Card) (name : String) :
+    countByName (c :: deck) name = countByName deck name + if c.name = name then 1 else 0 := by
+  simp [countByName, List.countp_cons]
+  split <;> omega
+
 
 /-- A simple notion of how many Pokemon cards (non-trainers) are present in a deck.
 

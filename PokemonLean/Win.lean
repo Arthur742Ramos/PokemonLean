@@ -118,9 +118,9 @@ theorem hasWonBy_prizes_iff (state : GameState) (player : PlayerId) :
     rw [h]
     simp
 
-/-- If the opponent has no Pokemon in play, the player has won by noPokemon. -/
+-- If the opponent has no Pokemon in play, the player has won by noPokemon.
 
-/-- If the opponent has an empty deck, the player has won by deckOut. -/
+-- If the opponent has an empty deck, the player has won by deckOut.
 
 /-- A small monotonicity lemma: once the opponent has no prizes, taking a prize cannot make them have prizes.
 

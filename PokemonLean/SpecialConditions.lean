@@ -174,6 +174,10 @@ def lostZoneCount (lz : LostZone) : Nat := lz.cards.length
 def isInLostZone (lz : LostZone) (card : Card) : Bool :=
   lz.cards.any (· == card)
 
+@[simp] theorem sendToLostZone_count (lz : LostZone) (card : Card) :
+    lostZoneCount (sendToLostZone lz card) = lostZoneCount lz + 1 := by
+  simp [sendToLostZone, lostZoneCount, List.length_cons]
+
 -- ============================================================================
 -- COMBINED GAME MECHANICS STATE
 -- ============================================================================
@@ -237,11 +241,11 @@ theorem attachTool_pokemon (tp : TooledPokemon) (tool : ToolKind) (result : Tool
   · simp only [Option.some.injEq] at h; rw [← h]
   · contradiction
 
-/-- Removing a tool returns .noTool. -/
+-- Removing a tool returns .noTool.
 
-/-- Removing a tool returns the old tool. -/
+-- Removing a tool returns the old tool.
 
-/-- Removing preserves the underlying Pokémon. -/
+-- Removing preserves the underlying Pokémon.
 
 /-- Attach then remove returns original tool. -/
 theorem attach_then_remove (tp : TooledPokemon) (tool : ToolKind) (result : TooledPokemon)
@@ -288,21 +292,21 @@ theorem weaknessPolicy_boost_amount (tp : TooledPokemon) (attackerType : EnergyT
   have hBeq : (tp.tool == ToolKind.weaknessPolicy) = true := by rw [hTool]; decide
   simp [hBeq, hWeak]
 
-/-- Applying an inactive policy doesn't change damage. -/
+-- Applying an inactive policy doesn't change damage.
 
-/-- Applying an active policy increases damage. -/
+-- Applying an active policy increases damage.
 
 -- ============================================================================
 -- THEOREMS: CHOICE ITEMS
 -- ============================================================================
 
-/-- Choice Belt boost is 30. -/
+-- Choice Belt boost is 30.
 
-/-- Choice Band boost is 30. -/
+-- Choice Band boost is 30.
 
-/-- No tool gives 0 boost. -/
+-- No tool gives 0 boost.
 
-/-- Weakness Policy gives 0 direct boost. -/
+-- Weakness Policy gives 0 direct boost.
 
 /-- Tool boost is non-negative. -/
 theorem toolDamageBoost_nonneg (tool : ToolKind) : 0 ≤ toolDamageBoost tool := by
@@ -318,19 +322,19 @@ theorem applyToolBoost_noTool (damage : Nat) :
     applyToolBoost damage .noTool = damage := by
   simp [applyToolBoost, toolDamageBoost]
 
-/-- Tool boost result equals base + boost amount. -/
+-- Tool boost result equals base + boost amount.
 
 -- ============================================================================
 -- THEOREMS: VSTAR POWER
 -- ============================================================================
 
-/-- Initial VSTAR state has not been used. -/
+-- Initial VSTAR state has not been used.
 
-/-- First use of VSTAR Power succeeds. -/
+-- First use of VSTAR Power succeeds.
 
-/-- First use marks VSTAR as used. -/
+-- First use marks VSTAR as used.
 
-/-- Second use of VSTAR Power fails. -/
+-- Second use of VSTAR Power fails.
 
 /-- Used VSTAR state blocks further use. -/
 theorem vstar_used_blocks (state : VStarState) (h : state.used = true) :
@@ -342,19 +346,19 @@ theorem vstar_unused_allows (state : VStarState) (h : state.used = false) :
     (useVStarPower state).2 = true := by
   simp [useVStarPower, h]
 
-/-- Using VSTAR is idempotent (second call returns same state). -/
+-- Using VSTAR is idempotent (second call returns same state).
 
 -- ============================================================================
 -- THEOREMS: GX ATTACK
 -- ============================================================================
 
-/-- Initial GX state has not been used. -/
+-- Initial GX state has not been used.
 
-/-- First use of GX attack succeeds. -/
+-- First use of GX attack succeeds.
 
-/-- First use marks GX as used. -/
+-- First use marks GX as used.
 
-/-- Second use of GX attack fails. -/
+-- Second use of GX attack fails.
 
 /-- Used GX state blocks further use. -/
 theorem gx_used_blocks (state : GXState) (h : state.used = true) :
@@ -366,7 +370,7 @@ theorem gx_unused_allows (state : GXState) (h : state.used = false) :
     (useGXAttack state).2 = true := by
   simp [useGXAttack, h]
 
-/-- Using GX is idempotent (second call returns same state). -/
+-- Using GX is idempotent (second call returns same state).
 
 -- ============================================================================
 -- THEOREMS: LOST ZONE
@@ -435,16 +439,16 @@ theorem initial_lostZones_empty :
 -- THEOREMS: CROSS-MECHANIC INTERACTIONS
 -- ============================================================================
 
-/-- VSTAR and GX are independent: using one doesn't affect the other. -/
+-- VSTAR and GX are independent: using one doesn't affect the other.
 
-/-- GX and VSTAR are independent. -/
+-- GX and VSTAR are independent.
 
-/-- Player 1's VSTAR doesn't affect Player 2's VSTAR. -/
+-- Player 1's VSTAR doesn't affect Player 2's VSTAR.
 
-/-- Player 1's GX doesn't affect Player 2's GX. -/
+-- Player 1's GX doesn't affect Player 2's GX.
 
-/-- Lost Zone operations don't affect VSTAR state. -/
+-- Lost Zone operations don't affect VSTAR state.
 
-/-- Lost Zone operations don't affect GX state. -/
+-- Lost Zone operations don't affect GX state.
 
 end PokemonLean.SpecialConditions

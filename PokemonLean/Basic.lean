@@ -845,6 +845,12 @@ theorem takePrize_prizes_length_le (attacker defender : PlayerState) :
   | nil => simp [takePrize, h]
   | cons prize rest => simp [takePrize, h]
 
+theorem takePrize_prizes_length_le' (attacker defender : PlayerState) :
+    (takePrize attacker defender).2.prizes.length ≤ defender.prizes.length := by
+  cases h : defender.prizes with
+  | nil => simp [takePrize, h]
+  | cons prize rest => simp [takePrize, h]
+
 theorem takePrize_prizes_length_eq (attacker defender : PlayerState) :
     defender.prizes.length = (takePrize attacker defender).2.prizes.length +
       (if defender.prizes.isEmpty then 0 else 1) := by

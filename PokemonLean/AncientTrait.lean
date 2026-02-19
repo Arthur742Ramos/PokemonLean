@@ -225,7 +225,7 @@ def prismStarDeckLegal (deck : List PrismStarCard) : Prop :=
 
 theorem prismStarDeckLegal_nil : prismStarDeckLegal [] := by
   intro name
-  simp
+  simp [prismStarCountByName]
 
 theorem prismStarDeckLegal_singleton (c : PrismStarCard) : prismStarDeckLegal [c] := by
   intro name

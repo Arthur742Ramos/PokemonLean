@@ -134,7 +134,7 @@ def classifyTier (weightedWR : Nat) : Tier :=
   else .D
 
 
-/-- Higher tier always has higher rank -/
+-- Higher tier always has higher rank
 
 /-- Is a deck tier-viable (B or above)? -/
 def isTierViable (t : Tier) : Bool :=

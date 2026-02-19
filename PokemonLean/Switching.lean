@@ -47,6 +47,26 @@ theorem removeAt?_length {α : Type} :
               -- goal: (head :: ys).length + 1 = (head :: tail).length
               simp [List.length_cons, hLen]
 
+theorem removeAt?_mem {α : Type} :
+    ∀ (xs : List α) (idx : Nat) (x : α) (rest : List α),
+      removeAt? xs idx = some (x, rest) → x ∈ xs := by
+  intro xs idx x rest h
+  induction xs generalizing idx x rest with
+  | nil => cases idx <;> simp [removeAt?] at h
+  | cons head tail ih =>
+      cases idx with
+      | zero =>
+          simp [removeAt?] at h
+          exact List.mem_cons_of_eq _ h.1.symm
+      | succ idx =>
+          simp [removeAt?] at h
+          cases hRec : removeAt? tail idx with
+          | none => simp [hRec] at h
+          | some pair =>
+              rcases pair with ⟨y, ys⟩
+              simp [hRec] at h
+              exact List.mem_cons_of_mem _ (ih idx x ys (by simp [hRec]; exact h))
+
 
 def switchWithBenchIndex (playerState : PlayerState) (index : Nat) : Option PlayerState :=
   match playerState.active with

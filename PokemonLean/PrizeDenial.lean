@@ -144,7 +144,7 @@ def multiPrizeKOsNeeded (worth : PrizeWorth) : Nat :=
   minKnockouts 6 worth
 
 
-/-- Single prize attackers always need more KOs than multi-prize -/
+-- Single prize attackers always need more KOs than multi-prize
 
 
 -- ============================================================================

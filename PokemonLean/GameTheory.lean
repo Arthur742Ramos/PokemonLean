@@ -310,7 +310,7 @@ inductive EvolutionChain : List Card → Prop
       (hEvolves : EvolvesFrom evolved base) :
       EvolutionChain (evolved :: base :: chain)
 
-/-- Evolution preserves damage. -/
+-- Evolution preserves damage.
 
 /-- Evolution preserves energy attachments. -/
 

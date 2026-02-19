@@ -14,6 +14,8 @@ structure Dist (α : Type) where
 
 namespace Dist
 
+variable {α : Type} {β : Type}
+
 protected def pure (x : α) : Dist α :=
   { outcomes := [(x, 1)] }
 

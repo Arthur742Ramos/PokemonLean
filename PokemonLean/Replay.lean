@@ -180,7 +180,7 @@ theorem buildTrace_length (init : GameState) (actions : List PokemonLean.Semanti
 -- DETERMINISM
 -- ============================================================================
 
-/-- The step function is deterministic: same input gives same output. -/
+-- The step function is deterministic: same input gives same output.
 
 /-- Replay is deterministic: same actions from same state produce same states. -/
 theorem replayActions_deterministic (init : GameState)
@@ -400,9 +400,9 @@ theorem trace_state_count (t : Trace) :
 -- ADDITIONAL TRACE THEOREMS
 -- ============================================================================
 
-/-- Extracting actions from an empty trace gives empty list. -/
+-- Extracting actions from an empty trace gives empty list.
 
-/-- Extracting states from an empty trace gives empty list. -/
+-- Extracting states from an empty trace gives empty list.
 
 /-- A single-step valid trace's final state is the result of applying the action. -/
 theorem single_step_trace_state (init : GameState) (a : PokemonLean.Semantics.Action)

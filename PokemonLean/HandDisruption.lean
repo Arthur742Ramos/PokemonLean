@@ -126,7 +126,7 @@ theorem marnie_no_disruption_small_hand (oppHand : Nat) (h : oppHand ≤ 4) :
   simp [isNetDisruption, marnieOppDraw]
   omega
 
-/-- Marnie self draw is strictly better than opponent draw -/
+-- Marnie self draw is strictly better than opponent draw
 
 -- ============================================================================
 -- JUDGE MECHANICS
@@ -134,7 +134,7 @@ theorem marnie_no_disruption_small_hand (oppHand : Nat) (h : oppHand ≤ 4) :
 
 def judgeDraw : Nat := 4
 
-/-- Judge is symmetric: both draw 4 -/
+-- Judge is symmetric: both draw 4
 
 /-- Judge disrupts if opponent has > 4 cards -/
 theorem judge_disrupts_large_hand (oppHand : Nat) (h : oppHand > 4) :
@@ -152,23 +152,23 @@ theorem judge_no_disruption_small_hand (oppHand : Nat) (h : oppHand ≤ 4) :
 -- N STRATEGY THEOREMS
 -- ============================================================================
 
-/-- N is best when opponent has few prizes left (lots taken) -/
+-- N is best when opponent has few prizes left (lots taken)
 
 /-- N weakens as opponent takes fewer prizes from pool -/
 theorem n_weakens_early (a b : Nat) (h : a < b) :
     nHandSize a < nHandSize b := h
 
-/-- N to 1 is the strongest disruption -/
+-- N to 1 is the strongest disruption
 
-/-- N gives 6 at start -/
+-- N gives 6 at start
 
 -- ============================================================================
 -- IONO STRATEGY THEOREMS
 -- ============================================================================
 
-/-- Iono is strongest when opponent has taken 5 prizes (1 left) -/
+-- Iono is strongest when opponent has taken 5 prizes (1 left)
 
-/-- Iono is weakest at start of game -/
+-- Iono is weakest at start of game
 
 /-- Iono + prizes taken determines hand size -/
 theorem iono_plus_prizes (taken : Nat) (h : taken ≤ 6) :
@@ -207,13 +207,13 @@ theorem effective_iff_net_positive (dp : DisruptionPlay) :
 def isHandLock (oppHandAfter : Nat) : Bool :=
   decide (oppHandAfter ≤ 2)
 
-/-- Iono to 1 is a hand lock -/
+-- Iono to 1 is a hand lock
 
-/-- Iono to 2 is a hand lock -/
+-- Iono to 2 is a hand lock
 
-/-- Iono to 3 is NOT a hand lock -/
+-- Iono to 3 is NOT a hand lock
 
-/-- N to 1 is a hand lock -/
+-- N to 1 is a hand lock
 
 -- ============================================================================
 -- DECK SHUFFLE INTERACTION
