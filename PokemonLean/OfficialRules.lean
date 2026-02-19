@@ -22,7 +22,14 @@ inductive Stage where
   | basic
   | stage1
   | stage2
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, DecidableEq
+
+instance : BEq Stage where
+  beq a b := decide (a = b)
+
+instance : LawfulBEq Stage where
+  eq_of_beq {a b} h := of_decide_eq_true h
+  rfl {a} := decide_eq_true rfl
 
 /-- Trainer card subtypes.
     Official Rules §3.3: Trainer cards are Item, Supporter, Tool, or Stadium. -/
@@ -31,7 +38,10 @@ inductive TrainerKind where
   | supporter
   | tool
   | stadium
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, DecidableEq
+
+instance : BEq TrainerKind where
+  beq a b := decide (a = b)
 
 /-- Rule box classification for prize value.
     Official Rules §2.1: Pokémon with Rule Boxes (ex, V, VMAX, etc.) give extra prizes. -/
@@ -42,7 +52,10 @@ inductive RuleBox where
   | vmax     -- gives 3 prizes
   | vstar    -- gives 2 prizes
   | tagTeam  -- gives 3 prizes
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, DecidableEq
+
+instance : BEq RuleBox where
+  beq a b := decide (a = b)
 
 /-- Extended card with stage, evolves-from, trainer kind, and rule box info. -/
 structure ExtCard where
@@ -213,6 +226,10 @@ def stageMatchesForEvolution (evoCard : ExtCard) (activePokemon : ExtPokemonInPl
                evoCard.evolvesFrom == some activePokemon.card.name
   | .stage2 => activePokemon.card.stage == .stage1 &&
                evoCard.evolvesFrom == some activePokemon.card.name
+
+@[simp] theorem stageMatchesForEvolution_basic (card : ExtCard) (poke : ExtPokemonInPlay)
+    (h : card.stage = .basic) : stageMatchesForEvolution card poke = false := by
+  simp [stageMatchesForEvolution, h]
 
 /-! ## Extended Step Function (Enforces All 8 Official Rules) -/
 
@@ -625,18 +642,20 @@ theorem stage1_requires_matching_basic
     (hMismatch : activePoke.card.stage ≠ .basic ∨ card.evolvesFrom ≠ some activePoke.card.name) :
     ¬ExtLegal state (.evolveActive card) := by
   apply wrong_stage_evolution_illegal state card activePoke hActive
-  simp only [stageMatchesForEvolution, hStage1, Bool.and_eq_false_iff]
+  unfold stageMatchesForEvolution
+  rw [hStage1]
   cases hMismatch with
   | inl hNotBasic =>
-    left
-    cases h : activePoke.card.stage <;> simp_all [BEq.beq, DecidableEq, decide]
+    cases h : activePoke.card.stage <;> simp_all [BEq.beq, decide]
   | inr hWrongName =>
-    right
-    cases hEF : card.evolvesFrom with
-    | none => simp [BEq.beq, DecidableEq, decide]
-    | some n =>
-      simp only [Option.some.injEq] at hWrongName
-      simp [BEq.beq, DecidableEq, decide, hEF, hWrongName]
+    have : ¬(card.evolvesFrom == some activePoke.card.name) = true := by
+      intro hc
+      exact hWrongName (eq_of_beq hc)
+    simp [Bool.and_eq_false_iff]
+    cases h : activePoke.card.stage
+    · right; simpa [BEq.beq, decide] using this
+    · left; rfl
+    · left; rfl
 
 /-- Stage 2 can only evolve from a matching Stage 1. -/
 theorem stage2_requires_matching_stage1
@@ -646,18 +665,20 @@ theorem stage2_requires_matching_stage1
     (hMismatch : activePoke.card.stage ≠ .stage1 ∨ card.evolvesFrom ≠ some activePoke.card.name) :
     ¬ExtLegal state (.evolveActive card) := by
   apply wrong_stage_evolution_illegal state card activePoke hActive
-  simp only [stageMatchesForEvolution, hStage2, Bool.and_eq_false_iff]
+  unfold stageMatchesForEvolution
+  rw [hStage2]
   cases hMismatch with
   | inl hNotS1 =>
-    left
-    cases h : activePoke.card.stage <;> simp_all [BEq.beq, DecidableEq, decide]
+    cases h : activePoke.card.stage <;> simp_all [BEq.beq, decide]
   | inr hWrongName =>
-    right
-    cases hEF : card.evolvesFrom with
-    | none => simp [BEq.beq, DecidableEq, decide]
-    | some n =>
-      simp only [Option.some.injEq] at hWrongName
-      simp [BEq.beq, DecidableEq, decide, hEF, hWrongName]
+    have : ¬(card.evolvesFrom == some activePoke.card.name) = true := by
+      intro hc
+      exact hWrongName (eq_of_beq hc)
+    simp [Bool.and_eq_false_iff]
+    cases h : activePoke.card.stage
+    · left; rfl
+    · right; simpa [BEq.beq, decide] using this
+    · left; rfl
 
 /-! ====================================================================
     RULE 8 — KNOCKED OUT CLEANUP / PRIZE VALUE
@@ -728,11 +749,11 @@ theorem prizeValue_vmax_eq_three : prizeValue .vmax = 3 := rfl
 
 /-- Prize value is always at least 1. -/
 theorem prizeValue_pos (rb : RuleBox) : prizeValue rb ≥ 1 := by
-  cases rb <;> simp [prizeValue]
+  cases rb <;> simp [prizeValue] <;> omega
 
 /-- Prize value is always at most 3. -/
 theorem prizeValue_le_three (rb : RuleBox) : prizeValue rb ≤ 3 := by
-  cases rb <;> simp [prizeValue]
+  cases rb <;> simp [prizeValue] <;> omega
 
 /-- After a KO, defender's prize pile shrinks by the KO'd Pokémon's prize value
     (assuming enough prizes remain). -/
@@ -757,9 +778,11 @@ theorem endTurn_resets_flags
     (getExtPlayerState state' nextPlayer).retreated = false := by
   simp only [extStep] at hStep
   cases hStep
-  cases hEq : state.activePlayer <;>
-    simp only [hEq, extOtherPlayer, getExtPlayerState, setExtPlayerState] <;>
-    exact ⟨trivial, trivial, trivial⟩
+  constructor
+  · cases state.activePlayer <;> simp [extOtherPlayer, getExtPlayerState, setExtPlayerState]
+  constructor
+  · cases state.activePlayer <;> simp [extOtherPlayer, getExtPlayerState, setExtPlayerState]
+  · cases state.activePlayer <;> simp [extOtherPlayer, getExtPlayerState, setExtPlayerState]
 
 /-- extStep is deterministic. -/
 theorem extStep_deterministic
