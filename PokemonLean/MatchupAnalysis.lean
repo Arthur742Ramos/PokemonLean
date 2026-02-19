@@ -1,205 +1,196 @@
 /-
-  PokemonLean/MatchupAnalysis.lean -- Real Trainer Hill Top-6 metagame analysis
+  PokemonLean/MatchupAnalysis.lean -- Full 14-deck Trainer Hill matchup analysis
 
-  Data: Trainer Hill, 2026-01-29 to 2026-02-19, 50+ player tournaments.
+  Source: Data: Trainer Hill, 2026-01-29 to 2026-02-19, 50+ player tournaments
   Win rates are stored as percentage * 10 (e.g. 627 = 62.7%).
 -/
-import PokemonLean.Core.Types
+import PokemonLean.RealMetagame
 
 namespace PokemonLean.MatchupAnalysis
+
+abbrev Deck := PokemonLean.RealMetagame.Deck
+abbrev matchupWRx10 : Deck → Deck → Nat := PokemonLean.RealMetagame.matchupWR
+abbrev metaShareX10 : Deck → Nat := PokemonLean.RealMetagame.metaShare
+
+open PokemonLean.RealMetagame.Deck
 
 def dataSource : String :=
   "Data: Trainer Hill, 2026-01-29 to 2026-02-19, 50+ player tournaments"
 
-/-! ## 1. Top-6 deck universe -/
+def allDecks : List Deck := PokemonLean.RealMetagame.Deck.all
 
-inductive Archetype6 where
-  | DragapultDusknoir
-  | GholdengoLunatone
-  | GrimmsnarlFroslass
-  | MegaAbsolBox
-  | Gardevoir
-  | CharizardNoctowl
-  deriving DecidableEq, BEq, Repr, Inhabited
+def nonMirrorOpps (d : Deck) : List Deck :=
+  allDecks.filter (fun opp => opp != d)
 
-open Archetype6
+def losingMatchupCount (d : Deck) : Nat :=
+  (nonMirrorOpps d).foldl (fun acc opp => if matchupWRx10 d opp < 500 then acc + 1 else acc) 0
 
-def Archetype6.all : List Archetype6 :=
-  [DragapultDusknoir, GholdengoLunatone, GrimmsnarlFroslass,
-   MegaAbsolBox, Gardevoir, CharizardNoctowl]
+def isDominant (d : Deck) : Bool :=
+  (nonMirrorOpps d).all (fun opp => matchupWRx10 d opp > 500)
 
-private def Archetype6.forAll (p : Archetype6 → Prop) [DecidablePred p] : Decidable (∀ a, p a) :=
-  if h1 : p DragapultDusknoir then
-    if h2 : p GholdengoLunatone then
-      if h3 : p GrimmsnarlFroslass then
-        if h4 : p MegaAbsolBox then
-          if h5 : p Gardevoir then
-            if h6 : p CharizardNoctowl then
-              isTrue (fun a => by cases a <;> assumption)
-            else isFalse (fun h => h6 (h CharizardNoctowl))
-          else isFalse (fun h => h5 (h Gardevoir))
-        else isFalse (fun h => h4 (h MegaAbsolBox))
-      else isFalse (fun h => h3 (h GrimmsnarlFroslass))
-    else isFalse (fun h => h2 (h GholdengoLunatone))
-  else isFalse (fun h => h1 (h DragapultDusknoir))
+def totalMetaShareX10 : Nat :=
+  (allDecks.map metaShareX10).foldl (· + ·) 0
 
-instance (p : Archetype6 → Prop) [DecidablePred p] : Decidable (∀ a, p a) :=
-  Archetype6.forAll p
+def metaShareWithoutDragapult : Deck → Nat
+  | .DragapultDusknoir => 0
+  | d => metaShareX10 d
 
-/-! ## 2. Real top-6 shares and matchup matrix -/
+def totalMetaShareWithoutDragapultX10 : Nat :=
+  (allDecks.map metaShareWithoutDragapult).foldl (· + ·) 0
 
-/-- Meta share in tenths of a percent (15.5% -> 155). -/
-def metaShareX10 : Archetype6 → Nat
-  | DragapultDusknoir => 155
-  | GholdengoLunatone => 99
-  | GrimmsnarlFroslass => 51
-  | MegaAbsolBox => 50
-  | Gardevoir => 46
-  | CharizardNoctowl => 43
+def weightedWRNumerator (d : Deck) : Nat :=
+  (allDecks.map (fun opp => matchupWRx10 d opp * metaShareX10 opp)).foldl (· + ·) 0
 
-theorem TOP6_SHARE_TOTAL : (Archetype6.all.map metaShareX10).foldl (· + ·) 0 = 444 := by
+def weightedWRWithoutDragapultNumerator (d : Deck) : Nat :=
+  (allDecks.map (fun opp => matchupWRx10 d opp * metaShareWithoutDragapult opp)).foldl (· + ·) 0
+
+def weightedWRx10VsField (d : Deck) : Nat :=
+  weightedWRNumerator d / totalMetaShareX10
+
+def weightedWRx10VsFieldWithoutDragapult (d : Deck) : Nat :=
+  weightedWRWithoutDragapultNumerator d / totalMetaShareWithoutDragapultX10
+
+def nonMirrorWRSum (d : Deck) : Nat :=
+  (nonMirrorOpps d).foldl (fun acc opp => acc + matchupWRx10 d opp) 0
+
+def averageNonMirrorWRx10 (d : Deck) : Nat :=
+  nonMirrorWRSum d / 13
+
+inductive Tier where
+  | S
+  | A
+  | B
+  | C
+  deriving DecidableEq, Repr, Inhabited
+
+def tierOf (d : Deck) : Tier :=
+  let wr := averageNonMirrorWRx10 d
+  if wr >= 520 then Tier.S
+  else if wr >= 490 then Tier.A
+  else if wr >= 460 then Tier.B
+  else Tier.C
+
+def sTier : List Deck := allDecks.filter (fun d => tierOf d = Tier.S)
+def aTier : List Deck := allDecks.filter (fun d => tierOf d = Tier.A)
+def bTier : List Deck := allDecks.filter (fun d => tierOf d = Tier.B)
+def cTier : List Deck := allDecks.filter (fun d => tierOf d = Tier.C)
+
+/-- Precomputed Shannon entropy terms (micro-bits) for normalized top-14 shares. -/
+def shannonTermMicroBits : Deck → Nat
+  | .DragapultDusknoir    => 482785
+  | .GholdengoLunatone    => 400489
+  | .GrimssnarlFroslass   => 276533
+  | .MegaAbsolBox         => 273166
+  | .Gardevoir            => 259275
+  | .CharizardNoctowl     => 248386
+  | .GardevoirJellicent   => 244661
+  | .CharizardPidgeot     => 217130
+  | .DragapultCharizard   => 217130
+  | .RagingBoltOgerpon    => 208753
+  | .NsZoroark            => 195711
+  | .AlakazamDudunsparce  => 186674
+  | .KangaskhanBouffalant => 172554
+  | .Ceruledge            => 162731
+
+def observedEntropyTop14MicroBits : Nat :=
+  (allDecks.map shannonTermMicroBits).foldl (· + ·) 0
+
+def uniformEntropyTop14MicroBits : Nat := 3807355
+
+/-- 14-deck universe is exactly the Trainer Hill full matrix from RealMetagame. -/
+theorem FULL_14_DECK_UNIVERSE : allDecks.length = 14 := by
   native_decide
 
-/-- Real Trainer Hill top-6 matrix, percentage * 10. -/
-def matchupWRx10 (a b : Archetype6) : Nat :=
-  match a, b with
-  | DragapultDusknoir, DragapultDusknoir => 494
-  | DragapultDusknoir, GholdengoLunatone => 436
-  | DragapultDusknoir, GrimmsnarlFroslass => 386
-  | DragapultDusknoir, MegaAbsolBox => 382
-  | DragapultDusknoir, Gardevoir => 343
-  | DragapultDusknoir, CharizardNoctowl => 641
-  | GholdengoLunatone, DragapultDusknoir => 521
-  | GholdengoLunatone, GholdengoLunatone => 488
-  | GholdengoLunatone, GrimmsnarlFroslass => 476
-  | GholdengoLunatone, MegaAbsolBox => 443
-  | GholdengoLunatone, Gardevoir => 441
-  | GholdengoLunatone, CharizardNoctowl => 483
-  | GrimmsnarlFroslass, DragapultDusknoir => 572
-  | GrimmsnarlFroslass, GholdengoLunatone => 467
-  | GrimmsnarlFroslass, GrimmsnarlFroslass => 485
-  | GrimmsnarlFroslass, MegaAbsolBox => 344
-  | GrimmsnarlFroslass, Gardevoir => 566
-  | GrimmsnarlFroslass, CharizardNoctowl => 558
-  | MegaAbsolBox, DragapultDusknoir => 576
-  | MegaAbsolBox, GholdengoLunatone => 512
-  | MegaAbsolBox, GrimmsnarlFroslass => 621
-  | MegaAbsolBox, MegaAbsolBox => 494
-  | MegaAbsolBox, Gardevoir => 558
-  | MegaAbsolBox, CharizardNoctowl => 475
-  | Gardevoir, DragapultDusknoir => 627
-  | Gardevoir, GholdengoLunatone => 493
-  | Gardevoir, GrimmsnarlFroslass => 374
-  | Gardevoir, MegaAbsolBox => 402
-  | Gardevoir, Gardevoir => 480
-  | Gardevoir, CharizardNoctowl => 394
-  | CharizardNoctowl, DragapultDusknoir => 324
-  | CharizardNoctowl, GholdengoLunatone => 480
-  | CharizardNoctowl, GrimmsnarlFroslass => 397
-  | CharizardNoctowl, MegaAbsolBox => 471
-  | CharizardNoctowl, Gardevoir => 558
-  | CharizardNoctowl, CharizardNoctowl => 487
-
-def matchupAdvantage (a : Archetype6) : Nat :=
-  (Archetype6.all.map (matchupWRx10 a)).foldl (· + ·) 0
-
-def lossCountVsOthers (a : Archetype6) : Nat :=
-  let opps := Archetype6.all.filter (· != a)
-  opps.foldl (fun acc b => if matchupWRx10 a b < 500 then acc + 1 else acc) 0
-
-/-! ## 3. Required insights from the real data -/
-
-def beatsAllOthers (a : Archetype6) : Bool :=
-  let opps := Archetype6.all.filter (· != a)
-  opps.all (fun b => matchupWRx10 a b > 500)
-
-/-- No deck is dominant; every deck has at least one sub-50 matchup. -/
-theorem NO_DOMINANT_DECK : ∀ a : Archetype6, beatsAllOthers a = false := by
+/-- 1) No dominant deck across all 14 (every deck has at least one losing matchup). -/
+theorem NO_DOMINANT_DECK_ACROSS_14 :
+    (allDecks.all (fun d => isDominant d = false)) = true := by
   native_decide
 
-/-- Grimmsnarl is checked by Mega Absol in the head-to-head. -/
-theorem GRIMMSNARL_LOSES_TO_MEGA_ABSOL :
-    matchupWRx10 GrimmsnarlFroslass MegaAbsolBox = 344 := by
-  native_decide
-
-theorem GRIMMSNARL_BEATS_DRAGAPULT :
-    matchupWRx10 GrimmsnarlFroslass DragapultDusknoir = 572 := by
-  native_decide
-
-/-- Dragapult is the most played deck in this snapshot. -/
-theorem DRAGAPULT_MOST_PLAYED :
-    ∀ d : Archetype6, metaShareX10 d ≤ metaShareX10 DragapultDusknoir := by
-  native_decide
-
-/-- Dragapult loses to four of the other five top decks. -/
-theorem DRAGAPULT_LOSES_TO_FOUR_OF_FIVE :
-    lossCountVsOthers DragapultDusknoir = 4 := by
-  native_decide
-
-/-- Popularity and matchup strength diverge in the real metagame. -/
-theorem POPULARITY_NEQ_OPTIMALITY :
-    matchupAdvantage MegaAbsolBox > matchupAdvantage DragapultDusknoir := by
-  native_decide
-
+/-- 2) Dragapult popularity paradox: 15.5% share with 9 losing non-mirror matchups. -/
 theorem DRAGAPULT_POPULARITY_PARADOX :
-    (∀ d : Archetype6, metaShareX10 d ≤ metaShareX10 DragapultDusknoir) ∧
-    lossCountVsOthers DragapultDusknoir = 4 ∧
-    matchupAdvantage MegaAbsolBox > matchupAdvantage DragapultDusknoir := by
+    metaShareX10 DragapultDusknoir = 155 ∧
+    (nonMirrorOpps DragapultDusknoir).length = 13 ∧
+    losingMatchupCount DragapultDusknoir = 9 ∧
+    losingMatchupCount DragapultDusknoir >= 9 := by
   native_decide
 
-/-- Counter-deck value: Mega Absol checks Grimmsnarl despite lower play share. -/
-theorem COUNTER_DECK_VALUE :
-    matchupWRx10 MegaAbsolBox GrimmsnarlFroslass = 621 ∧
-    metaShareX10 MegaAbsolBox < metaShareX10 GrimmsnarlFroslass := by
+/-- 3) Counter deck value: Raging Bolt is the best anti-Mega Absol counter at 67.3%. -/
+theorem RAGING_BOLT_COUNTER_VALUE :
+    matchupWRx10 RagingBoltOgerpon MegaAbsolBox = 673 ∧
+    (allDecks.filter (fun d => d != MegaAbsolBox)).all
+      (fun d => matchupWRx10 d MegaAbsolBox <= matchupWRx10 RagingBoltOgerpon MegaAbsolBox) = true := by
   native_decide
 
-/-- Gardevoir is the strongest anti-Dragapult pick in the top-6 set. -/
-theorem GARDEVOIR_HARD_COUNTERS_DRAGAPULT :
-    matchupWRx10 Gardevoir DragapultDusknoir = 627 ∧
-    ∀ d : Archetype6, matchupWRx10 d DragapultDusknoir ≤ matchupWRx10 Gardevoir DragapultDusknoir := by
+/-- 4) Mega Absol counters Grimssnarl at 62.1%. -/
+theorem MEGA_ABSOL_COUNTERS_GRIMSSNARL :
+    matchupWRx10 MegaAbsolBox GrimssnarlFroslass = 621 := by
   native_decide
 
-theorem GARDEVOIR_DRAGAPULT_ASYMMETRY_X10 :
-    matchupWRx10 Gardevoir DragapultDusknoir - matchupWRx10 DragapultDusknoir Gardevoir = 284 := by
+/-- 5) Gardevoir counters Dragapult at 62.7%. -/
+theorem GARDEVOIR_COUNTERS_DRAGAPULT :
+    matchupWRx10 Gardevoir DragapultDusknoir = 627 := by
   native_decide
 
-/-- Precomputed Shannon entropy terms (micro-bits) for normalized top-6 shares. -/
-def shannonTermMicroBits : Archetype6 → Nat
-  | DragapultDusknoir => 530034
-  | GholdengoLunatone => 482750
-  | GrimmsnarlFroslass => 358607
-  | MegaAbsolBox => 354793
-  | Gardevoir => 338872
-  | CharizardNoctowl => 326195
+/-- 6) Alakazam is a Gholdengo tech (58.8%) against the #2 most played deck. -/
+theorem ALAKAZAM_IS_GHOLDENGO_TECH :
+    matchupWRx10 AlakazamDudunsparce GholdengoLunatone = 588 ∧
+    metaShareX10 GholdengoLunatone = 99 ∧
+    (allDecks.filter (fun d => d != DragapultDusknoir)).all
+      (fun d => metaShareX10 d <= metaShareX10 GholdengoLunatone) = true := by
+  native_decide
 
-def observedEntropyTop6MicroBits : Nat :=
-  (Archetype6.all.map shannonTermMicroBits).foldl (· + ·) 0
+/-- 7) Kangaskhan rogue value against top decks. -/
+theorem KANGASKHAN_ROGUE_VALUE :
+    matchupWRx10 KangaskhanBouffalant CharizardNoctowl = 635 ∧
+    matchupWRx10 KangaskhanBouffalant DragapultDusknoir = 582 := by
+  native_decide
 
-def uniformEntropyTop6MicroBits : Nat := 2584963
-
-/-- The observed top-6 share distribution is less uniform than ideal 1/6. -/
+/-- 8) Format diversity: observed Shannon entropy is below uniform over 14 decks. -/
 theorem FORMAT_DIVERSITY_SHANNON :
-    observedEntropyTop6MicroBits < uniformEntropyTop6MicroBits := by
+    observedEntropyTop14MicroBits < uniformEntropyTop14MicroBits := by
   native_decide
 
-/-- If Dragapult is banned, Gholdengo becomes the most-played remaining deck,
-    and the best counter target shifts accordingly. -/
-theorem BAN_DRAGAPULT_META_SHIFTS :
-    (∀ d : Archetype6, d ≠ DragapultDusknoir → metaShareX10 d ≤ metaShareX10 GholdengoLunatone) ∧
-    (∀ d : Archetype6, matchupWRx10 d DragapultDusknoir ≤ matchupWRx10 Gardevoir DragapultDusknoir) ∧
-    (∀ d : Archetype6, d ≠ DragapultDusknoir →
-      matchupWRx10 d GholdengoLunatone ≤ matchupWRx10 MegaAbsolBox GholdengoLunatone) := by
+/-- 9) Ceruledge is worst-positioned by losing-count (tied highest at 10 losses). -/
+theorem CERULEDGE_WORST_POSITIONED :
+    losingMatchupCount Ceruledge = 10 ∧
+    (allDecks.all (fun d => losingMatchupCount d <= losingMatchupCount Ceruledge)) = true := by
   native_decide
 
-/-- From the full 14-deck Trainer Hill matrix: Raging Bolt -> Mega Absol is 67.3%. -/
-def ragingBoltVsMegaAbsolX10 : Nat := 673
+/-- 10) Full metagame cycle: Grimm > Drag > CharNoc > GardJell > Gard > DragDusk. -/
+theorem FULL_METAGAME_CYCLE :
+    matchupWRx10 GrimssnarlFroslass DragapultDusknoir > 500 ∧
+    matchupWRx10 DragapultDusknoir CharizardNoctowl > 500 ∧
+    matchupWRx10 CharizardNoctowl GardevoirJellicent > 500 ∧
+    matchupWRx10 GardevoirJellicent Gardevoir > 500 ∧
+    matchupWRx10 Gardevoir DragapultDusknoir > 500 := by
+  native_decide
 
-/-- Real metagame cycle from the full dataset:
-    Grimmsnarl > Dragapult, Mega Absol > Grimmsnarl, Raging Bolt > Mega Absol. -/
-theorem REAL_METAGAME_CYCLE :
-    matchupWRx10 GrimmsnarlFroslass DragapultDusknoir > 500 ∧
-    matchupWRx10 MegaAbsolBox GrimmsnarlFroslass > 500 ∧
-    ragingBoltVsMegaAbsolX10 > 500 := by
+/-- 11) Ban analysis: removing Dragapult changes weighted field win rates. -/
+theorem BAN_ANALYSIS_WEIGHTED_WR_SHIFT :
+    totalMetaShareX10 = 695 ∧
+    totalMetaShareWithoutDragapultX10 = 540 ∧
+    weightedWRx10VsField CharizardNoctowl = 457 ∧
+    weightedWRx10VsFieldWithoutDragapult CharizardNoctowl = 495 ∧
+    weightedWRx10VsField Gardevoir = 498 ∧
+    weightedWRx10VsFieldWithoutDragapult Gardevoir = 461 ∧
+    weightedWRx10VsField MegaAbsolBox = 517 ∧
+    weightedWRx10VsFieldWithoutDragapult MegaAbsolBox = 500 := by
+  native_decide
+
+theorem BAN_ANALYSIS_REORDERS_WEIGHTED_RANKS :
+    weightedWRx10VsField Gardevoir > weightedWRx10VsField CharizardNoctowl ∧
+    weightedWRx10VsFieldWithoutDragapult CharizardNoctowl >
+      weightedWRx10VsFieldWithoutDragapult Gardevoir := by
+  native_decide
+
+/-- 12) Tier classification by average non-mirror WR (x10 scale). -/
+theorem TIER_CLASSIFICATION :
+    sTier = [GrimssnarlFroslass] ∧
+    aTier = [MegaAbsolBox, DragapultCharizard] ∧
+    bTier = [DragapultDusknoir, GholdengoLunatone, Gardevoir, CharizardNoctowl,
+      GardevoirJellicent, CharizardPidgeot, RagingBoltOgerpon,
+      AlakazamDudunsparce, KangaskhanBouffalant] ∧
+    cTier = [NsZoroark, Ceruledge] := by
   native_decide
 
 end PokemonLean.MatchupAnalysis
