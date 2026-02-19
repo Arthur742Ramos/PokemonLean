@@ -44,7 +44,11 @@ theorem basicCount_cons_nonbasic (c : Card) (cs : List Card) (h : isBasicPokemon
     basicCount (c :: cs) = basicCount cs := by
   simp [basicCount_cons, h]
 
-theorem basicCount_le_length (cards : List Card) : basicCount cards ≤ cards.length := by sorry
+theorem basicCount_le_length (cards : List Card) : basicCount cards ≤ cards.length := by
+  simp [basicCount]
+  induction cards with
+  | nil => simp
+  | cons hd tl ih => simp [List.countP_cons]; split <;> omega
 theorem basicCount_append (xs ys : List Card) :
     basicCount (xs ++ ys) = basicCount xs + basicCount ys := by
   simp [basicCount, List.countP_append]
@@ -239,7 +243,10 @@ theorem hand_basicCount_le_deck (deck : List Card) :
   omega
 
 theorem hand_basicCount_le_handSize (deck : List Card) :
-    basicCount (deck.take initialHandSize) ≤ initialHandSize := by sorry
+    basicCount (deck.take initialHandSize) ≤ initialHandSize := by
+  have h1 := basicCount_le_length (deck.take initialHandSize)
+  have h2 := List.length_take_le initialHandSize deck
+  omega
 
 -- ============================================================================
 -- MULLIGAN LOOP TERMINATION

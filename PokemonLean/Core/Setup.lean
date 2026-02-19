@@ -241,7 +241,8 @@ private theorem filter_complement_length (l : List Card) (f : Card → Bool) :
 
 /-- Theorem 1: Drawing 7 from a 60-card deck gives a hand of 7. -/
 theorem opening_hand_size (d : Deck) :
-    (drawOpeningHand d.cards).1.length = handSize := by sorry
+    (drawOpeningHand d.cards).1.length = handSize := by
+  simp [drawOpeningHand, drawCards, List.length_take, d.size_ok, handSize, deckSize]; omega
 
 /-- Theorem 2: After drawing 7, 53 cards remain. -/
 theorem remaining_after_draw (d : Deck) :
@@ -250,7 +251,8 @@ theorem remaining_after_draw (d : Deck) :
 
 /-- Theorem 3: Drawing preserves total count. -/
 theorem draw_preserves_count (d : Deck) :
-    (drawOpeningHand d.cards).1.length + (drawOpeningHand d.cards).2.length = deckSize := by sorry
+    (drawOpeningHand d.cards).1.length + (drawOpeningHand d.cards).2.length = deckSize := by
+  simp [drawOpeningHand, drawCards, List.length_take, List.length_drop, d.size_ok, handSize, deckSize]; omega
 
 /-- Theorem 4: Prize setup takes exactly 6 cards when deck is large enough. -/
 theorem prize_count_exact (deck : List Card) (h : deck.length ≥ prizeCount) :

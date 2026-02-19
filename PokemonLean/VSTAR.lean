@@ -306,7 +306,12 @@ def assembleVUnion (name : String) (discard : List VUnionPiece) : Option Assembl
   simp [hasVUnionPiece]
 
 theorem hasVUnionPiece_cons_hit (name : String) (slot : VUnionSlot) (rest : List VUnionPiece) :
-    hasVUnionPiece name slot (({ name := name, slot := slot } : VUnionPiece) :: rest) = true := by sorry
+    hasVUnionPiece name slot (({ name := name, slot := slot } : VUnionPiece) :: rest) = true := by
+  unfold hasVUnionPiece
+  simp [List.any_cons]
+  left
+  simp only [BEq.beq]
+  cases slot <;> rfl
 
 theorem canAssembleVUnion_nil (name : String) : canAssembleVUnion name [] = false := by
   simp [canAssembleVUnion, hasVUnionPiece]
@@ -325,7 +330,19 @@ theorem canAssembleVUnion_exact_four (name : String) (rest : List VUnionPiece) :
        ({ name := name, slot := .upperRight } : VUnionPiece) ::
        ({ name := name, slot := .lowerLeft } : VUnionPiece) ::
        ({ name := name, slot := .lowerRight } : VUnionPiece) ::
-       rest) = true := by sorry
+       rest) = true := by
+  have h1 := hasVUnionPiece_cons_hit name .upperLeft
+    (({ name := name, slot := .upperRight } : VUnionPiece) ::
+     ({ name := name, slot := .lowerLeft } : VUnionPiece) ::
+     ({ name := name, slot := .lowerRight } : VUnionPiece) :: rest)
+  have h2 := hasVUnionPiece_cons_hit name .upperRight
+    (({ name := name, slot := .lowerLeft } : VUnionPiece) ::
+     ({ name := name, slot := .lowerRight } : VUnionPiece) :: rest)
+  have h3 := hasVUnionPiece_cons_hit name .lowerLeft
+    (({ name := name, slot := .lowerRight } : VUnionPiece) :: rest)
+  have h4 := hasVUnionPiece_cons_hit name .lowerRight rest
+  simp only [canAssembleVUnion, hasVUnionPiece, List.any_cons] at *
+  simp_all
 
 theorem assembleVUnion_some_of_can (name : String) (discard : List VUnionPiece)
     (h : canAssembleVUnion name discard = true) :

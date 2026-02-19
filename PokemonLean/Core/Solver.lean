@@ -569,7 +569,11 @@ theorem pass_always_legal (gs : GameState) :
 
 /-- legalActions always has at least Pass. -/
 theorem legalActions_nonempty (gs : GameState) :
-    legalActions gs ≠ [] := by sorry
+    legalActions gs ≠ [] := by
+  intro h
+  have := pass_always_legal gs
+  rw [h] at this
+  exact List.not_mem_nil _ this
 
 -- ============================================================
 -- §12  Theorems — applyAction properties

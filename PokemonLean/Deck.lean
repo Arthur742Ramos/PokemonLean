@@ -6,12 +6,17 @@ variable {α : Type _}
 def countp (l : List α) (p : α → Prop) [DecidablePred p] : Nat :=
   l.countP (fun a => decide (p a))
 
-@[simp] theorem countp_nil (p : α → Prop) [DecidablePred p] : ([] : List α).countp p = 0 := by sorry
+@[simp] theorem countp_nil (p : α → Prop) [DecidablePred p] : ([] : List α).countp p = 0 := by
+  simp [countp]
 @[simp] theorem countp_cons (a : α) (l : List α) (p : α → Prop) [DecidablePred p] :
     (a :: l).countp p = (if p a then 1 else 0) + l.countp p := by
   by_cases h : p a <;> simp [countp, h, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
 
-theorem countp_le_length (l : List α) (p : α → Prop) [DecidablePred p] : l.countp p ≤ l.length := by sorry
+theorem countp_le_length (l : List α) (p : α → Prop) [DecidablePred p] : l.countp p ≤ l.length := by
+  simp [countp]
+  induction l with
+  | nil => simp
+  | cons hd tl ih => simp [List.countP_cons]; split <;> omega
 theorem countp_pos {l : List α} {p : α → Prop} [DecidablePred p] :
     0 < l.countp p ↔ ∃ a ∈ l, p a := by
   induction l with
@@ -52,10 +57,16 @@ namespace PokemonLean
 def countByName (deck : List Card) (name : String) : Nat :=
   deck.countp (fun c => c.name = name)
 
-@[simp] theorem countByName_nil (name : String) : countByName [] name = 0 := by sorry
+@[simp] theorem countByName_nil (name : String) : countByName [] name = 0 := by
+  simp [countByName, List.countp]
 
 @[simp] theorem countByName_cons (c : Card) (deck : List Card) (name : String) :
-    countByName (c :: deck) name = (if c.name = name then 1 else 0) + countByName deck name := by sorry
+    countByName (c :: deck) name = (if c.name = name then 1 else 0) + countByName deck name := by
+  simp only [countByName, List.countp]
+  rw [List.countP_cons]
+  by_cases h : c.name = name
+  · simp [h, decide_eq_true_eq]; omega
+  · simp [h, decide_eq_true_eq]
 
 theorem countByName_le_length (deck : List Card) (name : String) :
     countByName deck name ≤ deck.length := by
@@ -169,7 +180,14 @@ theorem deckValid_of_perm {rules : DeckRules} {deck₁ deck₂ : List Card}
 
 /-- If a name is not present in the deck, then its count is 0. -/
 theorem countByName_eq_zero_of_forall_ne (deck : List Card) (name : String)
-    (h : ∀ c ∈ deck, c.name ≠ name) : countByName deck name = 0 := by sorry
+    (h : ∀ c ∈ deck, c.name ≠ name) : countByName deck name = 0 := by
+  induction deck with
+  | nil => simp [countByName, List.countp]
+  | cons c cs ih =>
+    rw [countByName_cons]
+    have hne := h c (List.Mem.head _)
+    simp [hne]
+    exact ih (fun c hc => h c (List.mem_cons_of_mem _ hc))
 
 /-- Adding a card cannot decrease the count of any name. -/
 theorem countByName_cons_ge (c : Card) (deck : List Card) (name : String) :

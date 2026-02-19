@@ -271,7 +271,8 @@ theorem draw_increases_hand (ps : PlayerState) (h : ps.deckSize > 0) :
 -- ============================================================
 
 /-- Theorem 16: A deck with n cards decks out after n+1 draws. -/
-theorem deckout_after_n_plus_1 (n : Nat) : deckAfterDraws n (n + 1) = 0 := by sorry
+theorem deckout_after_n_plus_1 (n : Nat) : deckAfterDraws n (n + 1) = 0 := by
+  simp [deckAfterDraws]; omega
 /-- Theorem 17: Initial game has 94 total deck cards. -/
 theorem initial_total_deck (p : Player) :
     (initialGameState p).totalDeck = 94 := by

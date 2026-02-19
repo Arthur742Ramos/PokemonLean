@@ -110,7 +110,11 @@ theorem totalPoints_nonneg (rounds : List SwissRound) (player : PlayerProfile) :
   simp [totalPoints]
 
 theorem totalPoints_append (rounds1 rounds2 : List SwissRound) (player : PlayerProfile) :
-    totalPoints (rounds1 ++ rounds2) player = totalPoints rounds1 player + totalPoints rounds2 player := by sorry
+    totalPoints (rounds1 ++ rounds2) player = totalPoints rounds1 player + totalPoints rounds2 player := by
+  simp [totalPoints, List.map_append]
+  induction rounds1 with
+  | nil => simp
+  | cons r rs ih => simp [List.sum_cons, ih, Nat.add_assoc]
 
 def topCutEligible (rounds : List SwissRound) (player : PlayerProfile) (threshold : Nat) : Prop :=
   totalPoints rounds player ≥ threshold

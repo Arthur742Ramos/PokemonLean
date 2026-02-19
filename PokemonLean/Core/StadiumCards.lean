@@ -364,7 +364,8 @@ theorem active_count_base_zero : activeStadiumCount baseGame = 0 := by rfl
 
 theorem active_count_path_one : activeStadiumCount pathGame = 1 := by rfl
 
-theorem active_count_upper_bound (g : GameState) : activeStadiumCount g ≤ 1 := by sorry
+theorem active_count_upper_bound (g : GameState) : activeStadiumCount g ≤ 1 := by
+  simp [activeStadiumCount]; split <;> omega
 theorem replace_sets_requested_stadium (g : GameState) (s : StadiumCard) :
     (replaceStadium g s).stadium = some s := by
   rfl

@@ -268,11 +268,16 @@ inductive AbilPath : GameState → GameState → Type where
 
 variable {a b c d : GameState}
 
-def AbilPath.trans : AbilPath a b → AbilPath b c → AbilPath a c := by sorry
+def AbilPath.trans {a b c : GameState} : AbilPath a b → AbilPath b c → AbilPath a c
+  | .refl _, q => q
+  | .step s p', q => .step s (p'.trans q)
 
-def AbilPath.single (s : Step a b) : AbilPath a b := by sorry
+def AbilPath.single {a b : GameState} (s : Step a b) : AbilPath a b :=
+  .step s (.refl b)
 
-def AbilPath.length : AbilPath a b → Nat := by sorry
+def AbilPath.length {a b : GameState} : AbilPath a b → Nat
+  | .refl _ => 0
+  | .step _ p' => 1 + p'.length
 
 -- ============================================================
 -- §6  Negation theorems
@@ -614,15 +619,27 @@ theorem endTurn_increments (gs : PowerState) :
 -- §14  Path algebra
 -- ============================================================
 
-theorem abilPath_length_trans : (p : AbilPath a b) → (q : AbilPath b c) →
-    (p.trans q).length = p.length + q.length := by sorry
+theorem abilPath_length_trans {a b c : GameState} : (p : AbilPath a b) → (q : AbilPath b c) →
+    (p.trans q).length = p.length + q.length
+  | .refl _, _ => by simp [AbilPath.trans, AbilPath.length]
+  | .step _ p', q => by
+    simp only [AbilPath.trans, AbilPath.length]
+    rw [abilPath_length_trans p' q]; omega
 
 /-- Theorem 42: Trans with refl is identity. -/
-theorem abilPath_trans_refl : (p : AbilPath a b) → p.trans (.refl b) = p := by sorry
+theorem abilPath_trans_refl {a b : GameState} : (p : AbilPath a b) → p.trans (.refl b) = p
+  | .refl _ => by simp [AbilPath.trans]
+  | .step s p' => by
+    simp only [AbilPath.trans]
+    rw [abilPath_trans_refl p']
 
 /-- Theorem 43: Trans is associative. -/
-theorem abilPath_trans_assoc : (p : AbilPath a b) → (q : AbilPath b c) → (r : AbilPath c d) →
-    (p.trans q).trans r = p.trans (q.trans r) := by sorry
+theorem abilPath_trans_assoc {a b c d : GameState} : (p : AbilPath a b) → (q : AbilPath b c) → (r : AbilPath c d) →
+    (p.trans q).trans r = p.trans (q.trans r)
+  | .refl _, _, _ => by simp [AbilPath.trans]
+  | .step s p', q, r => by
+    simp only [AbilPath.trans]
+    rw [abilPath_trans_assoc p' q r]
 
 /-- Build a weather → intimidate chain. -/
 def weatherThenIntimidate (gs : GameState) :
@@ -632,7 +649,8 @@ def weatherThenIntimidate (gs : GameState) :
 
 /-- Theorem 44: Weather-then-intimidate is a 2-step path. -/
 theorem weather_intimidate_length (gs : GameState) :
-    (weatherThenIntimidate gs).length = 2 := by sorry
+    (weatherThenIntimidate gs).length = 2 := by
+  rfl
 
 /-- Transport a property along an ability path. -/
 def transportAbilPath {P : GameState → Prop}

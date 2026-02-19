@@ -136,7 +136,8 @@ theorem durant_nonincreasing (s : MillState) (d : Nat) :
 /-- Theorem 9: Durant then draw exact zero. -/
 theorem durant_then_draw_exact_zero (s : MillState) (d : Nat)
     (h : s.oppDeck = d + 1) :
-    (naturalDraw (durantMill s d)).oppDeck = 0 := by sorry
+    (naturalDraw (durantMill s d)).oppDeck = 0 := by
+  simp [naturalDraw, durantMill, h]; omega
 
 -- Mill rate calculation
 def naturalMillPerTurn : Nat := 1
@@ -563,6 +564,12 @@ def turnsToKO (currentHP dmgPerTurn : Nat) : Nat :=
 
 /-- Theorem 47: If damage = HP, KO in 1 turn. -/
 theorem exact_ko (hp : Nat) (hpos : hp > 0) :
-    turnsToKO hp hp = 1 := by sorry
+    turnsToKO hp hp = 1 := by
+  unfold turnsToKO
+  have hne : hp ≠ 0 := by omega
+  simp [hne]
+  apply Nat.div_eq_of_lt_le
+  · omega
+  · omega
 
 end PokemonLean.Core.Strategy

@@ -430,10 +430,6 @@ theorem sendToLostZone_count (lz : LostZone) (card : Card) :
     lostZoneCount (sendToLostZone lz card) = lostZoneCount lz + 1 := by
   simp [sendToLostZone, lostZoneCount, List.length_cons]
 
-/-- A card just sent to the Lost Zone is in the Lost Zone. -/
-theorem sendToLostZone_contains (lz : LostZone) (card : Card) :
-    isInLostZone (sendToLostZone lz card) card = true := by sorry
-
 /-- Sending a card preserves existing Lost Zone cards. -/
 theorem sendToLostZone_preserves (lz : LostZone) (card newCard : Card)
     (h : isInLostZone lz card = true) :

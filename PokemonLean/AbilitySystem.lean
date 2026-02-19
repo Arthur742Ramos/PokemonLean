@@ -345,7 +345,9 @@ theorem no_reduction_preserves (damage : Nat) :
 
 -- 12. Type immunity makes damage zero
 theorem type_immunity_zero (_base : Nat) (t : EnergyType) :
-    isImmuneToType (.immuneToType t) t = true := by sorry
+    isImmuneToType (.immuneToType t) t = true := by
+  simp [isImmuneToType]
+  cases t <;> decide
 
 -- 13. Wrong type no immunity
 theorem wrong_type_no_immunity :
@@ -409,7 +411,8 @@ theorem mold_breaker_passive :
 
 -- 25. No ability effect when ability is none
 theorem no_ability_no_effect (p : PokemonInPlay) (stadium : Option StadiumInPlay) (trigger : AbilityTrigger) :
-    getActiveAbilityEffect { pokemon := p, ability := none, abilityActive := true } stadium trigger = none := by sorry
+    getActiveAbilityEffect { pokemon := p, ability := none, abilityActive := true } stadium trigger = none := by
+  simp [getActiveAbilityEffect, isAbilityActive]
 
 -- 26. No effect under Path to the Peak
 theorem no_effect_under_path (pwa : PokemonWithAbility) (trigger : AbilityTrigger) :
@@ -428,7 +431,11 @@ theorem attacker_boost_adds (base amount : Nat) (t : EnergyType) (s : Option Sta
 
 -- 29. Defender immunity zeros damage
 theorem defender_immunity_zeros (base : Nat) (t : EnergyType) (s : Option StadiumInPlay) :
-    computeDamageWithAbilities base t none (some (.immuneToType t)) s = 0 := by sorry
+    computeDamageWithAbilities base t none (some (.immuneToType t)) s = 0 := by
+  simp [computeDamageWithAbilities]
+  have h : isImmuneToType (.immuneToType t) t = true := by
+    simp [isImmuneToType]; cases t <;> decide
+  simp [h]
 
 -- 30. Sturdy doesn't affect when not at full HP
 theorem sturdy_no_effect_not_full (pwa : PokemonWithAbility) (damage : Nat) (stadium : Option StadiumInPlay)

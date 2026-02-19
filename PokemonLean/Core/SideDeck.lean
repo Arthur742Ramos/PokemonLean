@@ -93,7 +93,8 @@ theorem draw_prob_linear (k : Nat) :
 
 -- [T10] More copies ⟹ higher or equal draw probability.
 theorem draw_prob_monotone (a b : Nat) (h : a ≤ b) :
-    drawProbApprox a ≤ drawProbApprox b := by sorry
+    drawProbApprox a ≤ drawProbApprox b := by
+  simp only [drawProbApprox, handSize, deckSize]; omega
 
 -- [T11] Strictly more copies ⟹ strictly higher probability (for k ≤ maxCopies).
 theorem draw_prob_strict_mono_4 (a b : Nat) (ha : a ≤ 4) (hb : b ≤ 4) (h : a < b) :
@@ -206,7 +207,8 @@ theorem no_techs_full_consistency : consistencyRating 0 = 100 := by native_decid
 
 -- [T22] More techs = less consistency.
 theorem techs_reduce_consistency (a b : Nat) (h : a ≤ b) (hb : b ≤ deckSize) :
-    consistencyRating b ≤ consistencyRating a := by sorry
+    consistencyRating b ≤ consistencyRating a := by
+  simp only [consistencyRating, deckSize]; omega
 
 -- ============================================================
 -- §9  Game 2/3 adaptation
@@ -280,11 +282,13 @@ def drawProbPrizeAdj (copies : Nat) : Nat :=
 
 -- [T29] Prize-adjusted probability is higher than naive (smaller effective deck).
 theorem prize_adj_ge_naive (k : Nat) :
-    drawProbPrizeAdj k ≥ drawProbApprox k := by sorry
+    drawProbPrizeAdj k ≥ drawProbApprox k := by
+  simp only [drawProbPrizeAdj, drawProbApprox, effectiveDeckSize, handSize, deckSize]; omega
 
 -- [T30] Prize-adjusted also monotone.
 theorem prize_adj_monotone (a b : Nat) (h : a ≤ b) :
-    drawProbPrizeAdj a ≤ drawProbPrizeAdj b := by sorry
+    drawProbPrizeAdj a ≤ drawProbPrizeAdj b := by
+  simp only [drawProbPrizeAdj, effectiveDeckSize, handSize, deckSize]; omega
 
 -- ============================================================
 -- §14  Card advantage from techs

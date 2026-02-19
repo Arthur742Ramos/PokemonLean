@@ -251,7 +251,8 @@ def deckAfterTurns (initialDeck : Nat) (turns : Nat) : Nat :=
   if initialDeck ≥ turns then initialDeck - turns else 0
 
 theorem deckout_inevitable (initialDeck : Nat) :
-    deckAfterTurns initialDeck (initialDeck + 1) = 0 := by sorry
+    deckAfterTurns initialDeck (initialDeck + 1) = 0 := by
+  simp [deckAfterTurns]; omega
 
 /-- Theorem 25: Prize count never increases from KOs. -/
 theorem prizes_nonincreasing (p : Nat) (k : PokemonKind) :

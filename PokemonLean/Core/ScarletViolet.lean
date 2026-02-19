@@ -408,17 +408,18 @@ theorem embrace_additive (s : EmbraceState) (a b : Nat) :
 -- §18  Theorems: Miraidon Fills Bench
 -- ============================================================
 
-theorem tandem_empty_bench : tandemUnitAdds 0 = 2 := by sorry
+theorem tandem_empty_bench : tandemUnitAdds 0 = 2 := by
+  simp [tandemUnitAdds, maxBenchSize]; try omega
 theorem tandem_bench_of_3 : tandemUnitAdds 3 = 2 := by
-  simp [tandemUnitAdds, maxBenchSize]
+  simp [tandemUnitAdds, maxBenchSize]; try omega
 
-theorem tandem_bench_of_4 : tandemUnitAdds 4 = 1 := by sorry
+theorem tandem_bench_of_4 : tandemUnitAdds 4 = 1 := by
+  simp [tandemUnitAdds, maxBenchSize]; try omega
 theorem tandem_full_bench : tandemUnitAdds 5 = 0 := by
-  simp [tandemUnitAdds, maxBenchSize]
+  simp [tandemUnitAdds, maxBenchSize]; try omega
 
 theorem tandem_at_most_two (n : Nat) : tandemUnitAdds n ≤ 2 := by
-  simp [tandemUnitAdds, maxBenchSize]
-  omega
+  simp [tandemUnitAdds, maxBenchSize]; try omega
 
 -- ============================================================
 -- §19  Theorems: Koraidon Energy Acceleration
@@ -426,18 +427,19 @@ theorem tandem_at_most_two (n : Nat) : tandemUnitAdds n ≤ 2 := by
 
 theorem dino_cry_empty_discard :
     dinoCryAttach { fightingEnergy := 0 } = 0 := by
-  simp [dinoCryAttach]
+  simp [dinoCryAttach]; try omega
 
 theorem dino_cry_one_in_discard :
-    dinoCryAttach { fightingEnergy := 1 } = 1 := by sorry
+    dinoCryAttach { fightingEnergy := 1 } = 1 := by
+  simp [dinoCryAttach]; try omega
 
 theorem dino_cry_full :
-    dinoCryAttach { fightingEnergy := 5 } = 2 := by sorry
+    dinoCryAttach { fightingEnergy := 5 } = 2 := by
+  simp [dinoCryAttach]; try omega
 
 theorem dino_cry_at_most_two (d : DiscardPile) :
     dinoCryAttach d ≤ 2 := by
-  simp [dinoCryAttach]
-  omega
+  simp [dinoCryAttach]; try omega
 
 -- ============================================================
 -- §20  Theorems: Ability Timing
@@ -511,6 +513,8 @@ theorem ex_prize_dichotomy (s : ExStatus) :
   unfold exPrizeCount
   cases s.isEx <;> simp
 
-theorem ex_true_means_two (s : ExStatus) (h : s.isEx = true) : exPrizeCount s = 2 := by sorry
-theorem ex_false_means_one (s : ExStatus) (h : s.isEx = false) : exPrizeCount s = 1 := by sorry
+theorem ex_true_means_two (s : ExStatus) (h : s.isEx = true) : exPrizeCount s = 2 := by
+  simp [exPrizeCount, h]
+theorem ex_false_means_one (s : ExStatus) (h : s.isEx = false) : exPrizeCount s = 1 := by
+  simp [exPrizeCount, h]
 end PokemonLean.Core.ScarletViolet

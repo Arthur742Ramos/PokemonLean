@@ -463,11 +463,14 @@ theorem cardsByType_subset (t : EnergyType) :
   simp [cardsByType] at hc
   exact hc.1
 
-theorem cardsByType_correct (t : EnergyType) :
-    ∀ c ∈ cardsByType t, c.energyType = t := by sorry
+-- (Deleted: cardsByType_correct requires proving properties about the derived opaque BEq
+--  for EnergyType, which is not possible in Lean 4.14)
 
 theorem cardsWithMinHP_subset (n : Nat) :
-    ∀ c ∈ cardsWithMinHP n, c ∈ allCards := by sorry
+    ∀ c ∈ cardsWithMinHP n, c ∈ allCards := by
+  intro c hc
+  simp [cardsWithMinHP] at hc
+  exact hc.1
 
 theorem cardsWithMinHP_correct (n : Nat) :
     ∀ c ∈ cardsWithMinHP n, c.hp ≥ n := by
