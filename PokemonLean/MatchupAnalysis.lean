@@ -122,6 +122,10 @@ theorem GRIMMSNARL_LOSES_TO_MEGA_ABSOL :
     matchupWRx10 GrimmsnarlFroslass MegaAbsolBox = 344 := by
   native_decide
 
+theorem GRIMMSNARL_BEATS_DRAGAPULT :
+    matchupWRx10 GrimmsnarlFroslass DragapultDusknoir = 572 := by
+  native_decide
+
 /-- Dragapult is the most played deck in this snapshot. -/
 theorem DRAGAPULT_MOST_PLAYED :
     ∀ d : Archetype6, metaShareX10 d ≤ metaShareX10 DragapultDusknoir := by
@@ -137,6 +141,12 @@ theorem POPULARITY_NEQ_OPTIMALITY :
     matchupAdvantage MegaAbsolBox > matchupAdvantage DragapultDusknoir := by
   native_decide
 
+theorem DRAGAPULT_POPULARITY_PARADOX :
+    (∀ d : Archetype6, metaShareX10 d ≤ metaShareX10 DragapultDusknoir) ∧
+    lossCountVsOthers DragapultDusknoir = 4 ∧
+    matchupAdvantage MegaAbsolBox > matchupAdvantage DragapultDusknoir := by
+  native_decide
+
 /-- Counter-deck value: Mega Absol checks Grimmsnarl despite lower play share. -/
 theorem COUNTER_DECK_VALUE :
     matchupWRx10 MegaAbsolBox GrimmsnarlFroslass = 621 ∧
@@ -147,6 +157,10 @@ theorem COUNTER_DECK_VALUE :
 theorem GARDEVOIR_HARD_COUNTERS_DRAGAPULT :
     matchupWRx10 Gardevoir DragapultDusknoir = 627 ∧
     ∀ d : Archetype6, matchupWRx10 d DragapultDusknoir ≤ matchupWRx10 Gardevoir DragapultDusknoir := by
+  native_decide
+
+theorem GARDEVOIR_DRAGAPULT_ASYMMETRY_X10 :
+    matchupWRx10 Gardevoir DragapultDusknoir - matchupWRx10 DragapultDusknoir Gardevoir = 284 := by
   native_decide
 
 /-- Precomputed Shannon entropy terms (micro-bits) for normalized top-6 shares. -/
