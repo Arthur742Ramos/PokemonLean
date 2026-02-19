@@ -1,4 +1,6 @@
 import PokemonLean.Basic
+import PokemonLean.Core.Types
+import PokemonLean.Archetypes
 
 namespace PokemonLean.DeckBuilding
 
@@ -284,12 +286,8 @@ def consistencyMetrics (deck : List DeckCard) : ConsistencyMetrics :=
 @[simp] theorem consistencyMetrics_pokemonSearch (deck : List DeckCard) :
     (consistencyMetrics deck).pokemonSearch = pokemonSearchCount deck := rfl
 
-/-- Coarse strategic archetypes based on consistency profile. -/
-inductive Archetype
-  | aggro
-  | control
-  | combo
-  deriving Repr, BEq, DecidableEq
+/-- Reuse the shared archetype type. -/
+abbrev Archetype := PokemonLean.Archetypes.Archetype
 
 /-- Classify a profile from draw-supporter and Pokemon-search counts. -/
 def classifyArchetype (drawSupporters pokemonSearch : Nat) : Archetype :=

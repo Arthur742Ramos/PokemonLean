@@ -4,6 +4,7 @@
   Speed vs consistency tradeoffs, 60-card rules, 4-copy limit
 -/
 import PokemonLean.Basic
+import PokemonLean.Core.Types
 
 namespace PokemonLean.Archetypes
 

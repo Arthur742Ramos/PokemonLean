@@ -1,4 +1,6 @@
 import PokemonLean.Basic
+import PokemonLean.Core.Types
+import PokemonLean.Archetypes
 
 namespace PokemonLean.Matchup
 
@@ -8,13 +10,8 @@ open PokemonLean
 -- DECK ARCHETYPES
 -- ============================================================================
 
-/-- The four canonical TCG deck archetypes. -/
-inductive Archetype
-  | aggro     -- fast damage, low setup
-  | control   -- disruption, resource denial
-  | combo     -- specific piece assembly, explosive turns
-  | midrange  -- balanced, adaptable
-  deriving Repr, BEq, DecidableEq
+/-- Reuse the shared archetype type. -/
+abbrev Archetype := PokemonLean.Archetypes.Archetype
 
 /-- Numeric encoding for archetypes. -/
 def Archetype.toNat : Archetype → Nat

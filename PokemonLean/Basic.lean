@@ -1,3 +1,5 @@
+import PokemonLean.Core.Types
+
 inductive EnergyType
   | fire
   | water
