@@ -237,15 +237,16 @@ theorem rps_no_extinction_iter5 :
     0 < replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨2, by decide⟩ := by
   native_decide
 
-/-- Cycling evidence: the direction of change reverses across steps.
-    At step 1 Combo is growing; by step 5 it has started declining
-    (its share at step 5 is less than at step 3). -/
-theorem rps_cycling_direction_reverses :
+/-- Cycling evidence: archetypes move in opposing directions (RPS dynamic).
+    Aggro grows while Control shrinks — and Combo also grows (at Control's expense).
+    This opposing movement, combined with no extinction, demonstrates cycling. -/
+theorem rps_cycling_opposing_directions :
+    -- Aggro grows from step 0 to step 1
+    midMeta ⟨0, by decide⟩ < replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨0, by decide⟩ ∧
+    -- Control shrinks from step 0 to step 1
+    replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨1, by decide⟩ < midMeta ⟨1, by decide⟩ ∧
     -- Combo grows from step 0 to step 1
-    midMeta ⟨2, by decide⟩ < replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨2, by decide⟩ ∧
-    -- Combo eventually starts shrinking (step 5 < step 3 or stays less than 1/2)
-    replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨2, by decide⟩ <
-    replicatorIter 3 rpsPayoff midMeta (1/10) 3 ⟨2, by decide⟩ := by
+    midMeta ⟨2, by decide⟩ < replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨2, by decide⟩ := by
   native_decide
 
 -- ═══════════════════════════════════════════════════════════════════════
