@@ -466,8 +466,8 @@ theorem cardsByType_subset (t : EnergyType) :
 theorem cardsByType_correct (t : EnergyType) :
     ∀ c ∈ cardsByType t, c.energyType = t := by
   intro c hc
-  simp only [cardsByType, List.mem_filter] at hc
-  exact of_decide_eq_true hc.2
+  simp only [cardsByType, List.mem_filter, decide_eq_true_eq] at hc
+  exact hc.2
 
 theorem cardsWithMinHP_subset (n : Nat) :
     ∀ c ∈ cardsWithMinHP n, c ∈ allCards := by
