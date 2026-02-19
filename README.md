@@ -3,7 +3,7 @@
 [![CI](https://github.com/Arthur742Ramos/PokemonLean/actions/workflows/ci.yml/badge.svg)](https://github.com/Arthur742Ramos/PokemonLean/actions/workflows/ci.yml)
 [![Lean 4](https://img.shields.io/badge/Lean-4.x-blue)](https://lean-lang.org/lean4/doc/)
 
-**PokemonLean** is a Lean 4 formal verification project for the Pokemon Trading Card Game (TCG). It encodes game objects, legal transitions, deck legality, solver behavior, and probabilistic mechanics, then machine-checks invariants and strategy results.
+**PokemonLean** is a Lean 4 formal verification project for the Pokémon Trading Card Game (TCG). It encodes game objects, legal transitions, deck legality, solver behavior, and probabilistic mechanics, then machine-checks invariants and strategy results.
 
 ## Project snapshot
 
