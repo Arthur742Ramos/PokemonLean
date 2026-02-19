@@ -424,7 +424,7 @@ theorem allCards_nonempty : allCards ≠ [] := by
 
 /-- Filter cards by energy type. -/
 def cardsByType (energyType : EnergyType) : List Card :=
-  allCards.filter (fun c => c.energyType == energyType)
+  allCards.filter (fun c => decide (c.energyType = energyType))
 
 /-- Filter card entries by rarity. -/
 def cardsByRarity (r : Rarity) : List CardEntry :=
@@ -466,8 +466,8 @@ theorem cardsByType_subset (t : EnergyType) :
 theorem cardsByType_correct (t : EnergyType) :
     ∀ c ∈ cardsByType t, c.energyType = t := by
   intro c hc
-  simp [cardsByType] at hc
-  exact hc.2
+  simp only [cardsByType, List.mem_filter] at hc
+  exact of_decide_eq_true hc.2
 
 theorem cardsWithMinHP_subset (n : Nat) :
     ∀ c ∈ cardsWithMinHP n, c ∈ allCards := by

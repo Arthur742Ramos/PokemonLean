@@ -193,23 +193,18 @@ theorem removeFirst_mem (card : Card) : ∀ {hand rest}, removeFirst card hand =
   | nil =>
       simp [removeFirst] at h
   | cons head tail ih =>
-      by_cases hEq : head == card
-      · -- removed at the head
-        simp [removeFirst, hEq] at h
-        cases h
-        have : head = card := (beq_iff_eq).1 hEq
-        -- membership is at the head
-        exact (List.mem_cons).2 (Or.inl this.symm)
-      · -- removed from the tail
-        simp [removeFirst, hEq] at h
-        cases hRec : removeFirst card tail with
+      unfold removeFirst at h
+      split at h
+      · rename_i hBeq
+        have hEq : head = card := eq_of_beq hBeq
+        exact List.mem_cons.mpr (Or.inl hEq.symm)
+      · cases hRec : removeFirst card tail with
         | none =>
             simp [hRec] at h
         | some rest' =>
             simp [hRec] at h
             cases h
-            have hMem := ih (rest := rest') hRec
-            exact (List.mem_cons).2 (Or.inr hMem)
+            exact List.mem_cons.mpr (Or.inr (ih hRec))
 
 def drawFromDeck (deck : List Card) (n : Nat) : Option (List Card × List Card) :=
   if n ≤ deck.length then

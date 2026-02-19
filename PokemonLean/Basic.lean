@@ -10,7 +10,14 @@ inductive EnergyType
   | fairy
   | dragon
   | colorless
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, DecidableEq
+
+instance : BEq EnergyType where
+  beq a b := decide (a = b)
+
+instance : LawfulBEq EnergyType where
+  eq_of_beq {a b} h := of_decide_eq_true h
+  rfl {a} := decide_eq_true rfl
 
 inductive StatusCondition
   | asleep
@@ -59,7 +66,14 @@ structure Card where
   attacks : List Attack
   weakness : Option Weakness := none
   resistance : Option Resistance := none
-  deriving Repr, BEq, DecidableEq
+  deriving Repr, DecidableEq
+
+instance : BEq Card where
+  beq a b := decide (a = b)
+
+instance : LawfulBEq Card where
+  eq_of_beq {a b} h := of_decide_eq_true h
+  rfl {a} := decide_eq_true rfl
 
 def isTrainer (card : Card) : Bool :=
   card.attacks.isEmpty

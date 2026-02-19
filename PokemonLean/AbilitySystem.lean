@@ -347,7 +347,6 @@ theorem no_reduction_preserves (damage : Nat) :
 theorem type_immunity_zero (_base : Nat) (t : EnergyType) :
     isImmuneToType (.immuneToType t) t = true := by
   simp [isImmuneToType]
-  cases t <;> decide
 
 -- 13. Wrong type no immunity
 theorem wrong_type_no_immunity :
@@ -434,7 +433,7 @@ theorem defender_immunity_zeros (base : Nat) (t : EnergyType) (s : Option Stadiu
     computeDamageWithAbilities base t none (some (.immuneToType t)) s = 0 := by
   simp [computeDamageWithAbilities]
   have h : isImmuneToType (.immuneToType t) t = true := by
-    simp [isImmuneToType]; cases t <;> decide
+    simp [isImmuneToType]
   simp [h]
 
 -- 30. Sturdy doesn't affect when not at full HP
