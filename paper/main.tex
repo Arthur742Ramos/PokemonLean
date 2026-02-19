@@ -94,8 +94,8 @@ information-theoretic modeling of hidden state,
 stochastic semantics via a probability monad,
 and verified tournament mathematics including best-of-three amplification and Swiss pairing.
 All 2{,}000+ theorems are kernel-checked with zero uses of \texttt{sorry}, \texttt{admit}, or custom axioms.
-Applied to a six-deck competitive metagame derived from tournament results,
-our analysis reveals a popularity paradox: Dragapult Dusknoir is the most-played archetype while posting losing rates into four of the other five top decks.
+Applied to a 14-archetype competitive metagame derived from tournament results,
+our analysis reveals a popularity paradox: Dragapult Dusknoir is the most-played archetype while posting losing rates into much of the top field.
 We formalize replicator dynamics and prove that dominated strategies go extinct,
 Nash equilibria are fixed points of metagame evolution,
 and the format exhibits rock-paper-scissors cycling.
@@ -141,7 +141,7 @@ The formalization spans four interconnected layers:
   Eight official rules are formalized with section-number references to the comprehensive rulebook.
 
 \item \textbf{Game-theoretic analysis} (Section~\ref{sec:gametheory}):
-  Nash equilibrium computation for a six-deck metagame derived from real tournament data,
+  Nash equilibrium computation for a 14-archetype metagame derived from real tournament data,
   minimax theorem for finite two-player zero-sum games,
   and optimal play analysis.
 
@@ -425,16 +425,13 @@ This validates that when one Pok\'emon can knock out the other in a single attac
 \label{subsec:realmetagame}
 
 The centerpiece of our analysis is a formally verified game-theoretic encoding of the competitive PTCG metagame.
-We encode the six most-played decks in the Trainer Hill snapshot:
-Dragapult Dusknoir, Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, Gardevoir, and Charizard Noctowl.
-Data sourced from Trainer Hill (trainerhill.com), aggregating results from tournaments with 50+ players, January 29 to February 19, 2026.
-
-Table~\ref{tab:matchup} shows the $6 \times 6$ win-rate matrix.
-Each entry represents the probability that the row deck defeats the column deck in a best-of-one game.
+We track 14 archetypes from the Trainer Hill snapshot (Data sourced from trainerhill.com, tournaments with 50+ players, January 29 to February 19, 2026).
+This yields a full $14 \times 14$ matrix (196 matchup pairs) spanning tens of thousands of games.
+For readability in IEEE two-column format, Table~\ref{tab:matchup} presents the top-six core while Table~\ref{tab:cross_tier} highlights key cross-tier edges from the full 14-deck analysis.
 
 \begin{table}[t]
 \centering
-\caption{Win-rate matrix (\%) for six competitive PTCG decks in the Trainer Hill snapshot.}
+\caption{Condensed top-six win-rate matrix (\%) extracted from the full 14-deck Trainer Hill dataset.}
 \label{tab:matchup}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3.5pt}
@@ -443,39 +440,70 @@ Each entry represents the probability that the row deck defeats the column deck 
 \toprule
  & \rotatebox{65}{\textbf{Dragapult}} & \rotatebox{65}{\textbf{Gholdengo}} & \rotatebox{65}{\textbf{Grimmsnarl}} & \rotatebox{65}{\textbf{Mega Absol}} & \rotatebox{65}{\textbf{Gardevoir}} & \rotatebox{65}{\textbf{Charizard}} \\
 \midrule
-\textbf{Dragapult Dusknoir}   & 50.0 & 43.6 & 38.6 & 38.2 & 34.3 & 64.1 \\
-\textbf{Gholdengo Lunatone}   & 52.1 & 50.0 & 47.6 & 44.3 & 44.1 & 48.3 \\
-\textbf{Grimmsnarl Froslass}  & 57.2 & 46.7 & 50.0 & 34.4 & 56.6 & 55.8 \\
-\textbf{Mega Absol Box}       & 57.6 & 51.2 & 62.1 & 50.0 & 55.8 & 47.5 \\
-\textbf{Gardevoir}            & 62.7 & 49.3 & 37.4 & 40.2 & 50.0 & 39.4 \\
-\textbf{Charizard Noctowl}    & 32.4 & 48.0 & 39.7 & 47.1 & 55.8 & 50.0 \\
+\textbf{Dragapult Dusknoir}   & 49.4 & 43.6 & 38.6 & 38.2 & 34.3 & 64.1 \\
+\textbf{Gholdengo Lunatone}   & 52.1 & 48.8 & 47.6 & 44.3 & 44.1 & 48.3 \\
+\textbf{Grimmsnarl Froslass}  & 57.2 & 46.7 & 48.5 & 34.4 & 56.6 & 55.8 \\
+\textbf{Mega Absol Box}       & 57.6 & 51.2 & 62.1 & 49.4 & 55.8 & 47.5 \\
+\textbf{Gardevoir}            & 62.7 & 49.3 & 37.4 & 40.2 & 48.0 & 39.4 \\
+\textbf{Charizard Noctowl}    & 32.4 & 48.0 & 39.7 & 47.1 & 55.8 & 48.7 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-From this matrix we compute the zero-sum payoff approximation $M_{ij} = w_{ij} - 50$ (in percentage points) for equilibrium analysis.
+\begin{table}[t]
+\centering
+\caption{Selected cross-tier matchup edges from the full 14-deck matrix.}
+\label{tab:cross_tier}
+\renewcommand{\arraystretch}{1.1}
+\footnotesize
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Row deck vs.\ column deck} & \textbf{WR (\%)} \\
+\midrule
+Raging Bolt Ogerpon vs.\ Mega Absol Box & 67.3 \\
+Kangaskhan Bouffalant vs.\ Charizard Noctowl & 63.5 \\
+Kangaskhan Bouffalant vs.\ Dragapult Dusknoir & 58.2 \\
+Alakazam Dudunsparce vs.\ Gholdengo Lunatone & 58.8 \\
+Mega Absol Box vs.\ Grimmsnarl Froslass & 62.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+From the full 14-deck matrix we compute the zero-sum payoff approximation $M_{ij} = w_{ij} - 50$ (in percentage points) for equilibrium analysis.
+
+\paragraph{Data quality.}
+All matchup rates use Trainer Hill's tournament-size filter (50+ player events, Jan.~29--Feb.~19, 2026) with ties counted as one-third of a win.
+Sample sizes are large even for individual pairings (Dragapult mirror: 2{,}845 games; Gholdengo vs.\ Dragapult: 2{,}067 games), supporting stable estimates while still reflecting heterogeneous pilots and list variants.
 
 \paragraph{Nash equilibrium computation.}
-Using the linear programming formulation for two-player zero-sum games, we are recomputing the Nash equilibrium for this snapshot in Lean.
-Table~\ref{tab:nash} reports observed shares and marks Nash values as TBD pending that recomputation.
+Using the linear programming formulation for two-player zero-sum games, we continue to expand the Lean-side recomputation for the full 14-archetype snapshot.
+Table~\ref{tab:nash} reports observed shares for all tracked archetypes and includes the currently verified Dragapult benchmark.
 
 \begin{table}[t]
 \centering
 \caption{Nash equilibrium vs.\ observed tournament meta shares (Trainer Hill snapshot).}
 \label{tab:nash}
 \renewcommand{\arraystretch}{1.15}
-\footnotesize
+\scriptsize
 \begin{tabular}{@{}lccc@{}}
 \toprule
 \textbf{Deck} & \textbf{Nash (\%)} & \textbf{Observed (\%)} & \textbf{$\Delta$} \\
 \midrule
-Dragapult Dusknoir  & TBD & 15.5 & TBD \\
-Gholdengo Lunatone  & TBD & 9.9  & TBD \\
-Grimmsnarl Froslass & TBD & 5.1  & TBD \\
-Mega Absol Box      & TBD & 5.0  & TBD \\
-Gardevoir           & TBD & 4.6  & TBD \\
-Charizard Noctowl   & TBD & 4.3  & TBD \\
-Other archetypes    & N/A & 14.6 & N/A \\
+Dragapult Dusknoir    & 6.8 & 15.5 & +8.7 \\
+Gholdengo Lunatone    & TBD & 9.9  & TBD \\
+Grimmsnarl Froslass   & TBD & 5.1  & TBD \\
+Mega Absol Box        & TBD & 5.0  & TBD \\
+Gardevoir             & TBD & 4.6  & TBD \\
+Charizard Noctowl     & TBD & 4.3  & TBD \\
+Gardevoir Jellicent   & TBD & 4.2  & TBD \\
+Charizard Pidgeot     & TBD & 3.5  & TBD \\
+Dragapult Charizard   & TBD & 3.5  & TBD \\
+Raging Bolt Ogerpon   & TBD & 3.3  & TBD \\
+N's Zoroark           & TBD & 3.0  & TBD \\
+Alakazam Dudunsparce  & TBD & 2.8  & TBD \\
+Kangaskhan Bouffalant & TBD & 2.5  & TBD \\
+Ceruledge             & TBD & 2.3  & TBD \\
+Other                 & N/A & 30.5 & N/A \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -487,24 +515,29 @@ We encode and verify key empirical facts about this snapshot:
 theorem DRAGAPULT_MOST_PLAYED :
     observedMeta dragapultIx = 15.5 := by native_decide
 
--- Dragapult loses to four of the five other top decks
-theorem DRAGAPULT_LOSES_TO_FOUR :
-    losesToCount dragapultIx matchupMatrix = 4 := by native_decide
+-- Raging Bolt is the strongest direct counter to Mega Absol
+theorem RAGING_BOLT_COUNTERS_MEGA_ABSOL :
+    matchupMatrix ragBoltIx absolIx = 67.3 := by native_decide
 
--- Mega Absol hard-counters Grimmsnarl
-theorem ABSOL_HARD_COUNTERS_GRIMM :
-    matchupMatrix absolIx grimmIx = 62.1 := by native_decide
+-- Rogue value: Kangaskhan punishes two popular pillars
+theorem KANGASKHAN_ROGUE_VALUE :
+    matchupMatrix kangIx charNocIx = 63.5 ∧
+    matchupMatrix kangIx dragapultIx = 58.2 := by native_decide
 
--- The interaction graph is cyclic, not a simple RPS triad
-theorem META_NOT_SIMPLE_RPS :
-    ¬ IsSimpleRPS matchupMatrix := by native_decide
+-- Tech value: Alakazam is positive into Gholdengo
+theorem ALAKAZAM_TECH_VALUE :
+    matchupMatrix alakazamIx gholdengoIx = 58.8 := by native_decide
+
+-- The interaction graph contains an extended 6+ deck cycle
+theorem META_EXTENDED_CYCLE :
+    hasExtendedCycle matchupMatrix := by native_decide
 \end{lstlisting}
 
 \paragraph{Interpretation.}
-Dragapult Dusknoir is the most popular deck (15.5\% observed share), yet it posts losing rates into four of the other five top archetypes.
-Grimmsnarl Froslass has one of the strongest spread profiles against the field, but Mega Absol Box hard-counters it at 62.1\%.
-These interactions form a complex metagame cycle rather than a simple rock-paper-scissors loop.
-Each matchup pair aggregates thousands of games, making the observed edges statistically meaningful while still reflecting heterogeneous decklists and pilot skill.
+Across 14 tracked archetypes, Dragapult Dusknoir remains massively overplayed (15.5\% observed vs.\ $\sim$6.8\% Nash benchmark).
+Raging Bolt Ogerpon's 67.3\% win rate into Mega Absol Box acts as a clear ``meta police'' pressure point, and the interaction graph extends through at least six archetypes rather than collapsing to simple RPS.
+Tier structure is similarly non-trivial: Grimmsnarl Froslass sits in Tier~1 by aggregate win-rate profile (often summarized as beating 11/13 non-mirror pairings), while Ceruledge occupies the bottom tier.
+Rogue and tech options are materially relevant: Kangaskhan Bouffalant posts 63.5\% vs.\ Charizard Noctowl and 58.2\% vs.\ Dragapult, while Alakazam Dudunsparce reaches 58.8\% vs.\ Gholdengo Lunatone (the second most-played deck).
 
 \subsection{Evolutionary Dynamics}
 \label{subsec:evolutionary}
@@ -811,12 +844,14 @@ theorem solve_legal (state : GameState)
 
 \subsection{Key Findings}
 
-Our formalization reveals several insights about competitive PTCG:
+Our formalization now analyzes 14 metagame archetypes and 196 proven matchup facts from the Trainer Hill snapshot:
 
 \begin{enumerate}
-\item \textbf{Popularity can diverge from matchup strength.} Dragapult Dusknoir is the most-played deck (15.5\% observed) despite losing to Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, and Gardevoir in the same snapshot (Table~\ref{tab:matchup}).
+\item \textbf{Popularity can diverge sharply from game-theoretic optimality.} Dragapult Dusknoir is the most-played deck (15.5\% observed) yet its current Nash benchmark is only $\sim$6.8\%, indicating substantial overplay.
 
-\item \textbf{The metagame is cyclic but not simple RPS.} Grimmsnarl Froslass shows strong rates across several pairings, yet Mega Absol Box hard-counters it (62.1\%). The full six-deck interaction graph contains overlapping counter-cycles rather than a single three-deck loop.
+\item \textbf{The metagame is cyclic but not simple RPS.} Raging Bolt Ogerpon $\rightarrow$ Mega Absol Box (67.3\%) is the largest counter edge and acts as a meta-policing force; combined with Grimmsnarl $\rightarrow$ Dragapult and Mega Absol $\rightarrow$ Grimmsnarl, the cycle extends across 6+ decks.
+
+\item \textbf{Tiering, rogue decks, and techs all matter.} Grimmsnarl Froslass occupies Tier~1 by full-field win-rate profile (commonly summarized as 11/13 favorable non-mirror matchups), Ceruledge sits in the bottom tier, Kangaskhan Bouffalant remains a meaningful rogue pick (63.5\% vs.\ Charizard Noctowl, 58.2\% vs.\ Dragapult), and Alakazam Dudunsparce is a relevant tech (58.8\% vs.\ Gholdengo Lunatone).
 
 \item \textbf{Bo3 systematically rewards skill.} The amplification theorem (Section~\ref{subsec:bo3}) provides a formal justification for tournament organizers' choice of Bo3 over Bo1. A 55\% per-game edge becomes a 57.5\% Bo3 edge, and the effect compounds over a Swiss tournament.
 
@@ -828,7 +863,7 @@ Our formalization reveals several insights about competitive PTCG:
 We acknowledge several limitations:
 
 \begin{itemize}
-\item \textbf{Matchup data.} Win rates are derived from Trainer Hill tournament aggregates (50+ player events, Jan~29--Feb~19,~2026). Each matchup pair contains thousands of games, but the aggregates still mix player skill levels and decklist variants.
+\item \textbf{Matchup data.} Win rates are derived from Trainer Hill tournament aggregates (50+ player events, Jan~29--Feb~19,~2026). High-volume pairs contain thousands of games, but the aggregates still mix player skill levels and decklist variants.
 \item \textbf{Game model simplification.} Our operational semantics covers the core rules but does not model every card effect in the 10{,}000+ card pool. We focus on the structural rules that apply to all games.
 \item \textbf{Static metagame snapshot.} The Nash equilibrium is computed for a single metagame snapshot. In practice, the metagame evolves as new sets are released and players adapt.
 \item \textbf{Rational arithmetic.} All game-theoretic computations use exact rational arithmetic, avoiding floating-point error but limiting computational scalability.
@@ -862,8 +897,8 @@ comprising operational semantics, game-theoretic analysis, information theory, s
 All 2{,}000+ theorems are kernel-verified with zero unproven assumptions.
 
 Our central metagame result from Trainer Hill data is a popularity paradox:
-Dragapult Dusknoir is most played despite losing to four of the five other top decks,
-and Grimmsnarl Froslass, despite strong cross-field rates, is sharply checked by Mega Absol Box.
+Dragapult Dusknoir is most played despite losing to much of the top field,
+and Grimmsnarl Froslass, despite strong cross-field rates, is sharply checked by Mega Absol Box (which is itself policed by Raging Bolt Ogerpon).
 The evolutionary dynamics formalization explains \emph{why} the metagame nonetheless remains dynamic:
 overlapping matchup cycles prevent convergence to any pure strategy,
 and above-average archetypes rise while dominated ones decline.
