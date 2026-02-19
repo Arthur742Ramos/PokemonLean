@@ -1,204 +1,101 @@
 # PokemonLean Architecture
 
-This document summarizes the architecture of the Lean codebase by analyzing all `.lean` files in this repository (`115` modules under root, `Core/`, and `PokemonLean/`).
+This document reflects the current checked-in Lean module graph and metrics.
 
-## 1) Module dependency graph
+## Current structure snapshot
 
-### 1.1 High-level graph
+- Root modules: `Main`, `PokemonLean`
+- Core modules: `PokemonLean.Core.Card`, `PokemonLean.Core.Types`
+- Feature modules: 63 modules under `PokemonLean/*`
+
+### Feature module set
+
+`PokemonLean.ACESpec`, `PokemonLean.Abilities`, `PokemonLean.AbilitySystem`, `PokemonLean.AncientTrait`, `PokemonLean.ArchetypeMatchups`, `PokemonLean.Archetypes`, `PokemonLean.Basic`, `PokemonLean.BoardState`, `PokemonLean.CardEffects`, `PokemonLean.CardPool`, `PokemonLean.Cards`, `PokemonLean.Corpus`, `PokemonLean.DamageCounters`, `PokemonLean.Deck`, `PokemonLean.DeckBuilding`, `PokemonLean.DeckConstraints`, `PokemonLean.DeckLegality`, `PokemonLean.Decks`, `PokemonLean.EnergyAcceleration`, `PokemonLean.EnergyManagement`, `PokemonLean.Evolution`, `PokemonLean.Format`, `PokemonLean.GXAttacks`, `PokemonLean.GameTheoreticResults`, `PokemonLean.GameTheory`, `PokemonLean.HandDisruption`, `PokemonLean.HandManagement`, `PokemonLean.LostZone`, `PokemonLean.LostZoneBox`, `PokemonLean.LostZoneCombos`, `PokemonLean.LostZoneThresholds`, `PokemonLean.Matchup`, `PokemonLean.MixedStrategy`, `PokemonLean.Mulligan`, `PokemonLean.OfficialRules`, `PokemonLean.OptimalPlay`, `PokemonLean.Planner`, `PokemonLean.PrizeCards`, `PokemonLean.PrizeDenial`, `PokemonLean.Prizes`, `PokemonLean.Probability`, `PokemonLean.Replay`, `PokemonLean.ReplayValidation`, `PokemonLean.RetreatMechanics`, `PokemonLean.Rotation`, `PokemonLean.Semantics`, `PokemonLean.SemanticsDeep`, `PokemonLean.Simulator`, `PokemonLean.Solver`, `PokemonLean.SolverSoundness`, `PokemonLean.SpecialConditions`, `PokemonLean.Stadium`, `PokemonLean.StatusEffects`, `PokemonLean.StochasticSemantics`, `PokemonLean.Switching`, `PokemonLean.Tournament`, `PokemonLean.TournamentRules`, `PokemonLean.TrainerCards`, `PokemonLean.TrainerSystem`, `PokemonLean.TurnStructure`, `PokemonLean.TypeChart`, `PokemonLean.VSTAR`, `PokemonLean.Win`
+
+## Metrics
+
+| Scope | Files | Lines of code | Theorems | Definitions (`def`) |
+|---|---:|---:|---:|---:|
+| Total | 67 | 27,071 | 1,927 | 1,106 |
+| Root | 2 | 120 | 0 | 1 |
+| PokemonLean.Core | 2 | 590 | 6 | 18 |
+| PokemonLean | 63 | 26,361 | 1,921 | 1,087 |
+
+## New module descriptions
+
+| Module | Description | Representative theorem(s) |
+|---|---|---|
+| `PokemonLean.SemanticsDeep` | Metatheory for deterministic step semantics with progress and termination. | `progress`, `game_terminates` |
+| `PokemonLean.Probability` | Finite distributions and expected-value lemmas for coin-flip attacks. | `expectedValue_coinFlip`, `tripleCoin_expectedDamage` |
+| `PokemonLean.CardEffects` | Formal state transitions for iconic card effects with conservation proofs. | `bossesOrders_conserves_cards`, `switch_conserves_cards` |
+| `PokemonLean.SolverSoundness` | Connects solver outputs to legal semantic transitions and optimality guarantees. | `solve_legal`, `solve_complete_lethal` |
+| `PokemonLean.StochasticSemantics` | Probability-lifted transition semantics preserving invariants. | `stepProb_card_conservation`, `stepProb_win_monotonic` |
+| `PokemonLean.OfficialRules` | Official rule constraints for turns, evolution, supporter/energy limits, and prize taking. | `no_evo_first_turn`, `spent_turn` |
+| `PokemonLean.GameTheoreticResults` | Prize-race/tempo/game-length theorems linked to gameplay semantics. | `prize_trade_winner`, `first_player_advantage_bound` |
+| `PokemonLean.DeckLegality` | Decidable 60-card legality checker with banned-card and copy-limit constraints. | `checkDeckLegal_sound`, `checkDeckLegal_iff` |
+| `PokemonLean.Simulator` | Strategy-driven game simulation with reachability and invariant guarantees. | `simulation_validity`, `simulateState_preserves_card_conservation` |
+| `PokemonLean.OptimalPlay` | Micro-format minimax analysis for first-player and OHKO dominance criteria. | `optimal_strategy_exists`, `first_player_wins_iff` |
+| `PokemonLean.ReplayValidation` | Replay checker proving executable validator equivalence with legality relation. | `validateReplay_eq_true_iff_replayValid`, `REPLAY_WIN_DETECTION` |
+
+## Requested-module existence check
+
+| Requested module | Exists in `PokemonLean/` |
+|---|---|
+| `SemanticsDeep` | yes |
+| `Probability` | yes |
+| `CardEffects` | yes |
+| `SolverSoundness` | yes |
+| `StochasticSemantics` | yes |
+| `OfficialRules` | yes |
+| `GameTheoreticResults` | yes |
+| `DeckLegality` | yes |
+| `Simulator` | yes |
+| `OptimalPlay` | yes |
+| `ReplayValidation` | yes |
+| `NashEquilibrium` | no |
+
+## Import graph
 
 ```mermaid
 graph TD
-  Main --> PokemonLean
-  PokemonLean --> Flat["PokemonLean.* (flat feature modules)"]
-  PokemonLean --> CoreNS["PokemonLean.Core.* (formal core namespace)"]
-  Flat --> Basic["PokemonLean.Basic (primary foundation)"]
-  Flat --> Cards["PokemonLean.Cards"]
-  Flat --> Switching["PokemonLean.Switching"]
-  Flat --> LostZone["PokemonLean.LostZone"]
-  CoreNS --> CoreTypes["PokemonLean.Core.Types"]
-  CoreTypes --> CoreCard["PokemonLean.Core.Card"]
-  CoreCard --> CoreGameState["PokemonLean.Core.GameState"]
-  Legacy["Core.* (legacy mini-core)"] --> LegacyTypes["Core.Types"]
+  Main["Main"] --> Root["PokemonLean"]
+  Root --> CoreTypes["PokemonLean.Core.Types"]
+  Root --> CoreCard["PokemonLean.Core.Card"]
+  Root --> Basic["PokemonLean.Basic"]
+  Root --> Semantics["PokemonLean.Semantics"]
+  Root --> SemDeep["PokemonLean.SemanticsDeep"]
+  Root --> Stoch["PokemonLean.StochasticSemantics"]
+  Root --> Prob["PokemonLean.Probability"]
+  Root --> Solver["PokemonLean.Solver"]
+  Root --> SolverSound["PokemonLean.SolverSoundness"]
+  Root --> Official["PokemonLean.OfficialRules"]
+  Root --> DeckLegal["PokemonLean.DeckLegality"]
+  Root --> Sim["PokemonLean.Simulator"]
+  Root --> Opt["PokemonLean.OptimalPlay"]
+  Root --> ReplayVal["PokemonLean.ReplayValidation"]
+  Root --> GT["PokemonLean.GameTheory"]
+  Root --> GTR["PokemonLean.GameTheoreticResults"]
+  Root --> CardFx["PokemonLean.CardEffects"]
+
+  SemDeep --> Semantics
+  SemDeep --> Win["PokemonLean.Win"]
+  Stoch --> Semantics
+  Stoch --> Prob
+  SolverSound --> Solver
+  SolverSound --> Semantics
+  SolverSound --> SemDeep
+  Sim --> Semantics
+  ReplayVal --> Semantics
+  ReplayVal --> Official
+  Opt --> Semantics
+  GTR --> Basic
+  GTR --> Win
+  Official --> Basic
+  DeckLegal --> CoreTypes
+  CardFx --> CoreTypes
+  Prob --> CoreTypes
 ```
 
-### 1.2 Namespace-level structure
+## Root import set (`PokemonLean.lean`)
 
-- **Root modules (3):** `Main`, `PokemonLean`, `lakefile`
-- **Legacy core (7):** `Core.*`
-- **Flat feature layer (52):** `PokemonLean.*` (excluding `PokemonLean.Core.*`)
-- **Formal core namespace (53):** `PokemonLean.Core.*`
-
-### 1.3 Internal import adjacency (project modules only)
-
-- `Core.BenchLimits` -> `Core.Types`
-- `Core.BenchProtection` -> `Core.Types`
-- `Core.BoardPositioning` -> `Core.Types`
-- `Core.ConditionRemoval` -> `Core.SpecialConditions`, `Core.Types`
-- `Core.ConditionStrategy` -> `Core.ConditionRemoval`, `Core.SpecialConditions`, `Core.Types`
-- `Core.SpecialConditions` -> `Core.Types`
-- `Main` -> `PokemonLean`
-- `PokemonLean` -> (library root; imports all major `PokemonLean.*` and `PokemonLean.Core.*` modules)
-- `PokemonLean.ACESpec` -> `PokemonLean.DeckBuilding`
-- `PokemonLean.Abilities` -> `PokemonLean.Basic`
-- `PokemonLean.AbilitySystem` -> `PokemonLean.Basic`
-- `PokemonLean.AncientTrait` -> `PokemonLean.Basic`
-- `PokemonLean.ArchetypeMatchups` -> `PokemonLean.Archetypes`
-- `PokemonLean.Archetypes` -> `PokemonLean.Basic`
-- `PokemonLean.BoardState` -> `PokemonLean.Basic`
-- `PokemonLean.CardPool` -> `PokemonLean.Basic`
-- `PokemonLean.Cards` -> `PokemonLean.Basic`
-- `PokemonLean.Corpus` -> `PokemonLean.Cards`
-- `PokemonLean.DamageCounters` -> `PokemonLean.Basic`
-- `PokemonLean.Deck` -> `PokemonLean.Basic`
-- `PokemonLean.DeckBuilding` -> `PokemonLean.Basic`
-- `PokemonLean.DeckConstraints` -> `PokemonLean.Basic`
-- `PokemonLean.Decks` -> `PokemonLean.Basic`
-- `PokemonLean.EnergyAcceleration` -> `PokemonLean.Basic`
-- `PokemonLean.EnergyManagement` -> `PokemonLean.Basic`
-- `PokemonLean.Evolution` -> `PokemonLean.Basic`
-- `PokemonLean.Format` -> `PokemonLean.Basic`
-- `PokemonLean.GXAttacks` -> `PokemonLean.Basic`
-- `PokemonLean.GameTheory` -> `PokemonLean.Basic`
-- `PokemonLean.HandDisruption` -> `PokemonLean.Basic`
-- `PokemonLean.HandManagement` -> `PokemonLean.Basic`
-- `PokemonLean.LostZone` -> `PokemonLean.Basic`, `PokemonLean.Switching`
-- `PokemonLean.LostZoneBox` -> `PokemonLean.Basic`, `PokemonLean.LostZone`, `PokemonLean.LostZoneThresholds`
-- `PokemonLean.LostZoneCombos` -> `PokemonLean.Basic`, `PokemonLean.LostZone`, `PokemonLean.LostZoneThresholds`
-- `PokemonLean.LostZoneThresholds` -> `PokemonLean.Basic`, `PokemonLean.LostZone`
-- `PokemonLean.Matchup` -> `PokemonLean.Basic`
-- `PokemonLean.MixedStrategy` -> `PokemonLean.Basic`
-- `PokemonLean.Mulligan` -> `PokemonLean.Basic`
-- `PokemonLean.Planner` -> `PokemonLean.Basic`
-- `PokemonLean.PrizeCards` -> `PokemonLean.Basic`
-- `PokemonLean.PrizeDenial` -> `PokemonLean.Basic`
-- `PokemonLean.Prizes` -> `PokemonLean.Basic`
-- `PokemonLean.Replay` -> `PokemonLean.Basic`, `PokemonLean.Semantics`
-- `PokemonLean.RetreatMechanics` -> `PokemonLean.Basic`
-- `PokemonLean.Rotation` -> `PokemonLean.Basic`, `PokemonLean.Switching`
-- `PokemonLean.Semantics` -> `PokemonLean.Basic`
-- `PokemonLean.Solver` -> `PokemonLean.Basic`, `PokemonLean.Cards`
-- `PokemonLean.SpecialConditions` -> `PokemonLean.Basic`
-- `PokemonLean.Stadium` -> `PokemonLean.Basic`
-- `PokemonLean.StatusEffects` -> `PokemonLean.Basic`
-- `PokemonLean.Switching` -> `PokemonLean.Basic`
-- `PokemonLean.Tournament` -> `PokemonLean.Basic`, `PokemonLean.Decks`
-- `PokemonLean.TournamentRules` -> `PokemonLean.Basic`
-- `PokemonLean.TrainerCards` -> `PokemonLean.Basic`, `PokemonLean.Switching`
-- `PokemonLean.TrainerSystem` -> `PokemonLean.Basic`
-- `PokemonLean.TurnStructure` -> `PokemonLean.Basic`
-- `PokemonLean.TypeChart` -> `PokemonLean.Basic`
-- `PokemonLean.VSTAR` -> `PokemonLean.Basic`
-- `PokemonLean.Win` -> `PokemonLean.Basic`
-- `PokemonLean.Core.Card` -> `PokemonLean.Core.Types`
-- `PokemonLean.Core.GameState` -> `PokemonLean.Core.Card`
-- Most other `PokemonLean.Core.*` modules are intentionally **self-contained** (no internal project-module imports), serving as focused formalizations/proof suites.
-
-## 2) Core type hierarchy
-
-There are three overlapping type layers in the repository.
-
-### 2.1 Flat gameplay model (`PokemonLean.Basic`)
-
-```
-EnergyType
-StatusCondition, Weather
-AttackEffect
-Attack
-Weakness, Resistance
-Card
-PokemonInPlay
-PlayerState
-PlayerId
-GameState
-Effect, Action, TurnOneActions
-```
-
-Key relation chain:
-- `Attack` references `EnergyType` and `AttackEffect`.
-- `Card` contains `List Attack`, plus optional `Weakness`/`Resistance`.
-- `PokemonInPlay` wraps a `Card` + mutable battle state (`damage`, `status`, `energy`).
-- `PlayerState` groups zones (`deck`, `hand`, `bench`, `active`, `discard`, `prizes`).
-- `GameState` is two `PlayerState`s + active player.
-
-### 2.2 Formal core namespace (`PokemonLean.Core`)
-
-`PokemonLean.Core.Types`:
-- `PType`
-- `EnergyType := typed PType | colorless`
-- `EnergyCost`
-
-`PokemonLean.Core.Card`:
-- `Stage`, `RuleBox`, `AbilityKind`, `TrainerKind`
-- `Attack`, `Ability`
-- `PokemonCard`, `TrainerCard`
-- `Card := pokemon PokemonCard | trainer TrainerCard | energy EnergyType Bool`
-
-`PokemonLean.Core.GameState`:
-- `Zone`, `SpecialCondition`, `ConditionSet`
-- `ActiveSlot`, `BenchSlot`
-- `PlayerState`
-- `TurnPhase`
-- `GameState`
-
-This gives a clean type ladder:
-`Types -> Card model -> GameState model`.
-
-### 2.3 Legacy mini-core (`Core/`)
-
-`Core.Types` provides an alternate compact domain (`EnergyType`, `CardType`, `Pokemon`, `BoardState`, etc.), with `Core.SpecialConditions`, `Core.ConditionRemoval`, and `Core.ConditionStrategy` extending it.
-
-## 3) Equality design decisions (`DecidableEq`, `BEq`, `LawfulBEq`)
-
-### 3.1 Why both `DecidableEq` and `BEq` appear everywhere
-
-- `DecidableEq` supports proposition-level reasoning (`a = b`) and proof automation.
-- `BEq` supports executable checks (`a == b`) used by game-state functions and filters.
-- Many data types derive both to keep runtime and proof layers aligned.
-
-### 3.2 Explicit `LawfulBEq` where equality reflection matters most
-
-In `PokemonLean.Basic`:
-- `EnergyType` and `Card` define:
-  - `instance : BEq ... := decide (a = b)`
-  - `instance : LawfulBEq ...`
-
-This makes boolean equality provably faithful to propositional equality and enables clean conversions via:
-- `of_decide_eq_true`
-- `decide_eq_true`
-
-### 3.3 Common bridge pattern
-
-Across modules, computational predicates often use `decide (...)` to expose propositions as booleans (e.g., threshold checks, deck constraints, strategy predicates), then proofs bridge back using lemmas like:
-- `decide_eq_true_eq`
-- `of_decide_eq_true`
-
-This is the central "executable spec + proof reflection" pattern in the project.
-
-## 4) Proof strategy
-
-The codebase follows a consistent tactic:
-
-1. **Define executable functions first**  
-   Functions are mostly total, pattern-match driven (`Bool`, `Option`, `Except`) and model concrete TCG mechanics directly.
-
-2. **Prove local correctness/invariants immediately**  
-   Each module includes theorem suites asserting behavior, bounds, and conservation properties.
-
-3. **Use proof-by-computation for finite/discrete cases**  
-   Frequent use of:
-   - `rfl` for definitional equalities
-   - `simp` / `simp only` for rewrite-driven proofs
-   - `native_decide` for finite case closure
-   - `omega` for arithmetic obligations
-   - `cases` / `induction` on enums and lists
-
-4. **Soundness/completeness pairs for algorithms**  
-   Example pattern in `PokemonLean.Basic`:
-   - executable checker (`energyCostSatisfied`)
-   - constructive consumer (`consumeEnergyCost`)
-   - theorems proving both directions and an iff bridge
-
-5. **Regression-style theorem banks**  
-   Many modules prove concrete scenario theorems (specific card/condition outcomes), effectively turning examples into machine-checked regression assertions.
-
-Net result: each module is both a runnable rules model and a proof artifact, with minimal gap between implementation and verification.
+`PokemonLean.Core.Types`, `PokemonLean.Core.Card`, `PokemonLean.Basic`, `PokemonLean.Cards`, `PokemonLean.CardEffects`, `PokemonLean.Corpus`, `PokemonLean.Solver`, `PokemonLean.SolverSoundness`, `PokemonLean.GameTheory`, `PokemonLean.GameTheoreticResults`, `PokemonLean.OptimalPlay`, `PokemonLean.Semantics`, `PokemonLean.SemanticsDeep`, `PokemonLean.Simulator`, `PokemonLean.BoardState`, `PokemonLean.DamageCounters`, `PokemonLean.Matchup`, `PokemonLean.TrainerSystem`, `PokemonLean.DeckBuilding`, `PokemonLean.ACESpec`, `PokemonLean.Win`, `PokemonLean.Planner`, `PokemonLean.Switching`, `PokemonLean.Rotation`, `PokemonLean.Format`, `PokemonLean.Abilities`, `PokemonLean.Decks`, `PokemonLean.Prizes`, `PokemonLean.StatusEffects`, `PokemonLean.TypeChart`, `PokemonLean.EnergyManagement`, `PokemonLean.EnergyAcceleration`, `PokemonLean.Replay`, `PokemonLean.ReplayValidation`, `PokemonLean.Stadium`, `PokemonLean.LostZone`, `PokemonLean.LostZoneThresholds`, `PokemonLean.LostZoneBox`, `PokemonLean.LostZoneCombos`, `PokemonLean.TournamentRules`, `PokemonLean.OfficialRules`, `PokemonLean.HandManagement`, `PokemonLean.Archetypes`, `PokemonLean.ArchetypeMatchups`, `PokemonLean.RetreatMechanics`, `PokemonLean.HandDisruption`, `PokemonLean.PrizeDenial`, `PokemonLean.TurnStructure`, `PokemonLean.DeckConstraints`, `PokemonLean.DeckLegality`, `PokemonLean.GXAttacks`, `PokemonLean.Probability`, `PokemonLean.AbilitySystem`, `PokemonLean.AncientTrait`, `PokemonLean.CardPool`, `PokemonLean.Evolution`, `PokemonLean.MixedStrategy`, `PokemonLean.Mulligan`, `PokemonLean.PrizeCards`, `PokemonLean.SpecialConditions`, `PokemonLean.TrainerCards`, `PokemonLean.VSTAR`, `PokemonLean.Deck`, `PokemonLean.Tournament`, `PokemonLean.StochasticSemantics`
