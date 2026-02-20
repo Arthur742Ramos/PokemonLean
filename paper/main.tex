@@ -61,7 +61,7 @@ We analyze Trainer Hill tournament data from January--February 2026 (50+ player 
 The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate, while Grimmsnarl Froslass (5.1\% share) achieves 52.7\%.
 We report a machine-checked Nash equilibrium with six-deck support per player; best-response conditions are verified via \texttt{native\_decide} for all 14 pure strategies, and Dragapult receives 0\% equilibrium weight.
 On representative 4-deck and 5-deck subgames of the observed metagame, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure.
-A 10{,}000-iteration bootstrap analysis confirms the equilibrium's qualitative stability: the core support decks appear in $>$96\% of resampled equilibria, while Dragapult receives zero weight in 77.9\%.
+A 10{,}000-iteration equilibrium sensitivity analysis confirms the equilibrium's qualitative stability: the core support decks appear in $>$96\% of resampled equilibria, while Dragapult receives zero weight in 77.9\%.
 These results demonstrate that formal methods can produce empirically grounded and strategically actionable conclusions in competitive game ecosystems.
 \end{abstract}
 
@@ -411,13 +411,13 @@ Critically, the popularity paradox is robust to this uncertainty: Dragapult's ex
 The qualitative conclusion---that the most popular deck is suboptimal---survives statistical uncertainty.
 
 We note that the Wilson confidence intervals~\cite{Wilson1927} quantify uncertainty in individual matchup win rates but are not directly propagated through the Nash equilibrium computation.
-To assess equilibrium sensitivity, we performed a 10{,}000-iteration bootstrap analysis, sampling each matchup cell uniformly from its Wilson 95\% confidence interval and recomputing the Nash equilibrium.
-While the exact support set is fragile (recovered in only 2.1\% of iterations), the qualitative conclusions are robust: the core trio of Grimmsnarl (96.5\% inclusion), Mega Absol (97.3\%), and Raging Bolt (98.3\%) appear in nearly every bootstrap, and Dragapult receives zero Nash weight in 77.9\% of iterations.
-Table~\ref{tab:bootstrap} summarizes the bootstrap confidence intervals.
+To assess equilibrium sensitivity, we performed a 10{,}000-iteration sensitivity analysis, sampling each matchup cell uniformly from its Wilson 95\% confidence interval and recomputing the Nash equilibrium.
+While the exact support set is fragile (recovered in only 2.1\% of iterations), the qualitative conclusions are robust: the core trio of Grimmsnarl (96.5\% inclusion), Mega Absol (97.3\%), and Raging Bolt (98.3\%) appear in nearly every resampled equilibrium, and Dragapult receives zero Nash weight in 77.9\% of iterations.
+Table~\ref{tab:bootstrap} summarizes the sensitivity analysis confidence intervals.
 
 \begin{table}[!t]
 \centering
-\caption{Bootstrap Nash weight 95\% confidence intervals (10{,}000 iterations). \emph{Inclusion} is the fraction of bootstraps in which the deck receives nonzero weight.}
+\caption{Sensitivity analysis: Nash weight 95\% confidence intervals (10{,}000 iterations). \emph{Inclusion} is the fraction of resampled equilibria in which the deck receives nonzero weight.}
 \label{tab:bootstrap}
 \begin{tabular}{l r r r}
 \toprule
@@ -434,6 +434,8 @@ Dragapult Dusknoir    &  0.0\% & [0.0\%, 12.2\%] & 22.1\% \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+The sensitivity analysis was conducted using a Python script (included in the supplementary artifact) that resamples matchup win rates and solves the resulting linear program; these results complement but are external to the Lean-verified theorems.
 
 \begin{table*}[!t]
 \centering
@@ -669,6 +671,8 @@ Table~\ref{tab:nash} shows six nonzero decks for each player, with a one-index s
 The row and column supports differ because the empirical matchup matrix is not perfectly antisymmetric: $M_{ij} + M_{ji} \neq 1000$ for many pairs, since win rates incorporate ties weighted as $T/3$ and arise from finite empirical samples.
 This means the payoff matrix does not satisfy the constant-sum condition $M_{ij} + M_{ji} = 1000$, which would be required for identical row and column equilibrium strategies.
 In a bimatrix game with such approximately-constant-sum but not exactly constant-sum structure, distinct row and column supports are mathematically expected rather than anomalous.
+
+In a large-field tournament, deck selection is a symmetric population game: each player independently chooses a deck and faces opponents drawn from the population mix. The natural solution concept is a symmetric Nash equilibrium. Our bimatrix formulation yields distinct row and column strategies because the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs due to tie weighting). In the symmetric population interpretation, the equilibrium recommendation is the average of the row and column strategies, which preserves the qualitative conclusion: the core support (Grimmsnarl, Mega Absol, Raging Bolt) is stable across both, and Dragapult receives near-zero weight in both. For players seeking a single mixed strategy, the column strategy (which includes Gholdengo at 3.7\% and excludes Alakazam) is marginally more conservative as it faces the row player's best response.
 
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
 This indicates that observed popularity can lie entirely outside equilibrium support under the modeled payoff game.
@@ -990,7 +994,7 @@ Data were extracted from Trainer Hill (trainerhill.com) on February~19, 2026, fi
 Trainer Hill aggregates results from the Limitless TCG tournament platform.
 The 14\,$\times$\,14 matchup matrix was computed from win-loss-tie records; ties were weighted as one-third of a win following the standard conversion $\mathrm{WR} = (W + T/3)/(W + L + T)$.
 The complete matrix with raw W-L-T counts is archived in the repository.
-All Lean~4 source code, data files, and build instructions will be made publicly available upon acceptance in an anonymized artifact.
+All Lean~4 source code, data files, and build instructions are included as supplementary material with this submission. Reviewers can verify all claims by running \texttt{lake build} on the provided artifact.
 
 \balance
 \bibliographystyle{IEEEtran}
