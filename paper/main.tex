@@ -100,7 +100,7 @@ The resulting matrix contains enough granularity to support rigorous expected-va
 This paper makes four concrete contributions aligned with this thesis.
 First, we formalize the rules and legality substrate that supports trustworthy ingestion and future counterfactual analysis.
 Second, we encode real metagame data as exact values and verify expected-value computations, including the popularity paradox.
-Third, we derive machine-checked Nash-equilibrium statements over the full observed matrix and replicator-dynamics statements over real-data representative subgames, including complete best-response equilibrium certification.
+Third, we derive machine-checked Nash-equilibrium statements over the full observed matrix and replicator-dynamics statements on representative 4-deck and 5-deck subgames, including complete best-response equilibrium certification.
 Fourth, we verify tournament-objective transforms from single-game payoffs to best-of-three and Swiss-relevant decision criteria.
 
 While the headline popularity paradox could be computed in a spreadsheet, the formal verification methodology provides three distinct advantages.
@@ -354,11 +354,11 @@ Table~\ref{tab:bootstrap} summarizes the sensitivity analysis confidence interva
 
 \begin{table}[!t]
 \centering
-\caption{Sensitivity analysis: Nash weight 95\% confidence intervals (10{,}000 iterations). \emph{Inclusion} is the fraction of resampled equilibria in which the deck receives nonzero weight.}
+\caption{Sensitivity analysis: Nash weight 95\% sensitivity ranges (10{,}000 iterations, not frequentist confidence intervals). \emph{Inclusion} is the fraction of resampled equilibria in which the deck receives nonzero weight.}
 \label{tab:bootstrap}
 \begin{tabular}{l r r r}
 \toprule
-Deck & Point Est. & 95\% CI & Inclusion \\
+Deck & Point Est. & 95\% Range & Inclusion \\
 \midrule
 Raging Bolt Ogerpon   & 28.7\% & [1.8\%, 32.6\%] & 98.3\% \\
 Grimmsnarl Froslass   & 37.8\% & [0.0\%, 48.4\%] & 96.5\% \\
@@ -373,6 +373,7 @@ Dragapult Dusknoir    &  0.0\% & [0.0\%, 12.2\%] & 22.1\% \\
 \end{table}
 
 The sensitivity analysis was conducted using a Python script (included in the supplementary artifact) that resamples matchup win rates and solves the resulting linear program; these results complement but are external to the Lean-verified theorems.
+A natural extension would embed the sensitivity analysis within Lean using verified interval arithmetic over the linear program, eliminating the Python dependency entirely. While Lean 4's \texttt{Mathlib} provides foundations for interval arithmetic, the LP solver integration remains an engineering challenge we leave to future work.
 
 \begin{table*}[!t]
 \centering
@@ -392,7 +393,7 @@ The sensitivity analysis was conducted using a Python script (included in the su
 \end{tabular}
 \end{table*}
 
-Table~\ref{tab:matchup} uses the exact top-6 values from the Trainer Hill matrix.
+Table~\ref{tab:matchup} uses the exact top-6 values from the Trainer Hill matrix.\footnote{Mirror match win rates fall slightly below 50\% (e.g., 48.0--49.5\%) because the tie convention $\text{WR} = (W + T/3)/(W+L+T)$ distributes fewer win-equivalents than decisive outcomes.}
 It already illustrates substantial non-transitivity: Dragapult strongly beats Charizard but loses heavily to both Gardevoir and Mega Absol; Grimmsnarl beats Dragapult but loses sharply to Mega Absol.
 
 \begin{table}[!t]
@@ -443,7 +444,7 @@ which is the maximum among all 14 modeled decks.
 theorem dragapult_popularity_paradox :
     -- Dragapult has losing (<500) matchups against 9 of 13 non-mirror decks
     matchupWR .DragapultDusknoir .GholdengoLunatone < 500 ∧
-    matchupWR .DragapultDusknoir .GrimssnarlFroslass < 500 ∧
+    matchupWR .DragapultDusknoir .GrimssnarlFroslass < 500 ∧\footnote{The identifier \texttt{GrimssnarlFroslass} in the Lean source contains a typographic inconsistency (single-m, double-s) relative to the official spelling `Grimmsnarl'; we retain the original identifier for artifact consistency.}
     matchupWR .DragapultDusknoir .MegaAbsolBox < 500 ∧
     matchupWR .DragapultDusknoir .Gardevoir < 500 ∧
     matchupWR .DragapultDusknoir .GardevoirJellicent < 500 ∧
@@ -484,6 +485,7 @@ Table~\ref{tab:expected} makes the paradox visible: the right tail of popularity
 \begin{figure}[!t]
 \centering
 \setlength{\unitlength}{0.9mm}
+% TODO: Replace picture environment with TikZ/pgfplots for camera-ready
 \begin{picture}(88,54)
 \put(10,8){\vector(1,0){72}}
 \put(10,8){\vector(0,1){40}}
@@ -542,7 +544,9 @@ That structure makes the phenomenon strategically important and behaviorally per
 
 \subsection{Behavioral-Economic Interpretation}
 
-The paradox is consistent with bounded-rationality behavior: players optimize not only expected match points but also familiarity, coordination, visibility, and card-access constraints, so adoption can remain detached from payoff-optimal choices even when weighted-EV evidence is public~\cite{Tversky1974,Kahneman1979,Banerjee1992,Bikhchandani1992}. We do not claim causal identification of these mechanisms in this dataset window; rather, we formally prove payoff-model suboptimality and treat behavioral explanations as scope-limited hypotheses for future player-level study. This separation between proven payoff statements and behavioral interpretation disciplines narrative overreach and motivates the equilibrium/dynamics analysis in Section~\ref{sec:nash}.
+The paradox is consistent with bounded-rationality behavior: players optimize not only expected match points but also familiarity, coordination, visibility, and card-access constraints, so adoption can remain detached from payoff-optimal choices even when weighted-EV evidence is public~\cite{Tversky1974,Kahneman1979,Banerjee1992,Bikhchandani1992}.
+The divergence between observed and equilibrium play frequencies is well-studied in behavioral game theory, notably through quantal response equilibrium~\cite{mckelvey1995quantal} and level-$k$ models~\cite{nagel1995unraveling}. Our contribution is not the phenomenon itself but its formal verification in a real competitive setting.
+We do not claim causal identification of these mechanisms in this dataset window; rather, we formally prove payoff-model suboptimality and treat behavioral explanations as scope-limited hypotheses for future player-level study. This separation between proven payoff statements and behavioral interpretation disciplines narrative overreach and motivates the equilibrium/dynamics analysis in Section~\ref{sec:nash}.
 
 %======================================================================
 \section{Nash Equilibrium and Metagame Dynamics}\label{sec:nash}
@@ -611,6 +615,28 @@ This means the payoff matrix does not satisfy the constant-sum condition $M_{ij}
 In a bimatrix game with such approximately-constant-sum but not exactly constant-sum structure, distinct row and column supports are mathematically expected rather than anomalous.
 
 In a large-field tournament, deck selection is a symmetric population game: each player independently chooses a deck and faces opponents drawn from the population mix. The natural solution concept is a symmetric Nash equilibrium. Our bimatrix formulation yields distinct row and column strategies because the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs due to tie weighting). To address this, we also solve the symmetrized game $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$, which yields a unique symmetric Nash equilibrium. The symmetrized equilibrium preserves the core support: Grimmsnarl Froslass (34.3\%), Raging Bolt Ogerpon (29.4\%), Charizard Noctowl (10.2\%), Mega Absol Box (10.2\%), Gholdengo Lunatone (9.2\%), Gardevoir (4.3\%), and Alakazam Dudunsparce (2.5\%), confirming that the qualitative conclusions are robust to the constant-sum approximation. The symmetrized game value is exactly 500 (50.0\%), as expected for a constant-sum game.
+Table~\ref{tab:symmetric} reports the symmetric Nash equilibrium weights.
+
+\begin{table}[h]
+\caption{Symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$.}
+\label{tab:symmetric}
+\centering
+\begin{tabular}{lr}
+\hline
+\textbf{Archetype} & \textbf{Weight (\%)} \\
+\hline
+Grimmsnarl Froslass & 34.3 \\
+Raging Bolt Ogerpon & 29.4 \\
+Charizard Noctowl & 10.2 \\
+Mega Absol Box & 10.2 \\
+Gholdengo Lunatone & 9.2 \\
+Gardevoir & 4.3 \\
+Alakazam Dudunsparce & 2.5 \\
+\hline
+Dragapult Dusknoir & 0.0 \\
+\hline
+\end{tabular}
+\end{table}
 
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
 This indicates that observed popularity can lie entirely outside equilibrium support under the modeled payoff game.
@@ -688,7 +714,7 @@ Most major events run best-of-three matches and Swiss-style pairings, so the rel
 
 For game win probability $p$, best-of-three match win probability is
 $P_{\mathrm{Bo3}} = 3p^2 - 2p^3$.
-The Pok\'emon TCG lacks sideboarding, making the independence assumption substantially more defensible than in other TCGs.
+The Pok\'emon TCG lacks sideboarding, making the independence assumption substantially more defensible than in other TCGs; however, tilt effects and information revelation (observing the opponent's deck in game one) introduce minor dependencies that our model does not capture.
 Lean verifies that Bo3 amplifies advantage for all favorable rates from 55\% to 95\% (\texttt{BO3\_AMPLIFIES\_ADVANTAGE}).
 
 \begin{table}[!t]
@@ -886,6 +912,7 @@ We also connect static matchup structure to dynamic and tournament implications.
 The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight; on representative observed-data subgames (4-deck and 5-deck slices, not the full 14-deck matrix), replicator dynamics predict Dragapult decline and Ceruledge extinction pressure, though these subgame results do not generally transfer to the full game due to indirect fitness effects; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
 
 Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, enabling forecast calibration by scoring each window's predictions against the next, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
+Our current encoding represents win rates as natural numbers on a 0--1000 scale, discarding the underlying win-loss-tie counts. A richer encoding carrying individual game outcomes would enable in-Lean confidence interval computation and sample-size adequacy checks.
 
 \subsection{Broader Implications for Competitive Game Science}
 
