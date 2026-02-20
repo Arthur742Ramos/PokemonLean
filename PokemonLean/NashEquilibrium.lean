@@ -233,4 +233,100 @@ theorem asymmetric_unique_weights
   rw [asymmetric_unique_on_sevenths_grid] at hIn
   simpa using hIn
 
+-- ============================================================================
+-- REAL 14×14 METAGAME NASH EQUILIBRIUM (Trainer Hill Jan–Feb 2026)
+-- ============================================================================
+
+/-- Full 14×14 matchup matrix copied from `RealMetagame.matchupWR` (in ‰). -/
+def realMatchupData : Array (Array Rat) := #[
+  #[494, 436, 386, 382, 343, 641, 418, 563, 486, 454, 472, 627, 368, 531],
+  #[521, 488, 476, 443, 441, 483, 439, 459, 425, 496, 516, 373, 553, 439],
+  #[572, 467, 485, 344, 566, 558, 592, 570, 598, 473, 545, 599, 473, 561],
+  #[576, 512, 621, 494, 558, 475, 587, 451, 524, 298, 418, 515, 474, 414],
+  #[627, 493, 374, 402, 480, 394, 362, 374, 516, 625, 448, 633, 392, 627],
+  #[324, 480, 397, 471, 558, 487, 549, 581, 422, 557, 493, 584, 330, 593],
+  #[544, 498, 346, 364, 583, 390, 489, 345, 486, 619, 360, 548, 422, 526],
+  #[396, 510, 386, 500, 584, 362, 598, 487, 347, 535, 506, 492, 450, 604],
+  #[480, 528, 361, 432, 421, 536, 463, 580, 489, 454, 573, 593, 510, 490],
+  #[510, 458, 477, 673, 333, 409, 332, 426, 490, 487, 623, 303, 653, 537],
+  #[490, 439, 417, 548, 519, 463, 601, 438, 391, 340, 495, 556, 492, 262],
+  #[341, 588, 368, 441, 315, 366, 412, 466, 370, 653, 407, 489, 772, 675],
+  #[582, 401, 473, 492, 549, 635, 524, 518, 449, 311, 477, 198, 490, 550],
+  #[440, 538, 398, 545, 325, 370, 418, 339, 475, 426, 709, 300, 414, 481]
+]
+
+def realMatchupMatrix14 (i j : Fin 14) : Rat :=
+  let row := realMatchupData[i.1]!
+  row[j.1]!
+
+def realMetaGame14 : FiniteGame :=
+  { n := 2
+    m := 14
+    payoff := fun _ _ => 0
+    matrix := realMatchupMatrix14 }
+
+def realNashDenom : Rat := (338129962783 : Rat)
+
+def realNashRowData : Array Rat := #[
+  0,
+  0,
+  (127909331744 : Rat) / realNashDenom,
+  (43689060691 : Rat) / realNashDenom,
+  (11756580926 : Rat) / realNashDenom,
+  (38158285698 : Rat) / realNashDenom,
+  0,
+  0,
+  0,
+  (96892761823 : Rat) / realNashDenom,
+  0,
+  (19723941901 : Rat) / realNashDenom,
+  0,
+  0
+]
+
+def realNashColData : Array Rat := #[
+  0,
+  (12571444351 : Rat) / realNashDenom,
+  (137008254656 : Rat) / realNashDenom,
+  (24422340243 : Rat) / realNashDenom,
+  (25761026834 : Rat) / realNashDenom,
+  (16935939908 : Rat) / realNashDenom,
+  0,
+  0,
+  0,
+  (121430956791 : Rat) / realNashDenom,
+  0,
+  0,
+  0,
+  0
+]
+
+def realNashRow : MixedStrategy 14 := fun i => realNashRowData[i.1]!
+
+def realNashCol : MixedStrategy 14 := fun j => realNashColData[j.1]!
+
+def realNashValue : Rat := (162188991282520 : Rat) / realNashDenom
+
+theorem real_nash_row_is_mixed : IsMixedStrategy 14 realNashRow := by
+  native_decide
+
+theorem real_nash_col_is_mixed : IsMixedStrategy 14 realNashCol := by
+  native_decide
+
+theorem real_nash_value_eq_expected :
+    expectedPayoff realMetaGame14 realNashRow realNashCol = realNashValue := by
+  native_decide
+
+theorem real_nash_row_best_response_checks :
+    ∀ i : Fin 14, rowPurePayoff realMetaGame14 i realNashCol ≤ realNashValue := by
+  native_decide
+
+theorem real_nash_col_best_response_checks :
+    ∀ j : Fin 14, realNashValue ≤ colPurePayoff realMetaGame14 realNashRow j := by
+  native_decide
+
+theorem real_nash_equilibrium_verified :
+    NashEquilibrium realMetaGame14 realNashRow realNashCol := by
+  native_decide
+
 end PokemonLean.NashEquilibrium
