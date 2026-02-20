@@ -48,7 +48,7 @@
 
 \title{From Rules to Nash Equilibria: Formally Verified\\Game-Theoretic Analysis of a Competitive\\Trading Card Game}
 
-\author{Anonymous Submission --- Double-Blind Review}
+\author{Author names withheld for review}
 
 \maketitle
 
@@ -141,7 +141,8 @@ For researchers, it provides a rare domain where rich empirical data and theorem
 
 Formal reasoning has transformed analysis in several strategic domains.
 In classical games, exhaustive and near-exhaustive computation has produced solved or near-solved regimes, while theorem proving has improved confidence in correctness of critical algorithms.
-In imperfect-information settings such as poker, game-theoretic systems like Cepheus and Libratus~\cite{bowling2015heads,brown2018superhuman} show that equilibrium reasoning can scale when abstractions are carefully managed.
+In imperfect-information settings such as poker, game-theoretic systems like Cepheus, Libratus, and Pluribus~\cite{bowling2015heads,brown2018superhuman,brown2019pluribus} show that equilibrium reasoning can scale when abstractions are carefully managed.
+At larger multi-agent scale, AlphaStar demonstrates superhuman play in StarCraft~II~\cite{vinyals2019alphastar}.
 
 TCGs are harder in a different way.
 Their action spaces and card interactions are highly compositional, and rules often involve exception-heavy textual semantics.
@@ -151,6 +152,7 @@ A proof assistant mitigates this risk by forcing explicit treatment of definitio
 \subsection{AI and Metagame Analysis in Card Games}
 
 Prior card-game AI work has emphasized in-game decision quality, including Monte Carlo methods for games such as Magic and Hearthstone~\cite{cowling2012information,ward2009monte,santos2017monte,zhang2017deck}.
+Related work also includes deckbuilding optimization and competition environments for TCG AI~\cite{bjorke2017deckbuilding,dockhorn2019hearthstone}.
 That line of work is valuable but orthogonal to the question we study: how should a player choose a deck before round one, given a population distribution and matchup matrix?
 
 Metagame-level analysis appears frequently in practitioner content but rarely as reproducible formal scholarship.
@@ -160,6 +162,7 @@ Our approach fills this gap by treating metagame analysis as theorem proving ove
 \subsection{Theorem Proving for Rule Systems}
 
 Lean~4~\cite{moura2021lean} has become a practical environment for large-scale formalization because it combines expressive dependent types with efficient decision procedures.
+Large collaborative libraries and landmark formal proofs further show the maturity of this ecosystem~\cite{mathlib2020,hales2017kepler}.
 For game-rule modeling, dependent types are particularly useful: constraints such as bounded bench size, deck legality predicates, and well-formed transitions can be encoded directly as propositions attached to data.
 
 Closest in spirit is prior formalization work on card-game effects in Isabelle/HOL~\cite{hosch2022hearthstone}, which established feasibility.
@@ -415,7 +418,7 @@ These counts are large enough to stabilize headline directional claims, especial
 
 \begin{table*}[!t]
 \centering
-\caption{Top-6 Archetype Matchup Matrix (Win Rates \%)}
+\caption{Top-6 Archetype Matchup Matrix (Win Rates \%).}
 \label{tab:matchup}
 \begin{tabular}{lcccccc}
 \toprule
@@ -436,7 +439,7 @@ It already illustrates substantial non-transitivity: Dragapult strongly beats Ch
 
 \begin{table}[!t]
 \centering
-\caption{Cross-Tier Notable Matchups (Trainer Hill, Jan--Feb 2026)}
+\caption{Cross-Tier Notable Matchups (Trainer Hill, Jan--Feb 2026).}
 \label{tab:crosstier}
 \begin{tabular}{p{3.2cm}cp{3.1cm}}
 \toprule
@@ -554,7 +557,7 @@ theorem dragapult_popularity_paradox :
 
 \begin{table*}[!t]
 \centering
-\caption{Expected Win Rate vs Field (Top-14 Normalized Metagame)}
+\caption{Expected Win Rate vs Field (Top-14 Normalized Metagame).}
 \label{tab:expected}
 \begin{tabular}{lccc}
 \toprule
@@ -613,9 +616,9 @@ Figure~\ref{fig:paradoxscatter} summarizes the structural tension.
 Dragapult occupies the high-share but sub-50\% region, while Grimmsnarl occupies the low-share but top-fitness region.
 This is the exact opposite of what one would expect under near-rational aggregate adaptation.
 
-Behavioral mechanisms can explain this gap.
+Behavioral mechanisms can explain this gap, consistent with canonical bounded-rationality results in judgment and choice~\cite{Tversky1974,Kahneman1979}.
 First, familiarity lock-in creates switching costs even when matchup data suggest migration.
-Second, social proof and content visibility produce herd effects.
+Second, social proof and content visibility produce herd effects and informational cascades~\cite{Banerjee1992,Bikhchandani1992}.
 Third, prior-format success can induce recency-biased overextension.
 Fourth, card acquisition and preparation sunk costs reduce willingness to pivot.
 
@@ -675,7 +678,7 @@ By forcing explicit objective functions and data transformations, it narrows the
 \section{Nash Equilibrium and Metagame Dynamics}\label{sec:nash}
 %======================================================================
 
-We model deck choice as a symmetric two-player zero-sum game induced by the 14\,$\times$\,14 payoff matrix.
+We model deck choice as a symmetric two-player zero-sum game induced by the 14\,$\times$\,14 payoff matrix~\cite{NisanRoughgarden2007}.
 Existence of mixed Nash equilibrium follows from finite minimax~\cite{vonneumann1928theorie}.
 For the observed matrix, support-concentrated solutions are extreme.
 
@@ -696,7 +699,7 @@ Importantly, this is an equilibrium of the modeled payoff game, not a claim that
 
 \begin{table*}[!t]
 \centering
-\caption{Observed vs Nash Equilibrium Metagame Shares}
+\caption{Observed vs Nash Equilibrium Metagame Shares.}
 \label{tab:nash}
 \begin{tabular}{lccc}
 \toprule
@@ -724,7 +727,7 @@ Table~\ref{tab:nash} quantifies distance to equilibrium.
 Observed tournament play is broad and diverse; the Nash object for this matrix is sharply concentrated.
 This gap is substantial evidence that human and ecosystem frictions dominate short-run adaptation.
 
-Replicator dynamics formalize directional pressure:
+Replicator dynamics formalize directional pressure~\cite{Hofbauer1998,Sandholm2010}:
 \[
 \dot{x}_i = x_i\left(f_i(\mathbf{x}) - \bar{f}(\mathbf{x})\right),
 \qquad
@@ -852,7 +855,7 @@ theorem bo3_amplifies_when_gt_half (p : Rat)
 
 \begin{table}[!t]
 \centering
-\caption{Bo1 to Bo3 Amplification for Key Matchups}
+\caption{Bo1 to Bo3 Amplification for Key Matchups.}
 \label{tab:bo3}
 \begin{tabular}{lcc}
 \toprule
@@ -973,7 +976,7 @@ In volatile formats, robustness frequently dominates point-estimate optimality.
 \section{Formalization Methodology}\label{sec:methodology}
 %======================================================================
 
-Our methodology prioritizes proof transparency, reproducibility, and empirical traceability.
+Our methodology prioritizes proof transparency, reproducibility, and empirical traceability, following large-scale formalization practice in Lean and related projects~\cite{mathlib2020,Buzzard2020}.
 Every statistic used for strategic claims can be traced to an explicit Lean constant and theorem.
 Every theorem used in the paper is checkable by rebuilding the project with the published sources.
 
@@ -996,7 +999,7 @@ These patterns keep proof scripts readable while preserving kernel-level assuran
 
 \begin{table*}[!t]
 \centering
-\caption{Formalization Module Breakdown}
+\caption{Formalization Module Breakdown.}
 \label{tab:modules}
 \begin{tabular}{lrrr}
 \toprule
@@ -1140,6 +1143,9 @@ In that regime, formal methods can simultaneously improve reproducibility, inter
 
 Beyond this specific metagame snapshot, the broader contribution is methodological.
 Formal verification can serve as a practical scientific instrument for competitive game ecosystems: it turns qualitative metagame claims into executable definitions, theorem statements, and reproducible evidence.
+
+\section*{Data Availability}
+All Lean~4 source code and data are available at [repository URL redacted for review].
 
 \balance
 \bibliographystyle{IEEEtran}
