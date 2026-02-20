@@ -56,9 +56,10 @@
 \begin{abstract}
 We present a formally verified analysis of competitive Pok\'emon Trading Card Game metagame dynamics using Lean~4 and real tournament data.
 Our formal development spans approximately 30{,}000~lines across 75~Lean files and proves over 2{,}500 theorems without \texttt{sorry}, \texttt{admit}, or custom axioms.
+Most of this corpus verifies reusable infrastructure (rules, types, legality, and probability foundations), while approximately 180 theorems directly verify the empirical claims reported in this paper.
 On top of this foundation, we analyze Trainer Hill tournament data from January~29 to February~19, 2026 (50+ player events), covering 14 archetypes and a complete 14\,$\times$\,14 matchup matrix.
 The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate against the field, while Grimmsnarl Froslass (5.1\% share) has the highest expected field win rate at 52.7\%.
-We further show an extreme mixed-strategy Nash profile concentrated on Mega Absol Box ($\sim$93\%) and Dragapult ($\sim$7\%), prove replicator dynamics pressure against Dragapult and Ceruledge, and quantify best-of-three amplification effects such as 67.3\%\,$\to$\,74.9\% for Raging Bolt Ogerpon versus Mega Absol Box.
+We further report a linear-programming candidate equilibrium concentrated on Mega Absol Box (approximately 93.2\%) and Dragapult (approximately 6.8\%), verify that this reported profile is a valid mixed strategy, prove replicator dynamics pressure against Dragapult and Ceruledge, and quantify best-of-three amplification effects such as 67.3\%\,$\to$\,74.9\% for Raging Bolt Ogerpon versus Mega Absol Box.
 These results demonstrate that machine-checked formal methods can produce empirically grounded and strategically actionable conclusions in modern competitive game ecosystems.
 \end{abstract}
 
@@ -85,7 +86,7 @@ A statement in the paper is either derivable from formally checked definitions a
 We build a proof-carrying metagame analytics pipeline where the verified objects are
 (i) data representation and ingestion,
 (ii) expected-value computations over the field,
-(iii) Nash equilibrium and replicator dynamics statements, and
+(iii) candidate-equilibrium computation, mixed-strategy validity checks, and replicator dynamics statements, and
 (iv) tournament-objective transforms (Bo3, Swiss).
 The in-game rules formalization serves as supporting infrastructure guaranteeing legality and enabling future counterfactual analysis.
 
@@ -96,7 +97,7 @@ The resulting matrix contains enough granularity to support rigorous expected-va
 This paper makes four concrete contributions aligned with this thesis.
 First, we formalize the rules and legality substrate that supports trustworthy ingestion and future counterfactual analysis.
 Second, we encode real metagame data as exact values and verify expected-value computations, including the popularity paradox.
-Third, we derive and verify Nash and replicator dynamics statements over the observed matrix.
+Third, we derive candidate-equilibrium and replicator-dynamics statements over the observed matrix, with explicit separation between mixed-strategy validity checks and full best-response equilibrium certification.
 Fourth, we verify tournament-objective transforms from single-game payoffs to best-of-three and Swiss-relevant decision criteria.
 
 A key practical implication follows immediately.
@@ -199,6 +200,7 @@ This positioning is complementary rather than adversarial.
 Community analytics can generate hypotheses quickly.
 Formal analytics can then validate, reject, or refine those hypotheses with machine-checkable guarantees.
 In practice, the two pipelines can coexist: empirical dashboards provide breadth, while theorem-prover workflows provide depth and reliability for high-impact claims.
+A Python script can reproduce percentages quickly, but it cannot enforce theorem-level linkage between assumptions, computations, and manuscript claims; the Lean workflow makes those links explicit and checkable.
 
 The popularity paradox is a good example.
 Informally, one might suspect overplay from anecdotal matchup frustration.
@@ -421,7 +423,7 @@ where ties count as one-third of a win.
 \subsection{Modeled Archetypes and Shares}
 
 We model 14 archetypes with observed metagame shares:
-Dragapult Dusknoir (15.5\%), Gholdengo Lunatone (9.9\%), Grimmsnarl Froslass (5.1\%), Mega Absol Box (5.0\%), Gardevoir (4.6\%), Charizard Noctowl (4.3\%), Gardevoir Jellicent (4.2\%), Charizard Pidgeot ($\sim$3.5\%), Dragapult Charizard ($\sim$3.5\%), Raging Bolt Ogerpon ($\sim$3.3\%), N's Zoroark ($\sim$3.0\%), Alakazam Dudunsparce ($\sim$2.8\%), Kangaskhan Bouffalant ($\sim$2.5\%), and Ceruledge ($\sim$2.3\%).
+Dragapult Dusknoir (15.5\%), Gholdengo Lunatone (9.9\%), Grimmsnarl Froslass (5.1\%), Mega Absol Box (5.0\%), Gardevoir (4.6\%), Charizard Noctowl (4.3\%), Gardevoir Jellicent (4.2\%), Charizard Pidgeot (3.5\%), Dragapult Charizard (3.5\%), Raging Bolt Ogerpon (3.3\%), N's Zoroark (3.0\%), Alakazam Dudunsparce (2.8\%), Kangaskhan Bouffalant (2.5\%), and Ceruledge (2.3\%).
 
 The top-14 aggregate is 69.5\% of the full field; the remaining 30.5\% is grouped as ``Other'' and excluded from pairwise matrix analysis.
 All expected win rate computations in this paper are normalized over the modeled top-14 subfield.
@@ -435,18 +437,22 @@ These counts are large enough to stabilize headline directional claims, especial
 \subsection{Uncertainty Quantification}
 
 While we encode matchup win rates as point estimates, the underlying sample sizes support tight confidence bounds.
-We use Wilson intervals of the form
+We use Wilson intervals with center adjustment
 \[
-\hat{p} \pm \frac{z\sqrt{\hat{p}(1-\hat{p})/n + z^2/(4n^2)}}{1 + z^2/n}.
+\tilde{p}
+=
+\frac{\hat{p} + z^2/(2n)}{1 + z^2/n},
+\qquad
+\tilde{p} \pm \frac{z}{1 + z^2/n}\sqrt{\hat{p}(1-\hat{p})/n + z^2/(4n^2)}.
 \]
 For the largest matchups (e.g., Dragapult mirror: 2{,}845 games), the 95\% Wilson interval is approximately $\pm 1.8$ percentage points.
-For smaller matchups (e.g., Ceruledge vs N's Zoroark: $\sim$100 games), intervals widen to about $\pm 9$ points.
+For smaller matchups (e.g., Ceruledge vs N's Zoroark: about 100 games), intervals widen to about $\pm 9$ points.
 Critically, the popularity paradox is robust to this uncertainty: Dragapult's expected field win rate of 46.7\% has a 95\% interval of approximately [45.5\%, 47.9\%], entirely below 50\%, while Grimmsnarl's 52.7\% has an interval of approximately [51.0\%, 54.4\%], entirely above 50\%.
 The qualitative conclusion---that the most popular deck is suboptimal---survives statistical uncertainty.
 
 \begin{table*}[!t]
 \centering
-\caption{Top-6 Archetype Matchup Matrix (Win Rates \%).}
+\caption{Top-6 subset view of the archetype matchup matrix (win rates \%).}
 \label{tab:matchup}
 \begin{tabular}{lcccccc}
 \toprule
@@ -467,7 +473,7 @@ It already illustrates substantial non-transitivity: Dragapult strongly beats Ch
 
 \begin{table}[!t]
 \centering
-\caption{Cross-Tier Notable Matchups (Trainer Hill, Jan--Feb 2026).}
+\caption{Cross-tier subset view of notable matchups (Trainer Hill, Jan--Feb 2026).}
 \label{tab:crosstier}
 \begin{tabular}{p{3.2cm}cp{3.1cm}}
 \toprule
@@ -478,38 +484,13 @@ Gardevoir vs Dragapult & 62.7\% & B-tier check on popular deck \\
 Mega Absol vs Grimmsnarl & 62.1\% & A-tier answer to S-tier \\
 Dragapult vs Charizard Noctowl & 64.1\% & Popularity sustained by farm lane \\
 Grimmsnarl vs Dragapult & 57.2\% & Core paradox driver \\
-Ceruledge vs N's Zoroark & 70.9\% & Specialist spike despite weak field fitness \\
+Raging Bolt vs Dragapult & 51.0\% & Completes the observed four-deck interaction motif \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Cross-tier interactions in Table~\ref{tab:crosstier} clarify why local matchup spikes do not guarantee global success.
 A deck can post an excellent score into one target while remaining globally suboptimal once weighted against full-field prevalence.
-
-\subsection{Deck-by-Deck Empirical Profiles}
-
-To ground later strategic discussion, we summarize each archetype's empirical signature in the same measurement window.
-These summaries use only observed Trainer Hill matrix values.
-
-\begin{itemize}
-\item \textbf{Dragapult Dusknoir (15.5\%).} High adoption with polarized outcomes: excellent into Charizard Noctowl (64.1\%), weak into Gardevoir (34.3\%) and Mega Absol (38.2\%).
-\item \textbf{Gholdengo Lunatone (9.9\%).} Stable but rarely dominant profile; key edges are modest, and several top matchups sit near 50\%.
-\item \textbf{Grimmsnarl Froslass (5.1\%).} Broad positive spread including Dragapult (57.2\%), Gardevoir (56.6\%), and Charizard Noctowl (55.8\%), but sharply negative into Mega Absol (34.4\%).
-\item \textbf{Mega Absol Box (5.0\%).} Strong anti-field deck with large wins versus Grimmsnarl (62.1\%) and Dragapult (57.6\%), yet critically exposed to Raging Bolt Ogerpon (29.8\%).
-\item \textbf{Gardevoir (4.6\%).} Hard counter role into Dragapult (62.7\%) and Raging Bolt Ogerpon (62.5\%), offset by weakness into Grimmsnarl (37.4\%).
-\item \textbf{Charizard Noctowl (4.3\%).} Strong into Gardevoir (55.8\%), but heavily preyed on by Dragapult (32.4\%) and Grimmsnarl (39.7\%).
-\item \textbf{Gardevoir Jellicent (4.2\%).} Positive versus Dragapult (54.4\%) and Gardevoir (58.3\%), but weak versus Grimmsnarl (34.6\%) and Mega Absol (36.4\%).
-\item \textbf{Charizard Pidgeot ($\sim$3.5\%).} Strong into Gardevoir Jellicent (59.8\%) and Gardevoir (58.4\%), weaker into Dragapult Charizard (34.7\%).
-\item \textbf{Dragapult Charizard ($\sim$3.5\%).} Flexible A-tier profile with good scores into Charizard Pidgeot (58.0\%) and N's Zoroark (57.3\%), weak into Grimmsnarl (36.1\%).
-\item \textbf{Raging Bolt Ogerpon ($\sim$3.3\%).} Defining counter role through 67.3\% into Mega Absol, but poor into Gardevoir (33.3\%) and Gardevoir Jellicent (33.2\%).
-\item \textbf{N's Zoroark ($\sim$3.0\%).} Volatile profile: strong into Gardevoir Jellicent (60.1\%) and Mega Absol (54.8\%), collapses into Ceruledge (26.2\%).
-\item \textbf{Alakazam Dudunsparce ($\sim$2.8\%).} Extreme specialist with 77.2\% into Kangaskhan Bouffalant and 58.8\% into Gholdengo, but weak into Dragapult (34.1\%) and Gardevoir (31.5\%).
-\item \textbf{Kangaskhan Bouffalant ($\sim$2.5\%).} Rogue deck with notable pressure on Charizard Noctowl (63.5\%) and Dragapult (58.2\%), but catastrophic into Alakazam (19.8\%).
-\item \textbf{Ceruledge ($\sim$2.3\%).} Narrow specialist wins (70.9\% into N's Zoroark) coupled with broad negative spread, explaining long-run extinction pressure under replicator dynamics.
-\end{itemize}
-
-These profiles illustrate why one-dimensional ranking metrics are insufficient.
-Metagame positioning depends on how each deck's edge structure aligns with opponent prevalence, not merely on isolated ``good matchup'' anecdotes.
 
 \subsection{Share-Sensitivity Stress Tests}
 
@@ -528,31 +509,6 @@ Thus, a rational field can contain two simultaneous adaptation pressures: moveme
 These stress-test narratives are strategically useful because they convert static tables into directional guidance.
 Players can ask not only ``what is best now'' but also ``which deck gains if the room moves in the obvious direction.''
 That second question is often the difference between a deck that wins this week and a deck that remains robust over multiple events.
-
-\subsection{Expanded Matrix Commentary (All 14 Archetypes)}
-
-For completeness, we include compact row-level commentary for the full 14-deck matrix used by the formal model.
-These notes are intended to help readers connect raw pairwise numbers to strategic role identity.
-
-\begin{itemize}
-\item \textbf{Dragapult Dusknoir row:} key positives include Charizard Noctowl (64.1\%) and Alakazam Dudunsparce (62.7\%); key negatives include Gardevoir (34.3\%), Grimmsnarl (38.6\%), and Mega Absol (38.2\%).
-\item \textbf{Gholdengo Lunatone row:} strongest lanes are Kangaskhan Bouffalant (55.3\%) and Dragapult (52.1\%); most other lanes are near parity, creating a low-volatility profile.
-\item \textbf{Grimmsnarl Froslass row:} broad positives against Dragapult (57.2\%), Gardevoir (56.6\%), Charizard Noctowl (55.8\%), and Dragapult Charizard (59.8\%); major liability is Mega Absol (34.4\%).
-\item \textbf{Mega Absol Box row:} strong anti-field values versus Grimmsnarl (62.1\%), Dragapult (57.6\%), Gardevoir (55.8\%), and Gardevoir Jellicent (58.7\%); defining weakness is Raging Bolt (29.8\%).
-\item \textbf{Gardevoir row:} excellent anti-Dragapult (62.7\%) and anti-Raging Bolt (62.5\%), but weak into Grimmsnarl (37.4\%), Charizard Noctowl (39.4\%), and Mega Absol (40.2\%).
-\item \textbf{Charizard Noctowl row:} positive into Gardevoir (55.8\%) and Gardevoir Jellicent (54.9\%), but heavily pressured by Dragapult (32.4\%) and Grimmsnarl (39.7\%).
-\item \textbf{Gardevoir Jellicent row:} favorable into Dragapult (54.4\%) and Gardevoir (58.3\%), near-even into Gholdengo (49.8\%), weak into Grimmsnarl (34.6\%) and Mega Absol (36.4\%).
-\item \textbf{Charizard Pidgeot row:} strengths versus Gardevoir Jellicent (59.8\%) and Gardevoir (58.4\%); weaknesses versus Dragapult Charizard (34.7\%) and Grimmsnarl (38.6\%).
-\item \textbf{Dragapult Charizard row:} balanced A-tier mix with positives versus Charizard Pidgeot (58.0\%), N's Zoroark (57.3\%), and Charizard Noctowl (53.6\%); negative into Grimmsnarl (36.1\%).
-\item \textbf{Raging Bolt Ogerpon row:} extreme counter posture through Mega Absol (67.3\%), plus strong scores into Kangaskhan (65.3\%) and N's Zoroark (62.3\%); weak into Gardevoir (33.3\%) and Gardevoir Jellicent (33.2\%).
-\item \textbf{N's Zoroark row:} mixed profile with strong Gardevoir Jellicent (60.1\%) and Mega Absol (54.8\%) lanes, but catastrophic Ceruledge exposure (26.2\%).
-\item \textbf{Alakazam Dudunsparce row:} highly polarized specialist: excellent versus Kangaskhan (77.2\%), Gholdengo (58.8\%), and Raging Bolt (65.3\%); weak into Gardevoir (31.5\%) and Dragapult (34.1\%).
-\item \textbf{Kangaskhan Bouffalant row:} robust into Charizard Noctowl (63.5\%) and Dragapult (58.2\%), but severe anti-synergy with Alakazam (19.8\%).
-\item \textbf{Ceruledge row:} standout N's Zoroark counter (70.9\%) but insufficient broad-field support, with several low-40 or sub-40 lanes that drive negative aggregate fitness.
-\end{itemize}
-
-Taken together, these row identities explain why the metagame remains strategically rich despite a concentrated equilibrium object.
-Most archetypes have at least one meaningful target lane, but only a few combine broad positive spread with limited high-share liabilities.
 With data definitions fixed, we now quantify the central popularity paradox.
 
 %======================================================================
@@ -578,15 +534,15 @@ which is the maximum among all 14 modeled decks.
 
 \begin{lstlisting}
 theorem dragapult_popularity_paradox :
-    metaShare DragapultDusknoir > metaShare GrimssnarlFroslass /\
+    metaShare DragapultDusknoir > metaShare GrimmsnarlFroslass /\
     expectedWR DragapultDusknoir observedMeta < 1/2 /\
-    expectedWR GrimssnarlFroslass observedMeta = maxExpectedWR allDecks observedMeta := by
+    expectedWR GrimmsnarlFroslass observedMeta = maxExpectedWR allDecks observedMeta := by
   native_decide
 \end{lstlisting}
 
 \begin{table*}[!t]
 \centering
-\caption{Expected Win Rate vs Field (Top-14 Normalized Metagame).}
+\caption{Expected win rate on the modeled top-14 subset (69.5\% of field; ``Other'' excluded).}
 \label{tab:expected}
 \begin{tabular}{lccc}
 \toprule
@@ -599,13 +555,13 @@ Mega Absol Box & 5.0\% & 51.7\% & A \\
 Gardevoir & 4.6\% & 49.9\% & B \\
 Charizard Noctowl & 4.3\% & 45.7\% & B \\
 Gardevoir Jellicent & 4.2\% & 47.8\% & B \\
-Charizard Pidgeot & $\sim$3.5\% & 46.8\% & B \\
-Dragapult Charizard & $\sim$3.5\% & 48.7\% & A \\
-Raging Bolt Ogerpon & $\sim$3.3\% & 47.9\% & B \\
-N's Zoroark & $\sim$3.0\% & 46.9\% & C \\
-Alakazam Dudunsparce & $\sim$2.8\% & 44.7\% & B \\
-Kangaskhan Bouffalant & $\sim$2.5\% & 49.2\% & B \\
-Ceruledge & $\sim$2.3\% & 44.8\% & C \\
+Charizard Pidgeot & 3.5\% & 46.8\% & B \\
+Dragapult Charizard & 3.5\% & 48.7\% & A \\
+Raging Bolt Ogerpon & 3.3\% & 47.9\% & B \\
+N's Zoroark & 3.0\% & 46.9\% & C \\
+Alakazam Dudunsparce & 2.8\% & 44.7\% & B \\
+Kangaskhan Bouffalant & 2.5\% & 49.2\% & B \\
+Ceruledge & 2.3\% & 44.8\% & C \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -683,37 +639,14 @@ That structure makes the phenomenon strategically important and behaviorally per
 
 \subsection{Behavioral-Economic Interpretation}
 
-The paradox can be interpreted as a bounded-rationality equilibrium in a richer utility space.
-Players do not optimize only expected match points; they also optimize confidence, execution familiarity, social legitimacy, and collection constraints.
-When those auxiliary utilities are large, observed adoption can remain detached from payoff-optimal adoption.
-
-We emphasize that these behavioral hypotheses are plausible explanations consistent with established theory, not measured causal mechanisms.
-Distinguishing anchoring from herding from information cascades in deck-choice data would require player-level panel data with temporal resolution, which is beyond the scope of this analysis.
-Our contribution is the formal proof that the aggregate outcome is suboptimal under the stated payoff model, regardless of its behavioral cause.
-
-Three mechanisms appear especially plausible in this dataset window.
-\textit{Anchoring and inertia}: Dragapult was an early reference deck in the format, and early winners anchor subsequent deck selection norms.
-\textit{Visibility bias}: highly represented decks receive disproportionate stream and testing coverage, which in turn reinforces representation.
-\textit{Coordination externalities}: testing groups often converge on shared lists to maximize prep efficiency, creating local lock-in even when global EV is weaker.
-
-From this perspective, the paradox is not ``irrational chaos'' but a predictable consequence of frictions.
-Importantly, such frictions are measurable.
-As soon as they weaken---for example, through better public matchup tooling or lower switching costs---share updates should align more closely with relative fitness gradients.
-
-This interpretation also informs intervention design.
-If tournament organizers, teams, or analysts want to reduce strategic inefficiency, they should improve access to transparent weighted-EV tools rather than merely publishing raw matchup snapshots.
-Raw snapshots are insufficient because they do not force the weighting step that creates the paradox signal.
-
-Finally, the paradox highlights a broader methodological point: formal verification does not only increase arithmetic confidence; it disciplines interpretation.
-By forcing explicit objective functions and data transformations, it narrows the space in which narrative overreach can occur.
-This divergence motivates equilibrium and dynamic analysis in Section~\ref{sec:nash}.
+The paradox is consistent with bounded-rationality behavior: players optimize not only expected match points but also familiarity, coordination, visibility, and card-access constraints, so adoption can remain detached from payoff-optimal choices even when weighted-EV evidence is public~\cite{Tversky1974,Kahneman1979,Banerjee1992,Bikhchandani1992}. We do not claim causal identification of these mechanisms in this dataset window; rather, we formally prove payoff-model suboptimality and treat behavioral explanations as scope-limited hypotheses for future player-level study. This separation between proven payoff statements and behavioral interpretation disciplines narrative overreach and motivates the equilibrium/dynamics analysis in Section~\ref{sec:nash}.
 
 %======================================================================
 \section{Nash Equilibrium and Metagame Dynamics}\label{sec:nash}
 %======================================================================
 
 We model deck choice as a symmetric two-player zero-sum game induced by the 14\,$\times$\,14 payoff matrix~\cite{NisanRoughgarden2007}.
-Existence of mixed Nash equilibrium follows from finite minimax and Nash's equilibrium existence framework~\cite{vonneumann1928theorie,nash1950equilibrium}.
+For two-player zero-sum games, existence and value are given by von Neumann's minimax theorem; Nash's theorem provides the broader finite-game existence framework~\cite{vonneumann1928theorie,nash1950equilibrium}.
 For the observed matrix, support-concentrated solutions are extreme.
 
 This two-player zero-sum view is a natural approximation for head-to-head tournament matches, but it does not capture all competitive incentives.
@@ -737,37 +670,38 @@ theorem nash_equilibrium_exists :
 \end{lstlisting}
 
 This theorem certifies that the modeled 14-deck game admits valid mixed strategies.
-The support-concentrated profile in Table~\ref{tab:nash} is therefore interpreted as a computed candidate equilibrium, not an ad hoc narrative claim.
+The support-concentrated profile in Table~\ref{tab:nash} is therefore reported as a linear-programming candidate equilibrium that we verify as a valid mixed strategy.
+Because the current manuscript does not include a theorem proving the candidate profile satisfies full best-response inequalities, we do not claim full equilibrium verification for that specific profile.
 Importantly, it remains a property of the modeled payoff game, not a claim that observed players currently behave equilibrium-rationally.
 
 \begin{table*}[!t]
 \centering
-\caption{Observed vs Nash Equilibrium Metagame Shares.}
+\caption{Observed vs LP-computed candidate-equilibrium metagame shares.}
 \label{tab:nash}
 \begin{tabular}{lccc}
 \toprule
-\textbf{Archetype} & \textbf{Observed} & \textbf{Nash} & \textbf{Gap (Obs-Nash)} \\
+\textbf{Archetype} & \textbf{Observed} & \textbf{Candidate Eq.} & \textbf{Gap (Obs-Cand.)} \\
 \midrule
-Dragapult Dusknoir & 15.5\% & $\sim$7\% & +8.5 \\
-Mega Absol Box & 5.0\% & $\sim$93\% & -88.0 \\
+Dragapult Dusknoir & 15.5\% & 6.8\% & +8.7 \\
+Mega Absol Box & 5.0\% & 93.2\% & -88.2 \\
 Grimmsnarl Froslass & 5.1\% & 0\% & +5.1 \\
 Gholdengo Lunatone & 9.9\% & 0\% & +9.9 \\
 Gardevoir & 4.6\% & 0\% & +4.6 \\
 Charizard Noctowl & 4.3\% & 0\% & +4.3 \\
 Gardevoir Jellicent & 4.2\% & 0\% & +4.2 \\
-Charizard Pidgeot & $\sim$3.5\% & 0\% & +3.5 \\
-Dragapult Charizard & $\sim$3.5\% & 0\% & +3.5 \\
-Raging Bolt Ogerpon & $\sim$3.3\% & 0\% & +3.3 \\
-N's Zoroark & $\sim$3.0\% & 0\% & +3.0 \\
-Alakazam Dudunsparce & $\sim$2.8\% & 0\% & +2.8 \\
-Kangaskhan Bouffalant & $\sim$2.5\% & 0\% & +2.5 \\
-Ceruledge & $\sim$2.3\% & 0\% & +2.3 \\
+Charizard Pidgeot & 3.5\% & 0\% & +3.5 \\
+Dragapult Charizard & 3.5\% & 0\% & +3.5 \\
+Raging Bolt Ogerpon & 3.3\% & 0\% & +3.3 \\
+N's Zoroark & 3.0\% & 0\% & +3.0 \\
+Alakazam Dudunsparce & 2.8\% & 0\% & +2.8 \\
+Kangaskhan Bouffalant & 2.5\% & 0\% & +2.5 \\
+Ceruledge & 2.3\% & 0\% & +2.3 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-Table~\ref{tab:nash} quantifies distance to equilibrium.
-Observed tournament play is broad and diverse; the Nash object for this matrix is sharply concentrated.
+Table~\ref{tab:nash} quantifies distance to the candidate-equilibrium profile.
+Observed tournament play is broad and diverse; the candidate profile for this matrix is sharply concentrated.
 This gap is substantial evidence that human and ecosystem frictions dominate short-run adaptation.
 
 Replicator dynamics formalize directional pressure~\cite{Hofbauer1998,Sandholm2010}:
@@ -777,14 +711,8 @@ Replicator dynamics formalize directional pressure~\cite{Hofbauer1998,Sandholm20
 \bar{f}(\mathbf{x}) = \sum_j x_j f_j(\mathbf{x}).
 \]
 
-\begin{lstlisting}
-theorem metagame_shift_combo_increases_step1 :
-    aggroMeta (Fin.mk 2 (by native_decide)) <
-    replicatorStep 3 metaPayoff aggroMeta (1/10) (Fin.mk 2 (by native_decide)) := by
-  optimize_proof
-\end{lstlisting}
-
-Applying this rule to the observed 2026 snapshot yields three verified qualitative predictions used throughout the paper:
+Lean theorems \texttt{metagame\_shift\_combo\_increases\_step1}, \texttt{metagame\_shift\_aggro\_decreases\_step1}, and \texttt{ceruledge\_share\_decreases} provide concrete machine-checked directional updates for the modeled metagame dynamics.
+Applying these results to the observed 2026 snapshot yields three verified qualitative predictions used throughout the paper:
 (i) Dragapult has negative relative fitness and should lose share,
 (ii) Ceruledge experiences monotone decline under repeated replicator updates,
 and (iii) highest growth pressure points toward Mega Absol support growth.
@@ -794,16 +722,16 @@ and (iii) highest growth pressure points toward Mega Absol support growth.
 \[
 \begin{array}{ccc}
 \text{Raging Bolt} & \xrightarrow{67.3\%} & \text{Mega Absol} \\
-\uparrow_{51.0\%} & & \downarrow_{62.1\%} \\
+\downarrow_{51.0\%} & & \downarrow_{62.1\%} \\
 \text{Dragapult} & \xleftarrow{57.2\%} & \text{Grimmsnarl}
 \end{array}
 \]
-\caption{Directed metagame cycle with edge labels from observed win rates.}
+\caption{Directed metagame interaction motif with edge labels matching Table~\ref{tab:crosstier}.}
 \label{fig:cycle}
 \end{figure}
 
-Figure~\ref{fig:cycle} emphasizes that the ecosystem is cyclic rather than strictly ordered.
-Cycles create pockets where lower-share decks retain strategic value as counters, which partly explains persistent diversity despite concentrated equilibrium support.
+Figure~\ref{fig:cycle} emphasizes that the ecosystem is interaction-rich rather than strictly ordered.
+These directed pressures create pockets where lower-share decks retain strategic value as counters, which partly explains persistent diversity despite concentrated candidate-equilibrium support.
 
 \subsection{Interpreting Dynamic Pressure in Practice}
 
@@ -883,6 +811,7 @@ Most major events run best-of-three matches and Swiss-style pairings, so the rel
 
 For game win probability $p$, best-of-three match win probability is
 $P_{\mathrm{Bo3}} = 3p^2 - 2p^3$.
+This conversion assumes independent games with a constant per-game win probability $p$ across the match.
 
 \begin{lstlisting}
 def bo3WinProb (p : Rat) : Rat :=
@@ -927,7 +856,7 @@ C = [N's Zoroark, Ceruledge].
 
 \begin{lstlisting}
 theorem TIER_CLASSIFICATION :
-    sTier = [GrimssnarlFroslass] /\
+    sTier = [GrimmsnarlFroslass] /\
     aTier = [MegaAbsolBox, DragapultCharizard] /\
     bTier = [DragapultDusknoir, GholdengoLunatone, Gardevoir, CharizardNoctowl,
       GardevoirJellicent, CharizardPidgeot, RagingBoltOgerpon,
@@ -967,56 +896,14 @@ The same logic applies to anti-Dragapult planning.
 Because Dragapult remains highly represented despite negative expected fitness, strong anti-Dragapult matchups still carry practical value in the short run.
 This is a concrete example of why ``best deck'' and ``best deck for this weekend'' are distinct optimization targets.
 
-\subsection{Archetype-Specific Registration Guidance}
-
-We summarize practical guidance implied by the formal analysis.
-\begin{itemize}
-\item \textbf{Dragapult Dusknoir}: avoid blind registration unless expecting unusually high Charizard Noctowl share or possessing strong list-level anti-Gardevoir/Mega Absol technology.
-\item \textbf{Gholdengo Lunatone}: reasonable hedge choice when expecting broad mixed fields with limited hard-targeting behavior.
-\item \textbf{Grimmsnarl Froslass}: strongest pure EV registration in this snapshot, but requires explicit plans for Mega Absol-heavy pairings.
-\item \textbf{Mega Absol Box}: high-upside broad-profile deck; must account for Raging Bolt exposure in expected pairings.
-\item \textbf{Gardevoir}: high leverage anti-Dragapult option; validate Grimmsnarl and Mega Absol contingencies before lock.
-\item \textbf{Charizard Noctowl}: viable when Dragapult share is forecast to contract; otherwise exposed.
-\item \textbf{Gardevoir Jellicent}: tactical anti-Dragapult/Gardevoir option with notable Grimmsnarl and Mega Absol liabilities.
-\item \textbf{Charizard Pidgeot}: metagame read deck; performs best when Dragapult Charizard and hyper-aggressive counters are underrepresented.
-\item \textbf{Dragapult Charizard}: robust A-tier fallback when avoiding extreme polar matchups is the primary objective.
-\item \textbf{Raging Bolt Ogerpon}: premium target counter in Mega Absol-rich environments; weak default blind register in balanced fields.
-\item \textbf{N's Zoroark}: high-variance specialist pick; avoid in Ceruledge-heavy local pockets.
-\item \textbf{Alakazam Dudunsparce}: exploitative metacall deck, valuable when expected to face Gholdengo and Kangaskhan clusters.
-\item \textbf{Kangaskhan Bouffalant}: rogue option with strong surprise value but severe Alakazam vulnerability.
-\item \textbf{Ceruledge}: despite isolated spikes, poor aggregate fitness makes it difficult to justify in long Swiss unless local meta is highly skewed.
-\end{itemize}
-
-These recommendations are intentionally conditional.
-They are not claims about universal deck quality; they are claims about this measured ecosystem under explicit objective assumptions.
-That conditional clarity is precisely what formal metagame analysis is intended to provide.
-
 \subsection{Worked Swiss Qualification Example}
 
-To illustrate tournament-level implications, consider a simplified eight-round Swiss event with a nominal X--2 qualification threshold.
-Suppose a deck has field-level Bo3 win probability $p_m$ under an assumed pairing mix.
-The probability of finishing with at least six match wins is
+For an eight-round Swiss event with an X--2 qualification target and field-level Bo3 win probability $p_m$, qualification probability is
 \[
 P(\text{X--2 or better}) =
 \sum_{k=6}^{8} \binom{8}{k} p_m^k (1-p_m)^{8-k}.
 \]
-
-If two decks differ only modestly in Bo1 expected value but one has fewer severe high-share liabilities, the latter can produce a larger qualification probability once converted to Bo3 and propagated through the binomial tail.
-This is precisely why liability control matters in Swiss despite similar headline expected WR numbers.
-
-In the current metagame snapshot, the Mega Absol versus Raging Bolt interaction is a good stress case.
-A registration strategy that ignores this lane can have acceptable average EV in abstract but brittle qualification probability if Raging Bolt concentration is underestimated.
-Conversely, lineups with explicit anti-counter contingency sacrifice a small amount of mean EV to improve lower-tail outcomes.
-
-This distinction is often underappreciated in practice.
-Players may optimize median-round performance while unintentionally increasing probability of catastrophic pairings.
-Formalizing the tournament objective exposes this tradeoff and allows explicit risk targeting:
-``maximize expected wins,'' ``maximize probability of top cut,'' and ``minimize tail risk'' are not equivalent optimization tasks.
-
-The same framework can support team-level preparation.
-A testing group can evaluate multiple projected field mixtures and identify which lineup is robust across all of them rather than optimal for exactly one forecast.
-In volatile formats, robustness frequently dominates point-estimate optimality.
-Section~\ref{sec:methodology} then details the reproducibility workflow that underpins these recommendations.
+This closed-form transform is the key point: decks with similar Bo1 EV can have materially different qualification odds once Bo3 conversion and tail-risk exposure are accounted for. Section~\ref{sec:methodology} details how this mapping is kept synchronized with the formal artifacts.
 
 %======================================================================
 \section{Formalization Methodology}\label{sec:methodology}
@@ -1066,6 +953,7 @@ Additional Specialized Modules & 30 & 12{,}672 & 1{,}284 \\
 
 Table~\ref{tab:modules} reports module-level code statistics used in this project snapshot.
 Counts are from the current Lean tree and include files, lines, and theorem/lemma/example declarations.
+Most theorem volume is infrastructure-oriented (rules, effects, probability, and validation layers); approximately 180 theorems directly verify the empirical claims reported in this manuscript.
 
 \subsection{Reproducibility Workflow}
 
@@ -1105,7 +993,7 @@ If any upstream value changes (for example, an updated matrix entry after a data
 This is fundamentally stronger than spreadsheet-style pipelines where hidden references and manual edits can silently desynchronize outputs.
 
 The same pattern is used for all other headline claims in this paper:
-Grimmsnarl's top expected value, Mega Absol's equilibrium concentration, Raging Bolt's 67.3\% counter edge, and Bo3 amplification values.
+Grimmsnarl's top expected value, Mega Absol's candidate-equilibrium concentration, Raging Bolt's 67.3\% counter edge, and Bo3 amplification values.
 As a result, the manuscript functions as a thin narrative layer over a machine-checked computational core.
 
 \subsection{Roadmap for Continuous Metagame Monitoring}
@@ -1192,7 +1080,7 @@ This paper presents a formally verified metagame analysis pipeline for a real co
 Using Lean~4 plus Trainer Hill data, we prove a strong popularity paradox: Dragapult is most played yet sub-50\% in expected field performance, while Grimmsnarl is less represented than the dominant choices and has the highest expected win rate.
 
 We also connect static matchup structure to dynamic and tournament implications.
-The Nash profile is highly concentrated, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure, and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
+The LP-computed candidate-equilibrium profile is highly concentrated, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure, and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
 
 Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
 
