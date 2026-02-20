@@ -11,9 +11,13 @@ namespace PokemonLean.SharePerturbation
 open PokemonLean.NashEquilibrium (Rat)
 open PokemonLean.RealMetagame
 
+/-- `optimize_proof` is a project-local macro that expands to `native_decide`.
+    It delegates decidable goals to compiled native code for faster kernel checking. -/
 elab "optimize_proof" : tactic => do
   Lean.Elab.Tactic.evalTactic (← `(tactic| native_decide))
 
+/-- `optimize_proof_native` is a project-local macro that expands to `native_decide`.
+    Synonym for `optimize_proof`; used for emphasis in performance-critical proofs. -/
 elab "optimize_proof_native" : tactic => do
   Lean.Elab.Tactic.evalTactic (← `(tactic| native_decide))
 
