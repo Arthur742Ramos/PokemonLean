@@ -9,6 +9,7 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{balance}
+\usepackage{needspace}
 
 \lstdefinelanguage{Lean}{
   morekeywords={theorem,def,structure,inductive,where,match,with,if,then,else,let,in,fun,forall,exists,by,have,show,sorry,exact,simp,omega,decide,native_decide,intro,apply,rfl,instance,class,abbrev,noncomputable,example,lemma,Prop,Type,Nat,Fin,List,Bool,true,false,And,Or,Not},
@@ -35,6 +36,14 @@
   belowskip=0.5em
 }
 
+\let\origsection\section
+\renewcommand{\section}{\needspace{4\baselineskip}\origsection}
+\let\origsubsection\subsection
+\renewcommand{\subsection}{\needspace{3\baselineskip}\origsubsection}
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+
 \begin{document}
 
 \title{From Rules to Nash Equilibria: Formally Verified\\Game-Theoretic Analysis of a Competitive\\Trading Card Game}
@@ -57,7 +66,7 @@ Formal verification, game theory, trading card games, Nash equilibrium, theorem 
 \end{IEEEkeywords}
 
 %======================================================================
-\section{Introduction}\label{sec:intro}
+\section{Introduction}
 %======================================================================
 
 Competitive trading card games (TCGs) are strategically distinctive because players make two coupled decisions: how to play a game state and which deck to register before a tournament begins.
@@ -404,7 +413,7 @@ Critical matchup pairs are supported by large samples.
 Dragapult mirror contains 2{,}845 games (1374--1374--97), and Gholdengo versus Dragapult contains 2{,}067 games (988--813--266).
 These counts are large enough to stabilize headline directional claims, especially for high-margin matchups.
 
-\begin{table*}[t]
+\begin{table*}[!t]
 \centering
 \caption{Top-6 Archetype Matchup Matrix (Win Rates \%)}
 \label{tab:matchup}
@@ -425,7 +434,7 @@ These counts are large enough to stabilize headline directional claims, especial
 Table~\ref{tab:matchup} uses the exact top-6 values from the Trainer Hill matrix.
 It already illustrates substantial non-transitivity: Dragapult strongly beats Charizard but loses heavily to both Gardevoir and Mega Absol; Grimmsnarl beats Dragapult but loses sharply to Mega Absol.
 
-\begin{table}[t]
+\begin{table}[!t]
 \centering
 \caption{Cross-Tier Notable Matchups (Trainer Hill, Jan--Feb 2026)}
 \label{tab:crosstier}
@@ -543,7 +552,7 @@ theorem dragapult_popularity_paradox :
   native_decide
 \end{lstlisting}
 
-\begin{table*}[t]
+\begin{table*}[!t]
 \centering
 \caption{Expected Win Rate vs Field (Top-14 Normalized Metagame)}
 \label{tab:expected}
@@ -572,7 +581,7 @@ Ceruledge & $\sim$2.3\% & 44.8\% & C \\
 Table~\ref{tab:expected} makes the paradox visible: the right tail of popularity is not aligned with the right tail of expected performance.
 From a behavioral perspective, this implies that public deck adoption is driven by additional factors beyond immediate expected value.
 
-\begin{figure}[t]
+\begin{figure}[!t]
 \centering
 \setlength{\unitlength}{0.9mm}
 \begin{picture}(88,54)
@@ -647,9 +656,9 @@ Players do not optimize only expected match points; they also optimize confidenc
 When those auxiliary utilities are large, observed adoption can remain detached from payoff-optimal adoption.
 
 Three mechanisms appear especially plausible in this dataset window.
-\\textit{Anchoring and inertia}: Dragapult was an early reference deck in the format, and early winners anchor subsequent deck selection norms.
-\\textit{Visibility bias}: highly represented decks receive disproportionate stream and testing coverage, which in turn reinforces representation.
-\\textit{Coordination externalities}: testing groups often converge on shared lists to maximize prep efficiency, creating local lock-in even when global EV is weaker.
+\textit{Anchoring and inertia}: Dragapult was an early reference deck in the format, and early winners anchor subsequent deck selection norms.
+\textit{Visibility bias}: highly represented decks receive disproportionate stream and testing coverage, which in turn reinforces representation.
+\textit{Coordination externalities}: testing groups often converge on shared lists to maximize prep efficiency, creating local lock-in even when global EV is weaker.
 
 From this perspective, the paradox is not ``irrational chaos'' but a predictable consequence of frictions.
 Importantly, such frictions are measurable.
@@ -685,7 +694,7 @@ The resulting profile places approximately 93\% mass on Mega Absol Box and 7\% o
 Intuitively, Mega Absol dominates broad interactions while Dragapult remains as a support strategy in the equilibrium mix.
 Importantly, this is an equilibrium of the modeled payoff game, not a claim that observed players currently behave equilibrium-rationally.
 
-\begin{table*}[t]
+\begin{table*}[!t]
 \centering
 \caption{Observed vs Nash Equilibrium Metagame Shares}
 \label{tab:nash}
@@ -737,7 +746,7 @@ Applying this rule to the observed 2026 snapshot yields three verified qualitati
 (ii) Ceruledge experiences monotone decline under repeated replicator updates,
 and (iii) highest growth pressure points toward Mega Absol support growth.
 
-\begin{figure}[t]
+\begin{figure}[!t]
 \centering
 \[
 \begin{array}{ccc}
@@ -841,7 +850,7 @@ theorem bo3_amplifies_when_gt_half (p : Rat)
   nlinarith
 \end{lstlisting}
 
-\begin{table}[t]
+\begin{table}[!t]
 \centering
 \caption{Bo1 to Bo3 Amplification for Key Matchups}
 \label{tab:bo3}
@@ -858,7 +867,7 @@ Dragapult vs Charizard Noctowl & 64.1\% & 70.6\% \\
 \end{tabular}
 \end{table}
 
-The 67.3\%\,$\to$\,74.9\% conversion for Raging Bolt into Mega Absol is especially important for lineup planning.
+Table~\ref{tab:bo3} shows that the 67.3\%\,$\to$\,74.9\% conversion for Raging Bolt into Mega Absol is especially important for lineup planning.
 Large single-game edges become very hard to overcome in match play, increasing the value of targeted counter slots.
 
 \subsection{Tiering and Registration Policy}
@@ -985,10 +994,7 @@ These patterns keep proof scripts readable while preserving kernel-level assuran
 
 \subsection{Module-Level Statistics}
 
-Table~\ref{tab:modules} reports module-level code statistics used in this project snapshot.
-Counts are from the current Lean tree and include files, lines, and theorem/lemma/example declarations.
-
-\begin{table*}[t]
+\begin{table*}[!t]
 \centering
 \caption{Formalization Module Breakdown}
 \label{tab:modules}
@@ -1008,6 +1014,9 @@ Additional Specialized Modules & 30 & 12{,}672 & 1{,}284 \\
 \bottomrule
 \end{tabular}
 \end{table*}
+
+Table~\ref{tab:modules} reports module-level code statistics used in this project snapshot.
+Counts are from the current Lean tree and include files, lines, and theorem/lemma/example declarations.
 
 \subsection{Reproducibility Workflow}
 
@@ -1067,8 +1076,6 @@ This keeps turnaround practical for weekly competitive cycles.
 Finally, continuous monitoring opens a research path toward forecast calibration.
 Predictions made from one window (e.g., Dragapult decline pressure) can be scored against the next window.
 Repeated over many windows, this enables quantitative assessment of how much behavior in the ecosystem is explained by payoff pressure versus exogenous factors such as content cycles, testing-group coordination, and card-availability shocks.
-
-\clearpage
 
 %======================================================================
 \section{Threats to Validity}\label{sec:threats}
@@ -1134,6 +1141,7 @@ In that regime, formal methods can simultaneously improve reproducibility, inter
 Beyond this specific metagame snapshot, the broader contribution is methodological.
 Formal verification can serve as a practical scientific instrument for competitive game ecosystems: it turns qualitative metagame claims into executable definitions, theorem statements, and reproducible evidence.
 
+\balance
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 
