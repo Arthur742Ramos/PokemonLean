@@ -762,10 +762,7 @@ These patterns keep proof scripts readable while preserving kernel-level assuran
 
 \subsection{Trust Boundary: \texttt{native\_decide}}
 
-Several key theorems --- including the Nash equilibrium best-response checks and some replicator-dynamics results --- rely on \texttt{native\_decide}, which compiles Lean decision procedures to native code and executes them outside the kernel's proof-term checker.
-We use \texttt{native\_decide} for computational verification. While this bypasses the kernel proof-term checker, it is standard practice in the Lean and Mathlib communities for large finite decision problems where \texttt{decide} would require prohibitive compilation time or memory.
-We verified a representative subset of key theorems with kernel-checked \texttt{decide} to validate consistency.
-All uses of \texttt{native\_decide} in this development could in principle be replaced by \texttt{decide} at the cost of substantially longer build times.
+All computational proofs use \texttt{native\_decide}, which compiles decidability witnesses to native code and trusts the Lean compiler's code generation. We investigated replacing \texttt{native\_decide} with the kernel-checked \texttt{decide} tactic, which would eliminate this trust assumption entirely. However, \texttt{decide} is \emph{structurally precluded}: our matrix computations use \texttt{Fin.foldl}, which is opaque to the Lean 4 kernel reducer and causes \texttt{decide} to fail immediately rather than time out. This is a known limitation of the current Lean 4 kernel, not specific to our proofs. A kernel-transparent reimplementation of the fold operations, or future kernel improvements, would enable fully kernel-checked verification. We note that \texttt{native\_decide} has been extensively validated by the Lean community and is the standard approach for computational proofs over finite structures~\cite{moura2021lean}.
 
 \subsection{Module-Level Statistics}
 
