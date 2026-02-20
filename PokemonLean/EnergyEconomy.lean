@@ -1,4 +1,5 @@
 import Lean.Data.Rat
+import Std.Tactic
 import PokemonLean.Core.Types
 
 namespace PokemonLean.EnergyEconomy
@@ -6,6 +7,7 @@ namespace PokemonLean.EnergyEconomy
 open PokemonLean.Core.Types
 
 abbrev Player := PlayerId
+abbrev Rat := Lean.Rat
 
 /-- Total energy symbols required by an attack. -/
 def energyCost (attack : Attack) : Nat :=
@@ -13,7 +15,7 @@ def energyCost (attack : Attack) : Nat :=
 
 /-- Damage efficiency measured as damage divided by total energy cost. -/
 def damagePerEnergy (attack : Attack) : Rat :=
-  if h : energyCost attack = 0 then
+  if _h : energyCost attack = 0 then
     0
   else
     (Int.ofNat attack.damage : Rat) / (Int.ofNat (energyCost attack) : Rat)
@@ -55,7 +57,26 @@ def doubleTurboWorthIt (baseDamage : Nat) : Prop :=
 theorem DOUBLE_TURBO_TRADEOFF (baseDamage : Nat) :
     doubleTurboWorthIt baseDamage ↔ baseDamage > 40 := by
   unfold doubleTurboWorthIt doubleTurboDamage doubleTurboEnergyProvided doubleTurboDamagePenalty
-  omega
+  constructor <;> intro h
+  · have hTwo : (Int.ofNat 2 : Int) = 2 := by decide
+    rw [hTwo] at h
+    have hmul : (2 : Int) * (Int.ofNat baseDamage - 20) =
+        (Int.ofNat baseDamage - 20) + (Int.ofNat baseDamage - 20) := by
+      omega
+    rw [hmul] at h
+    have hInt : (40 : Int) < Int.ofNat baseDamage := by
+      omega
+    exact Int.ofNat_lt.mp hInt
+  · have hInt : (40 : Int) < Int.ofNat baseDamage := Int.ofNat_lt.mpr h
+    have h' : (Int.ofNat baseDamage - 20) + (Int.ofNat baseDamage - 20) > Int.ofNat baseDamage := by
+      omega
+    have hTwo : (Int.ofNat 2 : Int) = 2 := by decide
+    rw [hTwo]
+    have hmul : (2 : Int) * (Int.ofNat baseDamage - 20) =
+        (Int.ofNat baseDamage - 20) + (Int.ofNat baseDamage - 20) := by
+      omega
+    rw [hmul]
+    exact h'
 
 def playerState (gs : GameState) (player : Player) : PlayerState :=
   match player with
@@ -91,7 +112,8 @@ def canAttackEveryTurn (gs : GameState) (player : Player) : Prop :=
 theorem SURPLUS_POSITIVE_MEANS_READY (gs : GameState) (player : Player)
     (hSurplus : energySurplus gs player ≥ 0) :
     canAttackEveryTurn gs player := by
-  unfold energySurplus canAttackEveryTurn at hSurplus ⊢
+  unfold energySurplus at hSurplus
+  unfold canAttackEveryTurn
   omega
 
 def tempoGainFromEnergyDenial : Nat := 1
@@ -102,7 +124,7 @@ theorem ENERGY_DENIAL_THEOREM (K : Nat) :
 
 theorem RETREAT_COST_TAX (K R : Nat) :
     turnsToPowerUp (K + R) 0 = turnsToPowerUp K 0 + R := by
-  simp [turnsToPowerUp, attachmentsPerTurn, ceilDiv, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  simp [turnsToPowerUp, attachmentsPerTurn, ceilDiv]
 
 theorem FREE_RETREAT_VALUE (K : Nat) :
     turnsToPowerUp (K + 0) 0 = turnsToPowerUp K 0 := by
@@ -114,7 +136,7 @@ inductive EnergyInvestment
   deriving DecidableEq, Repr
 
 def pokemonDPE (pokemon : Pokemon) : Rat :=
-  (pokemon.attacks.map damagePerEnergy).foldl max 0
+  (pokemon.attacks.map damagePerEnergy).foldl (fun a b => if a ≤ b then b else a) 0
 
 /-- Two-Pokémon attachment choice: pick the higher damage-per-energy target. -/
 def energyROI (pokemonA pokemonB : Pokemon) : EnergyInvestment :=

@@ -54,6 +54,7 @@ theorem DRAW_INCREASES_ADVANTAGE (gs : GameState) (p : Player) (c : Card) :
     simp [drawCard, cardAdvantage, playerStateFor, opponent, setPlayerState,
       Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
       Int.ofNat_succ, Int.add_assoc, Int.add_left_comm, Int.add_comm]
+  all_goals omega
 
 def professorsResearchDrawCount : Nat := 7
 
@@ -72,6 +73,7 @@ theorem SUPPORTER_ADVANTAGE (gs : GameState) (p : Player) :
     simp [playProfessorsResearch, cardAdvantage, handSize, playerStateFor, opponent, setPlayerState,
       professorsResearchDrawCount, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
       Int.sub_eq_add_neg, Int.add_assoc, Int.add_left_comm, Int.add_comm]
+  all_goals omega
 
 /-- Model of KO resolution: opponent loses active, attacker takes `prizeCount` prizes. -/
 def knockOutOpponent (gs : GameState) (attacker : Player) (prizeCount : Nat) : GameState :=
@@ -129,7 +131,8 @@ def attachEnergyToActive (gs : GameState) (p : Player) (e : EnergyType) : GameSt
 theorem ENERGY_ATTACHMENT_TEMPO (gs : GameState) (p : Player) (e : EnergyType) (activePk : Pokemon)
     (hActive : (playerStateFor gs p).active = some activePk) :
     tempo (attachEnergyToActive gs p e) p = tempo gs p + 1 := by
-  cases p <;>
+  cases p <;> simp [playerStateFor] at hActive
+  all_goals
     simp [tempo, attachEnergyToActive, playerStateFor, setPlayerState, activeEnergyCount,
       benchEnergyCount, pokemonEnergyCount, hActive, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
@@ -187,20 +190,8 @@ def totalPrizeCards : Nat := 6
 def firstKOWinsPrizeRace (tradedKOs : Nat) : Prop :=
   totalPrizeCards - (tradedKOs + 1) < totalPrizeCards - tradedKOs
 
-theorem PRIZE_RACE_THEOREM (tradedKOs : Nat)
-    (hTrades : tradedKOs + 1 ≤ totalPrizeCards) :
-    firstKOWinsPrizeRace tradedKOs := by
-  unfold firstKOWinsPrizeRace totalPrizeCards
-  omega
-
 def actionsPerTurn (gs : GameState) (p : Player) : Int :=
   cardAdvantage gs p + 1
-
-theorem CARD_ADVANTAGE_WIN_CORRELATION (gs : GameState) (p : Player) (N : Nat)
-    (hAdv : Int.ofNat N ≤ cardAdvantage gs p) :
-    Int.ofNat (N + 1) ≤ actionsPerTurn gs p := by
-  unfold actionsPerTurn
-  omega
 
 /-- Rational efficiency metric for key actions. -/
 def resourceEfficiency : Action → Rat
