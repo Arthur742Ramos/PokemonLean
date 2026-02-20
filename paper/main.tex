@@ -21,13 +21,16 @@
 
 \lstset{
   language=Lean,
-  basicstyle=\ttfamily\footnotesize,
+  basicstyle=\ttfamily\scriptsize,
   keywordstyle=\color{blue!55!black}\bfseries,
   commentstyle=\color{green!40!black}\itshape,
   stringstyle=\color{orange!50!black},
   frame=single,
   breaklines=true,
-  columns=fullflexible,
+  breakatwhitespace=true,
+  breakautoindent=true,
+  postbreak=\mbox{\textcolor{gray}{\(\hookrightarrow\)}\space},
+  columns=flexible,
   keepspaces=true,
   showstringspaces=false,
   numbers=left,
@@ -125,48 +128,35 @@ Our results also connect to bounded-rationality behavior, where popularity and e
 \section{Game Formalization}\label{sec:formalization}
 %======================================================================
 
-This section defines the executable game model and theorems proving that rule execution is safe, complete enough for play progression, and resource-conserving.
-The development is in Lean and uses finite data types to keep claims decidable whenever possible.
-We separate the rule engine into four layers: (i) static card data and typing rules, (ii) state-transition legality, (iii) zone/accounting invariants, and (iv) terminal-condition theorems.
-This layering reduces proof coupling and allows aggressive lemma reuse between card effects.
-For example, card-zone invariants used for Professor's Research are later reused unchanged for Iono-, Judge-, and draw-then-switch-style effects.
-Within Section III alone, the implementation contains hundreds of lemmas, including progress/preservation properties and conservation statements over zone cardinalities.
+This section presents the executable Lean game model and the key safety claims used later in metagame analysis.
+We emphasize state structure, legality soundness/completeness, and card-conservation invariants.
 
 \subsection{Core Semantic Objects}
 
-We start from card and player primitives.
+We start with a compact theorem capturing the Fire/Water/Grass interaction cycle that drives many matchup intuitions.
 
-\begin{lstlisting}[caption={Core card and player types.},label={lst:core-types}]
-inductive Player where
-  | p1 | p2
-  deriving DecidableEq, Repr
-
-inductive PokemonType where
-  | Fire | Water | Grass | Lightning
-  | Psychic | Fighting | Darkness
-  | Metal | Dragon | Fairy | Colorless
-  deriving DecidableEq, Repr
-
-inductive Card where
-  | pokemon  (name : String) (hp : Nat) (ty : PokemonType)
-  | energy   (ty : PokemonType)
-  | trainer  (name : String)
-  deriving DecidableEq, Repr
+\begin{lstlisting}[caption={Type effectiveness triangle (Fire/Water/Grass).},label={lst:core-types}]
+theorem triangle_fire_water_grass :
+  effectiveness .fire .grass =
+    .superEffect /\
+  effectiveness .water .fire =
+    .superEffect /\
+  effectiveness .grass .water =
+    .superEffect := by
+  exact ⟨by decide, by decide, by decide⟩
 \end{lstlisting}
 
-The model is intentionally value-level and concrete: cards are closed terms, not opaque IDs.
-This enables direct finite reasoning over multisets and deck constraints.
-It also avoids a frequent formalization pitfall in game engines: indirection lemmas that translate between IDs and semantic payloads.
-By keeping constructors transparent, proofs over effects (draw, discard, attach, switch) can rewrite directly under evaluation rather than requiring auxiliary lookup-invariance obligations.
-In practice this reduces proof length and increases robustness when card pools rotate, because theorem statements remain stable under extension of the global card universe.
+This keeps the formal type layer visible without spending manuscript space on constructor boilerplate.
 
 \subsection{Game State and Zone Invariants}
 
-\begin{lstlisting}[caption={Game state with explicit zones and turn metadata.},label={lst:gamestate}]
+\begin{lstlisting}[float,floatplacement=t,caption={Game state with explicit zones and turn metadata.},label={lst:gamestate}]
 structure Board where
   active  : Card
-  bench   : List Card      -- bounded to <= 5 by invariant
-  prizes  : List Card      -- exactly 6 at initialization
+  bench   : List Card
+  -- bounded to <= 5 by invariant
+  prizes  : List Card
+  -- exactly 6 at initialization
   deriving DecidableEq, Repr
 
 structure GameState where
@@ -190,203 +180,63 @@ For each player we define
 \]
 and prove it is invariant under every legal transition constructor.
 
-\begin{lstlisting}[caption={Player-indexed zone counting and one-step conservation.},label={lst:zone-count}]
-def zoneCount (s : GameState) (pl : Player) : Nat :=
-  (handOf s pl).length + (deckOf s pl).length + (discardOf s pl).length +
-  (boardOf s pl).prizes.length + boardCount (boardOf s pl)
-
-theorem zoneCount_preserved_step
-  (hStep : Step ts ts') (pl : Player) :
-  zoneCount ts'.gs pl = zoneCount ts.gs pl := by
-  cases hStep <;> simp [zoneCount, boardCount]
-\end{lstlisting}
-
 This statement is the accounting backbone for all effect-level conservation proofs.
 It is deliberately phrased over arbitrary \texttt{Step} constructors so new legal actions inherit conservation obligations by construction.
 When a new card effect is introduced, the only required bridge lemma is that its transition inhabitant belongs to \texttt{Step}; global conservation then follows immediately.
 
-\subsection{Turn Structure as a Small-Step Relation}
-
-\begin{lstlisting}[caption={Turn phases and legal transition relation.},label={lst:turn-structure}]
-inductive Phase where
-  | draw | main | attack | betweenTurns
-  deriving DecidableEq, Repr
-
-structure TurnState where
-  gs    : GameState
-  phase : Phase
-  deriving Repr
-
-inductive Step : TurnState -> TurnState -> Prop where
-  | drawCard   : legalDraw s -> Step (mk s .draw) (mk s' .main)
-  | playMain   : legalMainAction s a -> Step (mk s .main) (mk s' .main)
-  | endMain    : Step (mk s .main) (mk s .attack)
-  | resolveAtk : legalAttack s -> Step (mk s .attack) (mk s' .betweenTurns)
-  | endTurn    : Step (mk s .betweenTurns) (mk (nextTurn s) .draw)
-\end{lstlisting}
-
-This relation distinguishes rule-level legality from strategy-level quality.
-A player can always pass from main to attack, making non-terminal stagnation impossible when decks are nonempty.
-
-\begin{lstlisting}[caption={Progress for non-terminal states.},label={lst:progress-theorem}]
-theorem turn_progress
-  (hNonTerminal : Not  terminal ts.gs) :
-  Exists  ts', Step ts ts' := by
-  cases ts.phase with
-  | draw => exact draw_phase_progress hNonTerminal
-  | main => exact main_phase_progress hNonTerminal
-  | attack => exact attack_phase_progress hNonTerminal
-  | betweenTurns => exact between_turns_progress hNonTerminal
-\end{lstlisting}
-
-The theorem ensures each non-terminal state has an outgoing legal transition.
-Together with finite branching, this supports total simulation by bounded search.
-
-\begin{lstlisting}[caption={Determinism under fixed random outcomes.},label={lst:determinism}]
-theorem step_deterministic
-  (h1 : Step ts ts1) (h2 : Step ts ts2)
-  (hRng : rngTrace ts = rngTrace ts) :
-  ts1 = ts2 := by
-  cases h1 <;> cases h2 <;> simp_all
-\end{lstlisting}
-
-Determinism and progress together yield a useful meta-property:
-for any fixed random tape and legal initial state, simulation produces a unique maximal trace.
-This is essential for reproducibility because all downstream matchup and probability claims assume a stable operational semantics.
-
-\begin{lstlisting}[caption={Preservation of legality through one transition.},label={lst:preservation}]
-theorem step_preserves_legal
-  (hLegal : LegalState ts.gs) (hStep : Step ts ts') :
-  LegalState ts'.gs := by
-  cases hStep with
-  | drawCard h => exact draw_preserves_legal hLegal h
-  | playMain h => exact main_preserves_legal hLegal h
-  | endMain => simpa using hLegal
-  | resolveAtk h => exact attack_preserves_legal hLegal h
-  | endTurn => exact next_turn_preserves_legal hLegal
-\end{lstlisting}
-
-Progress plus preservation gives a full safety/liveness pair for non-terminal play:
-legal states do not get stuck and legal states do not step into malformed states.
-This pair is the exact interface needed by the tournament-analysis layer, which assumes that simulated games both continue and remain semantically valid.
-
-\begin{table}[t]
-\centering
-\caption{Core State Invariants Proven in Rule Semantics}
-\label{tab:state-invariants}
-\begin{tabular}{lp{0.52\columnwidth}}
-\toprule
-\textbf{Invariant} & \textbf{Statement} \\
-\midrule
-Bench bound & Bench size remains at most 5 after every legal transition. \\
-Prize integrity & Exactly 6 prize cards exist per player until taken by KO effects. \\
-Zone conservation & Total cards across all zones remain constant modulo public reveals. \\
-Turn ownership & Active player alternates after every completed turn. \\
-Terminal exclusivity & Win conditions are pairwise disjoint in any reached terminal state. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{Deck Legality and Biconditional Correctness}
 
-\begin{lstlisting}[caption={Computable deck legality checker.},label={lst:deck-checker}]
-def checkDeckLegal (d : List Card) : Bool :=
-  let sizeOk := d.length == 60
-  let copyOk :=
-    d.eraseDups.all (fun c =>
-      match c with
-      | Card.energy _ => true
-      | _ => count c d <= 4)
-  let basicOk := d.any isBasicPokemon
-  sizeOk && copyOk && basicOk
-\end{lstlisting}
-
-\begin{lstlisting}[caption={Deck legality biconditional theorem.},label={lst:deck-biconditional}]
-inductive DeckLegal : List Card -> Prop where
+\begin{lstlisting}[float,floatplacement=t,caption={Deck legality biconditional theorem.},label={lst:deck-biconditional}]
+inductive DeckLegal : List Card -> Prop
+  where
   | intro
       (hSize : d.length = 60)
-      (hCopies : forall  c, Not  isBasicEnergy c -> count c d <= 4)
-      (hBasic : Exists  c in d, isBasicPokemon c) : DeckLegal d
+      (hCopies :
+        forall c,
+          Not (isBasicEnergy c) ->
+          count c d <= 4)
+      (hBasic :
+        Exists c in d, isBasicPokemon c) :
+      DeckLegal d
 
-theorem deck_legal_iff_checker (d : List Card) :
-  checkDeckLegal d = true <-> DeckLegal d := by
+theorem deck_legal_iff_checker
+  (d : List Card) :
+  checkDeckLegal d = true <->
+    DeckLegal d := by
   constructor
-  - intro h; exact checker_sound h
-  - intro h; exact checker_complete h
+  - intro h
+    exact checker_sound h
+  - intro h
+    exact checker_complete h
 \end{lstlisting}
 
 The biconditional is critical: all tournament-analysis assumptions about legal lists reduce to a proved decision procedure, not an informal parser.
 The proof splits into cardinality, multiplicity, and basic-presence subgoals, each discharged by dedicated normalization lemmas.
 This structure gives a robust maintenance path when set legality rotates and card pools change.
 
-\begin{lstlisting}[caption={Asymptotic bound for legality checking.},label={lst:deck-complexity}]
-theorem checkDeckLegal_quadratic (d : List Card) :
-  runtime (checkDeckLegal d) <= c1 * d.length^2 + c2 := by
-  unfold checkDeckLegal
-  omega
-\end{lstlisting}
-
-While asymptotic performance is not a theorem-proving bottleneck for 60-card decks, proving this bound prevents accidental regressions in parser or checker refactors.
-
-\begin{lstlisting}[caption={Decidable legality witness extraction.},label={lst:deck-decidable}]
-theorem deckLegal_decidable (d : List Card) : Decidable (DeckLegal d) := by
-  classical
-  exact decidable_of_iff (checkDeckLegal d = true) (deck_legal_iff_checker d).symm
-
-theorem checker_returns_certificate
-  (d : List Card) (h : checkDeckLegal d = true) :
-  Exists fun cert : DeckLegal d => True := by
-  exact Exists.intro ((deck_legal_iff_checker d).1 h) trivial
-\end{lstlisting}
-
-The certificate theorem is operationally useful for ingestion of tournament decklists.
-Rather than returning only a Boolean, the parser pipeline can attach a proof object that each imported list satisfies legality assumptions consumed by matchup theorems.
-
 \subsection{Card Effects and Conservation: Professor's Research}
 
 Professor's Research discards hand then draws seven.
 Because card movement spans multiple zones, it is a canonical conservation stress test.
 
-\begin{lstlisting}[caption={Operational effect for Professor's Research.},label={lst:prof-research-def}]
-def playProfResearch (s : GameState) (pl : Player) : GameState :=
-  let hand := handOf s pl
-  let deck := deckOf s pl
-  let draw := deck.take 7
-  let deck' := deck.drop 7
-  let discard' := discardOf s pl ++ hand ++ [Card.trainer "Professor's Research"]
-  setZones s pl (draw, deck', discard')
-\end{lstlisting}
-
-\begin{lstlisting}[caption={Card-conservation theorem for Professor's Research.},label={lst:prof-conservation}]
-def totalCards (s : GameState) (pl : Player) : Nat :=
-  (handOf s pl).length + (deckOf s pl).length +
-  (discardOf s pl).length + boardCount (boardOf s pl)
+\begin{lstlisting}[float,floatplacement=t,caption={Card-conservation theorem for Professor's Research.},label={lst:prof-conservation}]
+def totalCards
+  (s : GameState) (pl : Player) : Nat :=
+  (handOf s pl).length +
+    (deckOf s pl).length +
+    (discardOf s pl).length +
+    boardCount (boardOf s pl)
 
 theorem prof_research_conserves_cards
   (s : GameState) (pl : Player) :
-  totalCards (playProfResearch s pl) pl = totalCards s pl := by
+  totalCards (playProfResearch s pl) pl =
+    totalCards s pl := by
   unfold playProfResearch totalCards
   omega
 \end{lstlisting}
 
 This theorem is representative of a broader invariant family proved for every implemented trainer effect.
-In addition to global conservation, we prove phase-local delta lemmas that characterize exactly how hand, deck, and discard counts shift.
-These lemmas make card-advantage reasoning compositional: support effects can be compared symbolically without replaying low-level zone manipulations.
-
-\begin{lstlisting}[caption={Fine-grained zone deltas for Professor's Research.},label={lst:prof-deltas}]
-theorem prof_research_hand_size
-  (s : GameState) (pl : Player) :
-  (handOf (playProfResearch s pl) pl).length = 7 := by
-  unfold playProfResearch
-  simp
-
-theorem prof_research_discard_delta
-  (s : GameState) (pl : Player) :
-  (discardOf (playProfResearch s pl) pl).length =
-    (discardOf s pl).length + (handOf s pl).length + 1 := by
-  unfold playProfResearch
-  simp
-\end{lstlisting}
+The same accounting pattern extends to other draw/discard supporters.
 
 %======================================================================
 \section{Probability and Resource Theory}\label{sec:probability}
@@ -397,87 +247,47 @@ All probability values are encoded as exact rationals and only rendered as decim
 Our probability layer is intentionally shared between deck-construction questions (opening consistency, prize risk) and in-game sequencing questions (attachment tempo, draw-support efficiency).
 This avoids duplicate analytic machinery and ensures all strategic quantities are computed in one algebraic universe.
 
-\subsection{Discrete Distribution Monad}
-
-\begin{lstlisting}[caption={Distribution monad over finite support.},label={lst:dist-monad}]
-structure Dist (alpha : Type) where
-  support : List (alpha * Rat)
-  norm    : support.foldl (fun acc p => acc + p.2) 0 = 1
-
-instance : Monad Dist where
-  pure x := <[(x, 1)], by native_decide>
-  bind d f := normalize <|
-    d.support.bind (fun <x, px> =>
-      (f x).support.map (fun <y, py> => (y, px * py)))
-
-abbrev coinFlip : Dist Bool :=
-  <[(true, 1/2), (false, 1/2)], by native_decide>
-\end{lstlisting}
-
-The monad gives compositional semantics for coin flips, prize reveals, and randomized setup.
-Expectation and event probability are defined as folds over support with proof obligations discharged by \texttt{native\_decide}.
-The design choice to normalize during \texttt{bind} guarantees closure of well-formed distributions and keeps monadic composition total on finite supports.
-
-\begin{lstlisting}[caption={Expectation operator and monad sanity theorems.},label={lst:dist-expectation}]
-def expectation (d : Dist alpha) (f : alpha -> Rat) : Rat :=
-  d.support.foldl (fun acc p => acc + p.2 * f p.1) 0
-
-theorem expectation_pure (x : alpha) (f : alpha -> Rat) :
-  expectation (pure x : Dist alpha) f = f x := by
-  native_decide
-
-theorem expectation_bind (d : Dist alpha) (g : alpha -> Dist beta) (f : beta -> Rat) :
-  expectation (d >>= g) f = expectation d (fun x => expectation (g x) f) := by
-  native_decide
-\end{lstlisting}
-
 \subsection{Hypergeometric Consistency Results}
 
-\begin{lstlisting}[caption={Verified opening-hand and prize-lock probabilities.},label={lst:hypergeom}]
+\begin{lstlisting}[float,floatplacement=t,caption={Verified opening-hand and prize-lock probabilities.},label={lst:hypergeom}]
 theorem four_of_opening_hit :
   P[drawAtLeastOne 60 4 7] =
-    1 - (choose 56 7 : Rat) / (choose 60 7) := by native_decide
+    1 - (choose 56 7 : Rat) /
+      (choose 60 7) := by
+  native_decide
 
 theorem four_of_opening_hit_pct :
-  toPct (P[drawAtLeastOne 60 4 7]) = 39.9 := by native_decide
+  toPct (P[drawAtLeastOne 60 4 7]) =
+    39.9 := by
+  native_decide
 
 theorem mulligan_12_basic_pct :
-  toPct (P[drawZeroSuccess 60 12 7]) = 19.1 := by native_decide
+  toPct (P[drawZeroSuccess 60 12 7]) =
+    19.1 := by
+  native_decide
 
 theorem supporter_access_12_pct :
-  toPct (P[drawAtLeastOne 60 12 7]) = 80.9 := by native_decide
+  toPct (P[drawAtLeastOne 60 12 7]) =
+    80.9 := by
+  native_decide
 
 theorem all_four_prized_exact :
-  P[allCopiesPrized 60 4 6] = (1 : Rat) / 32509 := by native_decide
+  P[allCopiesPrized 60 4 6] =
+    (1 : Rat) / 32509 := by
+  native_decide
 \end{lstlisting}
 
-These values anchor practical deck-building decisions.
-A four-of appears in the opener only 39.9\% of the time, which quantitatively motivates redundant search and draw engines.
-The 19.1\% mulligan probability for 12 basics is also large enough to influence expected round time and information leakage, because repeated reveal-and-redraw cycles expose deck class before turn one.
-
-\begin{table}[t]
-\centering
-\caption{Hypergeometric Benchmarks Used in Testing}
-\label{tab:hypergeom-values}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Event} & \textbf{Exact Form} & \textbf{Value} \\
-\midrule
-Open at least one copy of a four-of & $1-\frac{\binom{56}{7}}{\binom{60}{7}}$ & 39.9\% \\
-Mulligan with 12 basics & $\frac{\binom{48}{7}}{\binom{60}{7}}$ & 19.1\% \\
-Open at least one of 12 supporters & $1-\frac{\binom{48}{7}}{\binom{60}{7}}$ & 80.9\% \\
-All four prized & $\frac{\binom{4}{4}\binom{56}{2}}{\binom{60}{6}}$ & $1/32509$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+These exact values anchor deck-building choices: opening access to a four-of is only 39.9\%, and 12 basics still implies a 19.1\% mulligan rate.
 
 \subsection{Energy Tempo and Damage Tradeoffs}
 
 \begin{lstlisting}[caption={Energy bottleneck theorem without acceleration.},label={lst:energy-bottleneck}]
-def minTurnsToReach (need accel : Nat) : Nat :=
+def minTurnsToReach
+  (need accel : Nat) : Nat :=
   Nat.ceilDiv need (accel + 1)
 
-theorem energy_bottleneck (k : Nat) (hk : k > 0) :
+theorem energy_bottleneck
+  (k : Nat) (hk : k > 0) :
   minTurnsToReach k 0 = k := by
   unfold minTurnsToReach
   omega
@@ -485,64 +295,7 @@ theorem energy_bottleneck (k : Nat) (hk : k > 0) :
 
 One attachment per turn induces a strict tempo floor.
 If a deck's damage breakpoint is set behind a three-energy attack, it cannot pressure early prizes without acceleration effects.
-
-\begin{lstlisting}[caption={Double Turbo Energy breakeven criterion.},label={lst:dte-breakeven}]
-def dteNetDamage (base : Int) : Int := base - 20
-
-theorem double_turbo_breakeven (base : Int) :
-  (dteNetDamage base > 0) <-> (base > 20) := by omega
-
-theorem double_turbo_two_turn_breakeven (base : Int) :
-  (2 * dteNetDamage base >= base) <-> (base >= 40) := by omega
-\end{lstlisting}
-
-The second theorem captures the practical criterion used in testing: the two-turn cumulative line with early attack pressure becomes favorable when base damage is at least 40.
-This is exactly the ``tempo tax'' that Double Turbo imposes: the deck gains earlier activation but pays a fixed damage penalty that only amortizes once base-damage ceilings are high enough.
-
-\begin{table}[t]
-\centering
-\caption{Double Turbo Energy Damage Breakeven Intuition}
-\label{tab:dte-breakpoints}
-\begin{tabular}{ccc}
-\toprule
-\textbf{Base} & \textbf{Net with DTE} & \textbf{Two-turn line favorable?} \\
-\midrule
-30 & 10 & No \\
-40 & 20 & Borderline (equal) \\
-60 & 40 & Yes \\
-120 & 100 & Yes \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Card Advantage as a Verified Resource Functional}
-
-\begin{lstlisting}[caption={Card advantage accounting for draw supporters.},label={lst:card-advantage}]
-def cardAdvantage (drawn spent : Int) : Int := drawn - spent
-
-def profResearchAdv : Int := cardAdvantage 7 1
-
-def ionoAdv (opponentHand myHand : Int) : Int :=
-  cardAdvantage myHand 1 + cardAdvantage opponentHand 0
-
-theorem prof_research_advantage : profResearchAdv = 6 := by native_decide
-\end{lstlisting}
-
-This abstraction allows theorem-level comparison of support engines under tempo constraints.
-A high raw draw count is not always strategically dominant; advantage must be discounted by delayed attack turns, which we model as a coupled objective with energy tempo.
-Formally, we treat ``cards seen'' and ``damage enabled'' as separate state-functionals and then prove tradeoff inequalities when an engine consumes the main-action slot or delays attachments.
-
-\begin{lstlisting}[caption={Tempo-adjusted card advantage objective.},label={lst:tempo-adjusted-adv}]
-def tempoPenalty (lostAttacks : Int) : Int := 2 * lostAttacks
-
-def strategicValue (drawn spent lostAttacks : Int) : Int :=
-  cardAdvantage drawn spent - tempoPenalty lostAttacks
-
-theorem prof_vs_passive_engine
-  (h : strategicValue 7 1 0 > strategicValue 4 1 1) :
-  True := by
-  trivial
-\end{lstlisting}
+This one-line result is the clean ``tempo tax'' statement used in later strategic comparisons.
 
 %======================================================================
 \section{Tournament Data and Measurement}\label{sec:data}
@@ -559,18 +312,53 @@ Each matchup is encoded as exact wins/losses/ties and transformed to
 \]
 The one-third tie weighting aligns with Swiss match-point semantics.
 All 196 directed entries are imported into Lean as reduced rationals to avoid floating-point drift.
-Each directed entry is paired with the opposite direction to enforce anti-symmetry up to ties:
-if deck $i$ beats deck $j$ at rate $p$ with no tie imbalance, then deck $j$ beats deck $i$ at $1-p$.
-Encoding this relationship in Lean catches row/column indexing mistakes that often occur in spreadsheet pipelines.
+From this matrix we prove that no archetype dominates the field: every deck has at least one losing matchup.
 
-\begin{lstlisting}[caption={Matrix-entry consistency over directed matchup pairs.},label={lst:matrix-consistency}]
-theorem directed_pair_consistent (i j : Fin 14) :
-  wrMatrix i j + wrMatrix j i = 1 := by
-  native_decide
-
-theorem diagonal_near_fifty (i : Fin 14) :
-  Rat.abs (wrMatrix i i - (1/2 : Rat)) <= 3/100 := by
-  native_decide
+\begin{lstlisting}[float,floatplacement=t,caption={No dominant deck theorem on the 14-deck field.},label={lst:matrix-consistency}]
+theorem no_dominant_deck :
+  ∀ d : Deck, ∃ d' : Deck,
+    d ≠ d' /\ matchupWR d d' < 500 := by
+  intro d
+  cases d
+  · exact
+      ⟨.Gardevoir, by decide, by decide⟩
+  · exact
+      ⟨.AlakazamDudunsparce,
+        by decide, by decide⟩
+  · exact
+      ⟨.MegaAbsolBox,
+        by decide, by decide⟩
+  · exact
+      ⟨.RagingBoltOgerpon,
+        by decide, by decide⟩
+  · exact
+      ⟨.GrimssnarlFroslass,
+        by decide, by decide⟩
+  · exact
+      ⟨.DragapultDusknoir,
+        by decide, by decide⟩
+  · exact
+      ⟨.GrimssnarlFroslass,
+        by decide, by decide⟩
+  · exact
+      ⟨.DragapultCharizard,
+        by decide, by decide⟩
+  · exact
+      ⟨.GrimssnarlFroslass,
+        by decide, by decide⟩
+  · exact
+      ⟨.AlakazamDudunsparce,
+        by decide, by decide⟩
+  · exact
+      ⟨.Ceruledge, by decide, by decide⟩
+  · exact
+      ⟨.Gardevoir, by decide, by decide⟩
+  · exact
+      ⟨.AlakazamDudunsparce,
+        by decide, by decide⟩
+  · exact
+      ⟨.AlakazamDudunsparce,
+        by decide, by decide⟩
 \end{lstlisting}
 
 \begin{table*}[t]
@@ -631,49 +419,6 @@ Figure~\ref{fig:cycle} visualizes the highest-pressure arc used later in the dyn
 \label{fig:cycle}
 \end{figure}
 
-\subsection{Sample Size and Uncertainty}
-
-Observed game counts are uneven.
-Large cells such as Dragapult mirrors (2{,}845 games) have narrow uncertainty, while low-share cross-tier pairs are wider.
-For a binomial approximation, standard error is
-\[
-\sigma \approx \sqrt{\frac{p(1-p)}{n}}.
-\]
-At $p=0.673, n=312$ the one-sigma interval is roughly $\pm 2.6\%$; at $p=0.772, n=176$ it is $\pm 3.2\%$.
-These uncertainties do not erase directional conclusions but they do influence confidence when ranking closely clustered archetypes near 50\% expected WR.
-To make this explicit, we report approximate 95\% confidence windows for the core cross-tier edges.
-Even with conservative normal approximations, all four highlighted edges remain above 55\%, and the strongest edge (Alakazam vs Kangaskhan) remains far above parity.
-
-\begin{lstlisting}[caption={Exact-rational win-rate encoding and tie handling.},label={lst:wr-encoding}]
-structure MatchRecord where
-  wins : Nat
-  losses : Nat
-  ties : Nat
-
-abbrev wr (m : MatchRecord) : Rat :=
-  (m.wins + m.ties / 3) / (m.wins + m.losses + m.ties)
-
-theorem wr_bounds (m : MatchRecord) (h : m.wins + m.losses + m.ties > 0) :
-  0 <= wr m /\ wr m <= 1 := by
-  constructor <;> native_decide
-\end{lstlisting}
-
-\begin{table}[t]
-\centering
-\caption{Approximate 95\% Intervals for Key Cross-Tier Edges}
-\label{tab:cross-tier-ci}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Matchup} & \textbf{Point WR} & \textbf{95\% Interval} \\
-\midrule
-Raging Bolt vs Mega Absol & 67.3\% & [62.1, 72.5] \\
-Kangaskhan vs CharNoc & 63.5\% & [57.5, 69.5] \\
-Alakazam vs Gholdengo & 58.8\% & [53.1, 64.5] \\
-Alakazam vs Kangaskhan & 77.2\% & [71.0, 83.4] \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 %======================================================================
 \section{The Popularity Paradox}\label{sec:paradox}
 %======================================================================
@@ -685,26 +430,21 @@ Define expected field win rate of deck $i$ against metagame share vector $x$ as
 All values are exact in Lean and displayed to one decimal place.
 Because the share vector is itself normalized in Lean, expected values inherit exact weighted-sum semantics without floating-rounding ambiguity.
 
-\begin{lstlisting}[caption={Expected win-rate functional and normalization facts.},label={lst:expected-wr-def}]
-def expectedWR (i : Fin 14) (x : Mixed14) : Rat :=
-  Finset.univ.sum (fun j => x.w j * wrMatrix i j)
-
-theorem expectedWR_bounds (i : Fin 14) (x : Mixed14) :
-  0 <= expectedWR i x /\ expectedWR i x <= 1 := by
-  constructor <;> native_decide
-\end{lstlisting}
-
 \subsection{Formal Statement of the Paradox}
 
-\begin{lstlisting}[caption={Formal paradox theorem for Dragapult and Grimmsnarl.},label={lst:paradox-theorem}]
+\begin{lstlisting}[float,floatplacement=t,caption={Formal paradox theorem for Dragapult and Grimmsnarl.},label={lst:paradox-theorem}]
 theorem dragapult_popularity_paradox :
   metaShare dragapult = 0.155 /\
   metaShare grimmsnarl = 0.051 /\
-  expectedWR dragapult metaShares = 0.467 /\
-  expectedWR grimmsnarl metaShares = 0.527 /\
-  metaShare dragapult > metaShare grimmsnarl /\
+  expectedWR dragapult metaShares =
+    0.467 /\
+  expectedWR grimmsnarl metaShares =
+    0.527 /\
+  metaShare dragapult >
+    metaShare grimmsnarl /\
   expectedWR dragapult metaShares < 0.5 /\
-  expectedWR grimmsnarl metaShares > 0.5 := by
+  expectedWR grimmsnarl metaShares >
+    0.5 := by
   native_decide
 \end{lstlisting}
 
@@ -712,14 +452,6 @@ The theorem shows an inversion between adoption and payoff: collective play freq
 This is not a narrative claim; it is a Boolean proposition reduced in the kernel.
 An equivalent statement is that the rank order by share is not monotone with the rank order by expected field performance.
 This allows us to reason about paradox structure as an order-theoretic property rather than only a two-deck anecdote.
-
-\begin{lstlisting}[caption={Non-monotone ordering between popularity and expected WR.},label={lst:paradox-order}]
-theorem popularity_not_wr_monotone :
-  Exists i j : Fin 14,
-    metaShare i > metaShare j /\ expectedWR i observedMix < expectedWR j observedMix := by
-  refine Exists.intro dragapultIdx (Exists.intro grimmsnarlIdx ?_)
-  native_decide
-\end{lstlisting}
 
 \subsection{Expected Win Rate Table for All 14 Archetypes}
 
@@ -746,46 +478,9 @@ Grimmsnarl is the maximum and Ceruledge is the minimum by a substantial margin.
 Dragapult's 46.7\% is particularly important because it combines the highest share with a clearly negative expectation.
 The spread from 52.7\% to 43.1\% is wide relative to typical same-format deck clustering, which means archetype choice alone can dominate many in-game micro-optimizations.
 
-\begin{lstlisting}[caption={Lean ranking theorem over all 14 expected WR values.},label={lst:wr-ranking}]
-theorem expected_wr_extrema :
-  argmax expectedWR allDecks metaShares = grimmsnarl /\
-  maxVal expectedWR allDecks metaShares = 0.527 /\
-  argmin expectedWR allDecks metaShares = ceruledge /\
-  minVal expectedWR allDecks metaShares = 0.431 := by
-  native_decide
-\end{lstlisting}
-
-\begin{table}[t]
-\centering
-\caption{Top and Bottom Expected-WR Clusters}
-\label{tab:wr-clusters}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Cluster} & \textbf{Deck} & \textbf{Expected WR} \\
-\midrule
-Top & Grimmsnarl Froslass & 52.7\% \\
-Top & Mega Absol Box & 52.1\% \\
-Top & Alakazam ex & 51.9\% \\
-Bottom & Charizard ex & 47.9\% \\
-Bottom & Dragapult Dusknoir & 46.7\% \\
-Bottom & Ceruledge & 43.1\% \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{Behavioral-Economics Mechanisms}
 
-Four mechanisms plausibly sustain this paradox.
-\textbf{Anchoring:} players continue to value Dragapult by earlier-format dominance.
-\textbf{Herding:} list choices follow visible finishers rather than complete matchup matrices.
-\textbf{Information cascades:} once enough players adopt one deck, later players infer hidden quality from observed popularity itself.
-\textbf{Prospect-theoretic asymmetry:} many players over-weight avoiding regret from switching off a known deck relative to maximizing expected tournament points.
-
-These mechanisms are compatible with evolutionary-game observations where adoption lag persists even when payoffs are public~\cite{smith1973logic,weibull1997evolutionary}.
-Anchoring is amplified by content-creation cycles: deck labels with historical prestige receive disproportionate testing volume, which can create a self-reinforcing familiarity premium.
-Herding appears when players use day-two decklists as priors for local events even when local field composition differs; this compresses exploration and slows migration toward higher-EV alternatives.
-Information cascades are especially relevant in Swiss environments because partial records are observed round by round, causing players to infer deck quality from visibility rather than from calibrated matchup posteriors.
-Prospect-theory effects then convert these social signals into action by overweighting salient losses (``I lost after switching'') relative to diffuse gains (``my average round EV increased'').
+The paradox is consistent with anchoring, herding, and information-cascade effects documented in evolutionary learning models~\cite{smith1973logic,weibull1997evolutionary}: high-visibility decks can remain overplayed even when payoff data points elsewhere.
 
 \begin{figure}[t]
 \centering
@@ -824,29 +519,21 @@ a mixed equilibrium $x^*$ exists.
 \begin{lstlisting}[caption={Nash strategy witness and support conditions.},label={lst:nash-code}]
 structure Mixed14 where
   w : Fin 14 -> Rat
-  nonneg : forall  i, 0 <= w i
+  nonneg : forall i, 0 <= w i
   sum1 : (Finset.univ.sum w) = 1
 
-abbrev nashMix : Mixed14 := computedNash payoff14
+abbrev nashMix : Mixed14 :=
+  computedNash payoff14
 
 theorem nash_optimality :
-  saddlePoint payoff14 nashMix nashMix := by
-  exact computedNash_isSaddle payoff14
+  saddlePoint payoff14 nashMix nashMix :=
+    by exact computedNash_isSaddle
+      payoff14
 \end{lstlisting}
 
 For this matrix, 93\%+ of equilibrium mass lies on Mega Absol.
 The reason is structural: Absol is non-losing into most high-share decks and only sharply checked by a low-share counter (Raging Bolt).
 In minimax terms, heavily weighting Absol maximizes guaranteed value while keeping exploitability bounded.
-
-\begin{lstlisting}[caption={Certified concentration of Nash mass on Mega Absol.},label={lst:nash-concentration}]
-theorem nash_megabsol_mass :
-  nashMix.w megaAbsolIdx >= 932/1000 := by
-  native_decide
-
-theorem nash_dragapult_mass :
-  nashMix.w dragapultIdx = 68/1000 := by
-  native_decide
-\end{lstlisting}
 
 The concentration is not a numerical artifact of one solver run: it is a theorem over the encoded payoff matrix.
 Intuitively, Mega Absol occupies a robust middle of the payoff landscape with few severe liabilities, so minimax optimization pushes mass there unless an equally robust alternative appears.
@@ -871,143 +558,50 @@ Others (9 decks)    & 61.3\% & 0.0\%  & 61.3 \\
 
 \subsection{Replicator Dynamics and Short-Horizon Pressure}
 
-\begin{lstlisting}[caption={Replicator step operator on simplex.},label={lst:replicator-code}]
-def fitness (x : Mixed14) (i : Fin 14) : Rat :=
-  Finset.univ.sum (fun j => x.w j * payoff14 i j)
+\begin{lstlisting}[float,floatplacement=t,caption={Replicator step and above-average-fitness growth direction.},label={lst:replicator-code}]
+def replicatorStep
+  (eta : Rat) (x : Mixed14) : Mixed14 :=
+  normalize
+    (fun i =>
+      x.w i *
+        (1 + eta *
+          (fitness x i - meanFitness x)))
 
-def meanFitness (x : Mixed14) : Rat :=
-  Finset.univ.sum (fun i => x.w i * fitness x i)
+theorem grimmsnarl_above_avg_fitness :
+  avgFitness 4 realCyclePayoff
+    realCycleMeta <
+  fitness 4 realCyclePayoff
+    realCycleMeta ⟨1, by decide⟩ := by
+  native_decide
 
-def replicatorStep (eta : Rat) (x : Mixed14) : Mixed14 :=
-  normalize (fun i => x.w i * (1 + eta * (fitness x i - meanFitness x)))
-\end{lstlisting}
-
-\begin{lstlisting}[caption={Directional theorems from observed shares.},label={lst:replicator-theorems}]
-theorem dragapult_declines_one_step :
-  (replicatorStep (1/10) observedMix).w dragapultIdx <
-  observedMix.w dragapultIdx := by native_decide
-
-theorem grimmsnarl_increases_one_step :
-  (replicatorStep (1/10) observedMix).w grimmsnarlIdx >
-  observedMix.w grimmsnarlIdx := by native_decide
+theorem grimmsnarl_share_increases :
+  realCycleMeta ⟨1, by decide⟩ <
+  replicatorStep 4 realCyclePayoff
+    realCycleMeta (1/100)
+      ⟨1, by decide⟩ := by
+  native_decide
 \end{lstlisting}
 
 These theorems confirm local instability of the observed field under payoff-proportional adaptation.
 They also quantify why ``play what won last week'' can be dynamically fragile: positive payoff differential in one subpopulation induces immediate growth pressure, while overplayed negative-fitness choices contract.
 
-\begin{table}[t]
-\centering
-\caption{One-Step Replicator Share Movement (\(\eta=0.1\))}
-\label{tab:replicator-delta}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Deck} & \textbf{Observed} & \textbf{After one step} \\
-\midrule
-Dragapult Dusknoir & 15.5\% & 14.8\% \\
-Grimmsnarl Froslass & 5.1\% & 5.6\% \\
-Mega Absol Box & 5.0\% & 6.4\% \\
-Ceruledge & 2.1\% & 1.8\% \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Cycle Structure and Ceruledge Extinction}
-
-The strongest pressure edges produce a four-deck response cycle:
-\[
-\text{Raging Bolt} \rightarrow \text{Mega Absol} \rightarrow \text{Grimmsnarl} \rightarrow \text{Dragapult} \rightarrow \text{Raging Bolt}.
-\]
-Three of these edges are large and directly measured in our dataset (Fig.~\ref{fig:cycle}).
-The cycle matters because each best response creates incentive for the next response, so local adaptation can orbit strong pairings rather than converge quickly to global equilibrium.
-
-\begin{lstlisting}[caption={Cycle-edge theorem bundle used in dynamics proofs.},label={lst:cycle-edges}]
-theorem cycle_edge_g_to_d :
-  wrMatrix grimmsnarlIdx dragapultIdx = 572/1000 := by native_decide
-
-theorem cycle_edge_a_to_g :
-  wrMatrix megaAbsolIdx grimmsnarlIdx = 621/1000 := by native_decide
-
-theorem cycle_edge_r_to_a :
-  wrMatrix ragingBoltIdx megaAbsolIdx = 673/1000 := by native_decide
-\end{lstlisting}
-
-\begin{lstlisting}[caption={Ceruledge extinction under iterated replicator dynamics.},label={lst:ceruledge-extinction}]
-def iterRep (t : Nat) : Mixed14 := Nat.iterate (replicatorStep (1/10)) t observedMix
-
-theorem ceruledge_eventual_extinction :
-  forall  eps > 0, Exists  T, forall  t >= T,
-    (iterRep t).w ceruledgeIdx < eps := by
-  intro eps heps
-  exact ceruledge_decay_to_zero eps heps
-\end{lstlisting}
-
-\subsection{Distance from Equilibrium}
-
-\begin{lstlisting}[caption={$L_1$ distance between observed and Nash distributions.},label={lst:l1-distance}]
-def l1Dist (x y : Mixed14) : Rat :=
-  Finset.univ.sum (fun i => Rat.abs (x.w i - y.w i))
-
-theorem observed_far_from_nash :
-  l1Dist observedMix nashMix = 1.764 := by native_decide
-\end{lstlisting}
-
-An $L_1$ gap of 1.764 on a simplex-bounded scale of $[0,2]$ indicates very large strategic misalignment.
-The practical interpretation is direct: aggregate deck choice is far from minimax-robust play.
-This gap is also actionable: in an $L_1$ sense, most field mass must relocate before the metagame approximates equilibrium composition.
-Hence the current snapshot is a high-opportunity regime for prepared players who target structural misallocation rather than mirror-level edge tuning.
-
-\subsection{Exploitability and Regret Diagnostics}
-
-Distance metrics are descriptive; exploitability is prescriptive.
-We therefore compute the value lost by committing to the observed field mix when an adversary best-responds.
-In a zero-sum normalization, this quantity is external regret against the minimax baseline and gives a direct ``points left on the table'' interpretation.
-
-\begin{lstlisting}[caption={Exploitability functional for population mixes.},label={lst:exploitability}]
-def guaranteedValue (x : Mixed14) : Rat :=
-  Finset.inf' Finset.univ Finset.univ_nonempty (fun j =>
-    Finset.univ.sum (fun i => x.w i * payoff14 i j))
-
-def exploitability (x : Mixed14) : Rat :=
-  guaranteedValue nashMix - guaranteedValue x
-
-theorem observed_exploitability :
-  exploitability observedMix = 43/1000 := by
-  native_decide
-\end{lstlisting}
-
-An exploitability of 0.043 means an informed opponent can realize about 4.3 percentage points of payoff edge against the observed population relative to equilibrium play.
-Combined with Swiss threshold effects, this is strategically meaningful: the gap is large enough to alter cut probability bands over long events.
-
-\begin{table}[t]
-\centering
-\caption{Diagnostic Metrics: Observed vs Nash Population}
-\label{tab:diag-metrics}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Metric} & \textbf{Observed} & \textbf{Nash} \\
-\midrule
-Guaranteed payoff & $-0.043$ & $0.000$ \\
-Exploitability & $0.043$ & $0.000$ \\
-$L_1$ distance to Nash & 1.764 & 0.000 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 %======================================================================
 \section{Tournament Strategy}\label{sec:tournament}
 %======================================================================
 
-This section translates formal matchup and equilibrium results into player-level tactical choices for Swiss plus top-cut events.
+This section translates verified matchup results into direct tournament decisions.
 
 \subsection{Best-of-Three Amplification}
 
-\begin{lstlisting}[caption={Closed-form Bo3 conversion from single-game win rate.},label={lst:bo3-code}]
-def bo3 (p : Rat) : Rat := 3 * p^2 - 2 * p^3
+\begin{lstlisting}[caption={Bo3 amplification formula and above-parity amplification theorem.},label={lst:bo3-code}]
+def bo3 (p : Rat) : Rat :=
+  3 * p^2 - 2 * p^3
 
-theorem bo3_monotone :
-  Monotone bo3 := by
-  intro a b hab
-  nlinarith [hab]
+theorem bo3_above_input
+  (p : Rat) (hp0 : 1/2 < p)
+  (hp1 : p < 1) :
+  bo3 p > p := by
+  nlinarith [hp0, hp1]
 \end{lstlisting}
 
 \begin{table}[t]
@@ -1031,80 +625,12 @@ As a result, identifying one large favorable pairing is often more valuable than
 Formally, for $p>0.5$, the transformation $p \mapsto 3p^2-2p^3$ is strictly above $p$.
 Hence a deck with one reliable edge can convert modest game-one advantages into materially larger round-level conversion.
 
-\begin{lstlisting}[caption={Bo3 amplifies edges above parity.},label={lst:bo3-amplifies}]
-theorem bo3_above_input (p : Rat) (hp0 : 1/2 < p) (hp1 : p < 1) :
-  bo3 p > p := by
-  nlinarith [hp0, hp1]
-\end{lstlisting}
-
-\subsection{Swiss Qualification Math}
-
-For a 256-player event with eight Swiss rounds and a top-32 cut, $6$--$2$ is a typical qualification line~\cite{romero2022swiss}.
-If per-round win probability is $q$, then
-\[
-P(\text{make cut}) = \sum_{k=6}^{8} \binom{8}{k} q^k (1-q)^{8-k}.
-\]
-
-\begin{lstlisting}[caption={Swiss qualification probability function.},label={lst:swiss-code}]
-def swissCutProb (q : Rat) : Rat :=
-  choose 8 6 * q^6 * (1-q)^2 +
-  choose 8 7 * q^7 * (1-q) +
-  choose 8 8 * q^8
-
-theorem swiss_prob_in_bounds (q : Rat) (hq0 : 0 <= q) (hq1 : q <= 1) :
-  0 <= swissCutProb q /\ swissCutProb q <= 1 := by
-  constructor <;> nlinarith
-\end{lstlisting}
-
-\begin{table}[t]
-\centering
-\caption{Swiss Top-Cut Probability by Per-Round Win Rate}
-\label{tab:swiss-prob}
-\begin{tabular}{cc}
-\toprule
-\textbf{Per-Round WR} & \textbf{$P(\ge 6$ wins in 8 rounds)} \\
-\midrule
-0.52 & 31.3\% \\
-0.55 & 37.8\% \\
-0.58 & 44.8\% \\
-0.60 & 49.4\% \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A small expected-win improvement has nonlinear tournament impact because qualification requires crossing a discrete record threshold.
-From a planning perspective, this means deck selection should optimize cut probability, not only expected single-round points.
-Near the qualification boundary, one or two percentage points of round WR can dominate sideboard-level microedges.
-
-\begin{table}[t]
-\centering
-\caption{Expected Swiss Match Points over 8 Rounds}
-\label{tab:swiss-points}
-\begin{tabular}{cc}
-\toprule
-\textbf{Per-Round WR} & \textbf{Expected points} \\
-\midrule
-0.52 & 12.48 \\
-0.55 & 13.20 \\
-0.58 & 13.92 \\
-0.60 & 14.40 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{Metagame Read EV and Tier Classification}
 
-\begin{lstlisting}[caption={Metagame-read expected-value gain theorem.},label={lst:meta-read}]
-def expectedMatchPoints (p : Rat) : Rat := 3*p + 1*(1-p) -- no tie model
-
-theorem gardevoir_read_gain :
-  let base := expectedMatchPoints 0.50
-  let read := expectedMatchPoints 0.627
-  read - base = 0.381 := by native_decide
-\end{lstlisting}
-
-\begin{lstlisting}[caption={Tier classification from verified expected WR thresholds.},label={lst:tier-code}]
-inductive Tier where | S | A | B | C deriving Repr, DecidableEq
+\begin{lstlisting}[float,floatplacement=t,caption={Tier classification from verified expected WR thresholds.},label={lst:tier-code}]
+inductive Tier where
+  | S | A | B | C
+  deriving Repr, DecidableEq
 
 def tierOf (wr : Rat) : Tier :=
   if wr >= 0.52 then .S
@@ -1121,33 +647,7 @@ theorem tier_assignments :
 \end{lstlisting}
 
 In this snapshot, Grimmsnarl and Mega Absol define the S-tier frontier by expected field performance, while Ceruledge is decisively C-tier due to negative fitness and extinction pressure in dynamic models.
-The metagame-read theorem translates directly to expected match points: moving from a neutral 50\% deck to a 62.7\% matchup environment yields 0.381 additional points per round in our simplified model.
-Over eight Swiss rounds that is more than three points of expectation, large enough to shift cut probability bands.
-
-\begin{lstlisting}[caption={Tier assignment is monotone in expected WR.},label={lst:tier-monotone}]
-theorem tier_monotone (a b : Rat) (h : a <= b) :
-  tierRank (tierOf a) <= tierRank (tierOf b) := by
-  unfold tierOf
-  split <;> split <;> split <;> native_decide
-\end{lstlisting}
-
-\subsection{Metagame Read Robustness}
-
-Tournament reads are noisy: local fields can deviate from global aggregates by several share points.
-To avoid overfitting, we evaluate strategy under bounded perturbations of the share vector and check whether deck ordering is stable.
-In this snapshot, Grimmsnarl remains above 52\% expected WR under moderate perturbations, while Dragapult remains below 50\% across the same uncertainty band.
-
-\begin{lstlisting}[caption={Robust read criterion under bounded share perturbation.},label={lst:robust-read}]
-def withinL1 (eps : Rat) (x y : Mixed14) : Prop :=
-  l1Dist x y <= eps
-
-def robustPositive (deck : Fin 14) (eps : Rat) : Prop :=
-  forall y, withinL1 eps y observedMix -> expectedWR deck y > 1/2
-
-theorem grimmsnarl_robust_half :
-  robustPositive grimmsnarlIdx (8/100 : Rat) := by
-  native_decide
-\end{lstlisting}
+This thresholded classification turns expected-win estimates into actionable deck groups for preparation.
 
 %======================================================================
 \section{Formalization Methodology and Statistics}\label{sec:methodology}
@@ -1155,10 +655,8 @@ theorem grimmsnarl_robust_half :
 
 \subsection{Module Organization and Proof Throughput}
 
-The codebase is split by semantic layer to keep theorem dependencies acyclic where possible.
-Core rules are independent of empirical data modules; game-theory modules import payoff matrices but not card-effect internals.
-This separation supports faster iteration and local trust checks.
-It also provides fault isolation: when an empirical dataset changes, only data and strategy modules need recompilation, while foundational semantics remain frozen and re-usable.
+The codebase is split by semantic layer so foundational rules remain independent from empirical metagame modules.
+This keeps dependency boundaries clear and limits recompilation when data updates.
 
 \begin{table*}[t]
 \centering
@@ -1182,84 +680,6 @@ Utilities and automation               & 10 & 730     & 64 \\
 \bottomrule
 \end{tabular}
 \end{table*}
-
-\begin{table}[t]
-\centering
-\caption{Proof-Style Distribution in the Development}
-\label{tab:proof-style}
-\begin{tabular}{lrr}
-\toprule
-\textbf{Style} & \textbf{Count} & \textbf{Share} \\
-\midrule
-Structural induction / case analysis & 742 & 35.5\% \\
-\texttt{simp}/rewriting pipelines & 603 & 28.9\% \\
-\texttt{omega}/\texttt{nlinarith} arithmetic & 321 & 15.4\% \\
-\texttt{native\_decide} finite reflection & 422 & 20.2\% \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{\texttt{native\_decide} at Scale}
-
-\texttt{native\_decide} is used for finite, fully decidable goals with substantial arithmetic burden.
-The tactic compiles the proposition to native code and checks the reflected Boolean proof object in the kernel.
-This is ideal for matrix and combinatorial facts that are exact yet tedious by hand.
-At this scale, disciplined use matters: we reserve \texttt{native\_decide} for goals with explicit finite domains and stable normal forms, and avoid it for relational semantics where maintainability is better served by structured proofs.
-
-\begin{lstlisting}[caption={Representative native\_decide style for finite arithmetic goals.},label={lst:native-decide}]
-example :
-  bo3 (572/1000 : Rat) = 607/1000 /\
-  bo3 (627/1000 : Rat) = 686/1000 /\
-  bo3 (673/1000 : Rat) = 749/1000 := by
-  native_decide
-\end{lstlisting}
-
-We still reserve structural proofs for induction and relational properties (progress, preservation, soundness/completeness), where symbolic reasoning is clearer and more maintainable.
-This hybrid strategy is one reason the project remains auditable despite size: high-volume arithmetic is automated, while semantic invariants retain human-readable proof skeletons.
-
-\subsection{Zero-Sorry Policy Depth}
-
-Zero-sorry means more than deleting placeholders.
-We enforce three checks in CI: no \texttt{sorry}, no \texttt{admit}, and no user-defined \texttt{axiom} declarations in project namespaces.
-This prevents incompleteness from re-entering through convenience shortcuts.
-The policy is paired with a strict import discipline so that external modules cannot silently reintroduce untrusted assumptions through broad namespace openings.
-
-\begin{lstlisting}[caption={Example no-axiom integrity statement used in CI guard modules.},label={lst:zero-sorry}]
--- In practice this is generated from environment inspection.
-axiomFreeProject : Prop := True
-
-example : axiomFreeProject := by
-  native_decide
-\end{lstlisting}
-
-\begin{lstlisting}[caption={Automated guard theorem pattern for zero-sorry CI.},label={lst:ci-guard}]
-def noPlaceholders : Bool := not containsSorry && not containsAdmit
-def noLocalAxioms : Bool := not containsAxiomDecl
-
-theorem ci_kernel_integrity :
-  noPlaceholders = true /\ noLocalAxioms = true := by
-  native_decide
-\end{lstlisting}
-
-The policy increases proof-engineering cost, but it ensures every headline claim in this paper is fully kernel-checked.
-
-\subsection{Reproducibility}
-
-The repository contains deterministic build scripts for Lean and \LaTeX.
-Given the source tree and toolchain, one command regenerates theorem artifacts and this manuscript.
-Because all numerical claims are theorem outputs, reproducing the build also reproduces the full argument chain.
-We additionally record module-level theorem counts and generated artifact hashes in CI to detect silent drift.
-If a dataset, parser, or theorem changes, the resulting digest changes, forcing explicit review.
-
-\begin{lstlisting}[caption={Reproducible artifact-check workflow sketch.},label={lst:repro-hash}]
-def theoremDigest : String := hashFile "Core/TheoremIndex.json"
-def paperDigest : String := hashFile "paper/main.pdf"
-
-theorem reproducible_build_signature :
-  theoremDigest = expectedTheoremDigest /\
-  paperDigest = expectedPaperDigest := by
-  native_decide
-\end{lstlisting}
 
 %======================================================================
 \section{Threats to Validity}\label{sec:threats}
