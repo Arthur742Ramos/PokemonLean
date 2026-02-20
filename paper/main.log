@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 15:11
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 15:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -451,81 +451,81 @@ Underfull \hbox (badness 10000) in paragraph at lines 594--596
  []
 
 [7]
-Underfull \hbox (badness 3058) in paragraph at lines 663--669
+Underfull \hbox (badness 3058) in paragraph at lines 664--670
 \OT1/ptm/m/n/10 The tac-tic \OT1/pcr/m/n/10 optimize_proof \OT1/ptm/m/n/10 is a project-local Lean
  []
 
 
-Underfull \hbox (badness 7869) in paragraph at lines 663--669
+Underfull \hbox (badness 7869) in paragraph at lines 664--670
 \OT1/ptm/m/n/10 macro that ex-pands to \OT1/pcr/m/n/10 native_decide\OT1/ptm/m/n/10 , del-e-gat-ing
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 663--669
+Underfull \hbox (badness 10000) in paragraph at lines 664--670
 \OT1/ptm/m/n/10 de-cid-able goals to com-piled na-tive code for faster
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 663--669
+Underfull \hbox (badness 10000) in paragraph at lines 664--670
 \OT1/ptm/m/n/10 ker-nel check-ing. A dis-crete repli-ca-tor step con-firms
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 663--669
+Underfull \hbox (badness 10000) in paragraph at lines 664--670
 \OT1/ptm/m/n/10 that Grimm-snarl's share in-creases while Dra-ga-pult's
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 663--669
+Underfull \hbox (badness 10000) in paragraph at lines 664--670
 \OT1/ptm/m/n/10 de-creases (\OT1/pcr/m/n/10 grimmsnarl_share_increases\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 1394) in paragraph at lines 704--708
+Underfull \hbox (badness 1394) in paragraph at lines 705--709
 \OT1/ptm/m/n/10 model does not cap-ture. Lean ver-i-fies that Bo3 am-pli-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 745--751
+Underfull \hbox (badness 10000) in paragraph at lines 746--752
 \OT1/pcr/m/n/10 decide\OT1/ptm/m/n/10 ), (2) arith-metic nor-mal-iza-tion (\OT1/pcr/m/n/10 omega\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 5036) in paragraph at lines 745--751
+Underfull \hbox (badness 5036) in paragraph at lines 746--752
 \OT1/pcr/m/n/10 nlinarith\OT1/ptm/m/n/10 ), (3) def-i-ni-tional un-fold-ing and rewrit-ing
  []
 
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <10> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 752.
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 753.
 [8]
-LaTeX Font Info:    Trying to load font information for OMS+pcr on input line 780.
+LaTeX Font Info:    Trying to load font information for OMS+pcr on input line 781.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/omspcr.fd
 File: omspcr.fd 
 )
 LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 780.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 781.
 
-Underfull \hbox (badness 10000) in paragraph at lines 779--782
+Underfull \hbox (badness 10000) in paragraph at lines 780--783
 \OT1/ptm/m/n/10 across all \OT1/pcr/m/n/10 .lean \OT1/ptm/m/n/10 files). Most the-o-rem vol-ume is
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 779--782
+Underfull \hbox (badness 10000) in paragraph at lines 780--783
 \OT1/ptm/m/n/10 infrastructure-oriented (rules, ef-fects, prob-a-bil-ity, and
  []
 
 
-Underfull \hbox (badness 7558) in paragraph at lines 785--790
+Underfull \hbox (badness 7558) in paragraph at lines 786--791
 []\OT1/ptm/m/n/10 The build pipeline re-gen-er-ates the-o-rem states and
  []
 
 
-Underfull \hbox (badness 4120) in paragraph at lines 812--813
+Underfull \hbox (badness 4120) in paragraph at lines 813--814
 []\OT1/ptm/m/n/10 Compute weighted ex-pec-ta-tion from the en-coded
  []
 
 [9]
-Underfull \hbox (badness 4634) in paragraph at lines 859--863
+Underfull \hbox (badness 4634) in paragraph at lines 860--864
 \OT1/ptm/m/n/10 perturbation the-o-rems in \OT1/pcr/m/n/10 SharePerturbation.lean
  []
 
@@ -560,7 +560,7 @@ Here is how much of TeX's memory you used:
  36 hyphenation exceptions out of 8191
  56i,18n,65p,1020b,1552s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (12 pages, 311007 bytes).
+Output written on main.pdf (12 pages, 310966 bytes).
 PDF statistics:
  159 PDF objects out of 1000 (max. 8388607)
  98 compressed objects within 1 object stream
