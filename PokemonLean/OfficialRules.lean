@@ -172,8 +172,8 @@ def takePrizes : ExtPlayer → ExtPlayer → Nat → ExtPlayer × ExtPlayer
     | [] => (atk, def_)
     | p :: rest => takePrizes { atk with hand := p :: atk.hand } { def_ with prizes := rest } n
 
-theorem prizeValue_pos (rb : RuleBox) : prizeValue rb ≥ 1 := by cases rb <;> native_decide
-theorem prizeValue_le3 (rb : RuleBox) : prizeValue rb ≤ 3 := by cases rb <;> native_decide
+theorem prizeValue_pos (rb : RuleBox) : prizeValue rb ≥ 1 := by cases rb <;> decide
+theorem prizeValue_le3 (rb : RuleBox) : prizeValue rb ≤ 3 := by cases rb <;> decide
 
 theorem takePrizes_dec (atk def_ : ExtPlayer) (n : Nat) :
     (takePrizes atk def_ n).2.prizes.length ≤ def_.prizes.length := by

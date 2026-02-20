@@ -448,7 +448,7 @@ theorem nash_equilibrium_exists :
     · intro i
       change 0 ≤ (1 : Rat) / (14 : Rat)
       decide
-    · native_decide
+    · decide
   exact ⟨s, s, hs, hs⟩
 
 -- ============================================================================
@@ -464,7 +464,7 @@ theorem observed_not_normalized :
     ¬ IsMixedStrategy 14 observedShares := by
   intro h
   have hsum : sumFin 14 observedShares = (695 : Rat) / (1000 : Rat) := by
-    native_decide
+    decide
   have hneq : ((695 : Rat) / (1000 : Rat)) ≠ (1 : Rat) := by
     decide
   exact hneq (hsum.symm.trans h.2)

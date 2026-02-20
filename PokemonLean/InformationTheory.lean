@@ -132,16 +132,16 @@ theorem PROFESSORS_RESEARCH_MAX_INFORMATION (a : Action) :
   cases a with
   | playSupporter s =>
       cases s <;> simp [optimalInformationGain]
-      all_goals native_decide
+      all_goals decide
   | playItem =>
       simp [optimalInformationGain]
-      native_decide
+      decide
   | attack =>
       simp [optimalInformationGain]
-      native_decide
+      decide
   | pass =>
       simp [optimalInformationGain]
-      native_decide
+      decide
 
 structure CountingKnowledge where
   player1DeckKnown : Bool

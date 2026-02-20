@@ -100,7 +100,7 @@ def minimax2x2 (a00 a01 a10 a11 : Rat) : Rat :=
 theorem minimax_theorem_2x2_concrete :
     minimax2x2 (2 : Rat) (1 : Rat) (3 : Rat) (0 : Rat) =
     maximin2x2 (2 : Rat) (1 : Rat) (3 : Rat) (0 : Rat) := by
-  native_decide
+  decide
 
 def mix3 (a c k : Rat) : MixedStrategy 3
   | ⟨0, _⟩ => a
@@ -153,18 +153,18 @@ def symmetricRpsGame : FiniteGame :=
     matrix := symmetricRpsMatrix }
 
 theorem uniform3_is_mixed : IsMixedStrategy 3 uniform3 := by
-  native_decide
+  decide
 
 theorem symmetric_rps_uniform_is_nash :
     NashEquilibrium symmetricRpsGame uniform3 uniform3 := by
-  native_decide
+  decide
 
 def symmetricNashOnThirds : List Mix3 :=
   (gridMix3 3).filter (fun w => decide (NashEquilibrium symmetricRpsGame w.toStrategy w.toStrategy))
 
 theorem symmetric_rps_unique_uniform_on_thirds_grid :
     symmetricNashOnThirds = [uniformMix3] := by
-  native_decide
+  decide
 
 theorem symmetric_rps_unique_uniform
     (w : Mix3)
@@ -202,24 +202,24 @@ def controlIx : Fin 3 := ⟨1, by decide⟩
 def comboIx : Fin 3 := ⟨2, by decide⟩
 
 theorem asymmetric_weights_is_mixed : IsMixedStrategy 3 asymmetricWeights.toStrategy := by
-  native_decide
+  decide
 
 theorem asymmetric_weights_balance_pure_payoffs :
     rowPurePayoff asymmetricGame aggroIx asymmetricWeights.toStrategy = 0 ∧
     rowPurePayoff asymmetricGame controlIx asymmetricWeights.toStrategy = 0 ∧
     rowPurePayoff asymmetricGame comboIx asymmetricWeights.toStrategy = 0 := by
-  native_decide
+  decide
 
 theorem asymmetric_weights_form_nash :
     NashEquilibrium asymmetricGame asymmetricWeights.toStrategy asymmetricWeights.toStrategy := by
-  native_decide
+  decide
 
 def asymmetricNashOnSevenths : List Mix3 :=
   (gridMix3 7).filter (fun w => decide (NashEquilibrium asymmetricGame w.toStrategy w.toStrategy))
 
 theorem asymmetric_unique_on_sevenths_grid :
     asymmetricNashOnSevenths = [asymmetricWeights] := by
-  native_decide
+  decide
 
 theorem asymmetric_unique_weights
     (w : Mix3)

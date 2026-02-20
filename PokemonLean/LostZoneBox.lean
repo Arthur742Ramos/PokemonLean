@@ -39,7 +39,7 @@ def standardLostBoxDeck : LostZoneBoxDeck :=
 theorem standardLostBoxDeck_valid : isValidLostZoneBoxDeck standardLostBoxDeck := by
   unfold isValidLostZoneBoxDeck standardLostBoxDeck deckTotalCount; decide
 
-theorem standardLostBoxDeck_total : deckTotalCount standardLostBoxDeck = 60 := by native_decide
+theorem standardLostBoxDeck_total : deckTotalCount standardLostBoxDeck = 60 := by decide
 
 -- ============================================================================
 -- GAME PLAN PHASES

@@ -301,10 +301,10 @@ theorem rulebox_at_least_two (rb : RuleBox) (h : rb ≠ .none) : rb.prizeCount �
 -- ============================================================
 
 /-- Pikachu base is a Basic Pokémon. -/
-theorem pikachu_is_basic : pikachuBase.isBasic = true := by native_decide
+theorem pikachu_is_basic : pikachuBase.isBasic = true := by decide
 
 /-- Pikachu base has no rule box. -/
-theorem pikachu_no_rulebox : pikachuBase.hasRuleBox = false := by native_decide
+theorem pikachu_no_rulebox : pikachuBase.hasRuleBox = false := by decide
 
 /-- Every card type is classified as exactly one kind. -/
 theorem card_classification_exclusive (c : Card) :

@@ -159,16 +159,16 @@ def pikachu : MicroPokemon := { hp := 60, attackDamage := 30, energyAttached := 
 
 theorem charizard_wins_in_one_turn :
     hitsToKO pikachu.hp charizard.attackDamage = 1 := by
-  native_decide
+  decide
 
 theorem pikachu_needs_six_turns :
     hitsToKO charizard.hp pikachu.attackDamage = 6 := by
-  native_decide
+  decide
 
 theorem charizard_vs_pikachu_first_player_win :
     currentPlayerWins { player1 := charizard, player2 := pikachu, currentPlayer := .player1, turn := 0 } := by
   rw [first_player_wins_iff]
-  native_decide
+  decide
 
 def stateAB (a b : MicroPokemon) (starter : MicroPlayerId) : MicroState :=
   { player1 := a, player2 := b, currentPlayer := starter, turn := 0 }

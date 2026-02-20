@@ -413,7 +413,7 @@ theorem allCardsWellFormed : ∀ card ∈ allCards, cardWellFormed card := by
 -- CARD POOL SIZE THEOREMS
 -- ============================================================================
 
-theorem allCards_length : allCards.length = 45 := by native_decide
+theorem allCards_length : allCards.length = 45 := by decide
 
 theorem allCards_nonempty : allCards ≠ [] := by
   simp [allCards]

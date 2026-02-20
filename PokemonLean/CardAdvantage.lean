@@ -219,6 +219,6 @@ theorem POTION_EFFICIENCY :
 
 theorem PROFESSORS_RESEARCH_BEST_EFFICIENCY (a : Action) :
     resourceEfficiency a ≤ resourceEfficiency .playProfessorsResearch := by
-  cases a <;> native_decide
+  cases a <;> decide
 
 end PokemonLean.CardAdvantage

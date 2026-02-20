@@ -14,7 +14,7 @@ elab "optimize_proof" : tactic => do
     Lean.Elab.Tactic.evalTactic (← `(tactic| decide))
   catch _ =>
     Lean.Elab.Tactic.evalTactic (← `(tactic| exact (decide_eq_true_eq.mp
-      (by native_decide : decide (_ : Prop) = true))))
+      (by decide : decide (_ : Prop) = true))))
 
 
 

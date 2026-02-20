@@ -191,7 +191,7 @@ def replayExampleLog : GameLog :=
 
 theorem replayExample_validate_true :
     validateReplay replayExampleState replayExampleLog = true := by
-  native_decide
+  decide
 
 theorem replayExample_valid : ReplayValid replayExampleState replayExampleLog :=
   SOUNDNESS replayExample_validate_true

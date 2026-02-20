@@ -66,18 +66,18 @@ def expectedNat (d : Dist Nat) : Rat :=
 
 theorem expectedValue_coinFlip :
     expectedValue CoinFlip = (1 : Rat) / (2 : Rat) := by
-  native_decide
+  decide
 
 theorem flipCoins3_binomial :
     Dist.probOf (flipCoins 3) 0 = (1 : Rat) / (8 : Rat) ∧
     Dist.probOf (flipCoins 3) 1 = (3 : Rat) / (8 : Rat) ∧
     Dist.probOf (flipCoins 3) 2 = (3 : Rat) / (8 : Rat) ∧
     Dist.probOf (flipCoins 3) 3 = (1 : Rat) / (8 : Rat) := by
-  native_decide
+  decide
 
 theorem expectedHeads_flipCoins3 :
     expectedNat (flipCoins 3) = (3 : Rat) / (2 : Rat) := by
-  native_decide
+  decide
 
 structure CoinFlipEffect where
   flips : Nat
@@ -101,12 +101,12 @@ def tripleCoinDamage : Dist Nat :=
 
 theorem tripleCoin_expectedDamage :
     expectedNat tripleCoinDamage = (45 : Rat) := by
-  native_decide
+  decide
 
 theorem tripleCoin_expectedBounds :
     (0 : Rat) ≤ expectedNat tripleCoinDamage ∧
     expectedNat tripleCoinDamage ≤ (90 : Rat) := by
-  native_decide
+  decide
 
 def flipUntilTails : Nat → Dist Nat
   | 0 => pure 0
@@ -140,11 +140,11 @@ def furySwipesDamage : Dist Nat :=
 
 theorem furySwipes_expectedDamage :
     expectedNat furySwipesDamage = (105 : Rat) / (4 : Rat) := by
-  native_decide
+  decide
 
 theorem furySwipes_expectedBounds :
     (0 : Rat) ≤ expectedNat furySwipesDamage ∧
     expectedNat furySwipesDamage ≤ (30 : Rat) := by
-  native_decide
+  decide
 
 end PokemonLean.Probability

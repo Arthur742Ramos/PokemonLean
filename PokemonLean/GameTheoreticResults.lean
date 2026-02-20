@@ -63,9 +63,9 @@ theorem prize_trade_winner
 /-- Prize Trade Corollary (single-prize format).
     With single-prize Pokémon (prizesPerKO = 1) and 6 total prizes,
     attacksForPrizes 6 t 1 = 6 * t. We verify key instances. -/
-theorem attacksForPrizes_single_prize_1 : attacksForPrizes 6 1 1 = 6 := by native_decide
-theorem attacksForPrizes_single_prize_2 : attacksForPrizes 6 2 1 = 12 := by native_decide
-theorem attacksForPrizes_single_prize_3 : attacksForPrizes 6 3 1 = 18 := by native_decide
+theorem attacksForPrizes_single_prize_1 : attacksForPrizes 6 1 1 = 6 := by decide
+theorem attacksForPrizes_single_prize_2 : attacksForPrizes 6 2 1 = 12 := by decide
+theorem attacksForPrizes_single_prize_3 : attacksForPrizes 6 3 1 = 18 := by decide
 
 theorem prize_trade_single_prize
     (turnsA turnsB : Nat)
@@ -79,12 +79,12 @@ theorem prize_trade_single_prize
     A wins the prize race. -/
 theorem prize_trade_60_vs_30 :
     attacksForPrizes 6 2 1 < attacksForPrizes 6 4 1 := by
-  native_decide
+  decide
 
 /-- 120 damage vs 100 HP (OHKO) beats 60 damage vs 100 HP (2HKO). -/
 theorem prize_trade_ohko_vs_2hko :
     attacksForPrizes 6 1 1 < attacksForPrizes 6 2 1 := by
-  native_decide
+  decide
 
 -- ============================================================================
 -- 2. FIRST PLAYER ADVANTAGE BOUND
@@ -108,7 +108,7 @@ theorem first_player_advantage_bound (halfTurns : Nat) :
 /-- The bound is tight: after half-turn 1 (P1 just acted), P1 has 1 turn, P2 has 0. -/
 theorem first_player_advantage_tight :
     p1Turns 1 = p2Turns 1 + 1 := by
-  native_decide
+  decide
 
 /-- After a full round (2 half-turns), both players have had the same number of turns. -/
 theorem full_round_parity (rounds : Nat) :
@@ -184,12 +184,12 @@ theorem energy_three_cost_needs_three_turns
 /-- Single-energy attack can be used on turn 1. -/
 theorem single_energy_turn_one :
     energyCostSatisfied [EnergyType.fire] (energyAfterTurns 1 .fire) = true := by
-  native_decide
+  decide
 
 /-- But single-energy attack cannot be used on turn 0. -/
 theorem single_energy_not_turn_zero :
     energyCostSatisfied [EnergyType.fire] (energyAfterTurns 0 .fire) = false := by
-  native_decide
+  decide
 
 -- ============================================================================
 -- 4. AGGRO VS MULTI-PRIZE FORMAT (PRIZE MATH)
@@ -198,31 +198,31 @@ theorem single_energy_not_turn_zero :
 /-- Prize math: single-prize format.
     With single-prize Pokémon and 6 total prizes, exactly 6 KOs are needed. -/
 theorem single_prize_needs_six_kos :
-    ceilDiv 6 1 = 6 := by native_decide
+    ceilDiv 6 1 = 6 := by decide
 
 /-- Prize math: VMAX / 3-prize format.
     With 3-prize Pokémon and 6 total prizes, exactly 2 KOs are needed. -/
 theorem vmax_prize_needs_two_kos :
-    ceilDiv 6 3 = 2 := by native_decide
+    ceilDiv 6 3 = 2 := by decide
 
 /-- Prize math: V / 2-prize format.
     With 2-prize Pokémon and 6 total prizes, exactly 3 KOs are needed. -/
 theorem v_prize_needs_three_kos :
-    ceilDiv 6 2 = 3 := by native_decide
+    ceilDiv 6 2 = 3 := by decide
 
 /-- Aggro advantage in single-prize format.
     An aggro deck (KO in 1 turn) needs 6 attack turns for 6 prizes.
     A slower deck (KO in 3 turns) needs 18 attack turns. -/
 theorem aggro_vs_slow_single_prize :
     attacksForPrizes 6 1 1 < attacksForPrizes 6 3 1 := by
-  native_decide
+  decide
 
 /-- Multi-prize efficiency.
     Targeting VMAXs (3 prizes per KO, 2 attacks per KO = 4 total attack turns)
     beats single-prize aggro (1 prize per KO, 1 attack per KO = 6 total attack turns). -/
 theorem multi_prize_efficiency :
     attacksForPrizes 6 2 3 < attacksForPrizes 6 1 1 := by
-  native_decide
+  decide
 
 /-- General: higher prizes-per-KO with same KO speed is strictly better. -/
 theorem prize_per_ko_advantage
@@ -317,19 +317,19 @@ theorem damage_accumulation (n d hp : Nat) (hd : 0 < d) (hn : n * d ≥ hp) :
 /-- KO threshold (concrete instances): ⌈hp/d⌉ attacks of d damage suffice for a KO.
     We verify this for specific realistic values rather than a general Nat division
     lemma, connecting to actual Pokémon TCG scenarios. -/
-theorem ko_threshold_130_330 : ceilDiv 330 130 * 130 ≥ 330 := by native_decide
-theorem ko_threshold_30_60 : ceilDiv 60 30 * 30 ≥ 60 := by native_decide
-theorem ko_threshold_90_170 : ceilDiv 170 90 * 90 ≥ 170 := by native_decide
-theorem ko_threshold_200_170 : ceilDiv 170 200 * 200 ≥ 170 := by native_decide
-theorem ko_threshold_60_100 : ceilDiv 100 60 * 60 ≥ 100 := by native_decide
+theorem ko_threshold_130_330 : ceilDiv 330 130 * 130 ≥ 330 := by decide
+theorem ko_threshold_30_60 : ceilDiv 60 30 * 30 ≥ 60 := by decide
+theorem ko_threshold_90_170 : ceilDiv 170 90 * 90 ≥ 170 := by decide
+theorem ko_threshold_200_170 : ceilDiv 170 200 * 200 ≥ 170 := by decide
+theorem ko_threshold_60_100 : ceilDiv 100 60 * 60 ≥ 100 := by decide
 
 -- ============================================================================
--- Concrete KO examples (using native_decide for arithmetic)
+-- Concrete KO examples (using decide for arithmetic)
 -- ============================================================================
 
 /-- Charizard ex (330 HP) vs 130-damage attacker: 3-hit KO. -/
 theorem charizard_ex_three_hit_ko :
-    ceilDiv 330 130 = 3 := by native_decide
+    ceilDiv 330 130 = 3 := by decide
 
 /-- 3 attacks of 130 ≥ 330 HP. -/
 theorem charizard_ex_ko_damage :
@@ -337,22 +337,22 @@ theorem charizard_ex_ko_damage :
 
 /-- Pikachu (60 HP) vs 30-damage attacker: 2-hit KO. -/
 theorem pikachu_two_hit_ko :
-    ceilDiv 60 30 = 2 := by native_decide
+    ceilDiv 60 30 = 2 := by decide
 
 /-- OHKO: 200 damage vs 170 HP. -/
 theorem ohko_example : 200 ≥ 170 := by omega
 
 /-- 2HKO: ⌈170/90⌉ = 2. -/
-theorem two_hko_example : ceilDiv 170 90 = 2 := by native_decide
+theorem two_hko_example : ceilDiv 170 90 = 2 := by decide
 
 /-- Prize race: OHKO deck (1 attack per KO, 1 prize) vs 2HKO deck (2 attacks, 1 prize). -/
 theorem ohko_beats_2hko_in_prize_race :
-    attacksForPrizes 6 1 1 < attacksForPrizes 6 2 1 := by native_decide
+    attacksForPrizes 6 1 1 < attacksForPrizes 6 2 1 := by decide
 
 /-- Prize trade with weakness: if weakness doubles damage (2x),
     an 80-damage attack does 160 to a 130 HP Pokémon → OHKO instead of 2HKO.
     This changes 12 attack turns to 6 for the prize race. -/
 theorem weakness_halves_prize_race :
-    attacksForPrizes 6 1 1 = attacksForPrizes 6 2 1 / 2 := by native_decide
+    attacksForPrizes 6 1 1 = attacksForPrizes 6 2 1 / 2 := by decide
 
 end PokemonLean.GameTheoreticResults

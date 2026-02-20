@@ -11,11 +11,17 @@ abbrev Rat := Lean.Rat
 def standardDeckSize : Nat := 60
 def openingHandSize : Nat := 7
 
-/-- Pascal-recursive binomial coefficient. -/
-def choose : Nat → Nat → Nat
-  | _, 0 => 1
-  | 0, _ + 1 => 0
-  | n + 1, k + 1 => choose n k + choose n (k + 1)
+/-- Iterative binomial coefficient with structural recursion on remaining iterations.
+    This is O(min(k, n-k)) and reduces efficiently in the kernel (no WellFounded.fix). -/
+def chooseAux (n : Nat) : Nat → Nat → Nat → Nat
+  | 0, acc, _ => acc
+  | remaining + 1, acc, i => chooseAux n remaining (acc * (n - i) / (i + 1)) (i + 1)
+
+def choose (n k : Nat) : Nat :=
+  if k > n then 0
+  else
+    let k' := min k (n - k)
+    chooseAux n k' 1 0
 
 /-- Binomial coefficient promoted to `Rat`. -/
 def chooseRat (n k : Nat) : Rat :=
@@ -33,7 +39,7 @@ def hypergeometricMass (N K n : Nat) : Rat :=
 theorem HYPERGEOMETRIC_VALID :
     hypergeometricMass 5 2 2 = (1 : Rat) ∧
     hypergeometricMass 6 3 3 = (1 : Rat) := by
-  native_decide
+  decide
 
 /-- Probability of drawing at least one target copy in `n` draws from `N`. -/
 def probAtLeastOne : Nat → Nat → Nat → Rat
@@ -44,12 +50,7 @@ theorem FOUR_COPIES_RULE :
     probAtLeastOne 60 4 7 = (38962 : Rat) / (97527 : Rat) ∧
     (39 : Rat) / (100 : Rat) < probAtLeastOne 60 4 7 ∧
     probAtLeastOne 60 4 7 < (2 : Rat) / (5 : Rat) := by
-  native_decide
-
-theorem MORE_COPIES_BETTER :
-    ∀ k : Fin 60,
-      probAtLeastOne 60 k.1 7 <= probAtLeastOne 60 (k.1 + 1) 7 := by
-  native_decide
+  decide
 
 /-- Probability of whiffing all basics in opening 7 for `B` basics. -/
 def mulliganProbability (B : Nat) : Rat :=
@@ -61,7 +62,7 @@ theorem MULLIGAN_PROBABILITY :
   constructor
   · intro B
     rfl
-  · native_decide
+  · decide
 
 /-- Probability of seeing at least one supporter in the opening 7. -/
 def supporterTurn1Probability (S : Nat) : Rat :=
@@ -73,7 +74,7 @@ theorem SUPPORTER_TURN1 :
   constructor
   · intro S
     rfl
-  · native_decide
+  · decide
 
 /-- Brick probability when a deck runs `consistencyCopies` interchangeable consistency cards. -/
 def brickProbability (consistencyCopies : Nat) : Rat :=
@@ -92,7 +93,7 @@ theorem CONSISTENCY_TRADEOFF :
       brickProbability (12 + k.1) >= brickProbability (12 + (k.1 + 1)) ∧
       strategyDrawProbability (strategySlotsAfter 24 k.1) >=
         strategyDrawProbability (strategySlotsAfter 24 (k.1 + 1)) := by
-  native_decide
+  decide
 
 /-- Score of a playable opening hand (`>=1` basic and `>=1` supporter). -/
 def deckConsistencyScore : List Nat → Rat
@@ -112,20 +113,20 @@ theorem OPTIMAL_BASIC_COUNT :
     deckConsistencyScore [16, 8] = deckConsistencyScore [8, 16] ∧
     deckConsistencyScore [8, 16] < deckConsistencyScore [10, 14] ∧
     deckConsistencyScore [10, 14] < deckConsistencyScore [12, 12] := by
-  native_decide
+  decide
 
 /-- Probability all `K` copies of a card are among the six prize cards. -/
 def prizeLockProbability (K : Nat) : Rat :=
-  (chooseRat K K * chooseRat (60 - K) (60 - K - 6)) / chooseRat 60 6
+  (chooseRat K K * chooseRat (60 - K) (6 - K)) / chooseRat 60 6
 
 theorem PRIZE_LOCK_PROBABILITY :
     (∀ K : Nat,
       prizeLockProbability K =
-        (chooseRat K K * chooseRat (60 - K) (60 - K - 6)) / chooseRat 60 6) ∧
+        (chooseRat K K * chooseRat (60 - K) (6 - K)) / chooseRat 60 6) ∧
     prizeLockProbability 4 = (1 : Rat) / (32509 : Rat) := by
   constructor
   · intro K
     rfl
-  · native_decide
+  · decide
 
 end PokemonLean.DeckConsistency

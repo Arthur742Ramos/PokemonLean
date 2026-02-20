@@ -328,7 +328,7 @@ theorem isBanned_expanded_forest :
 
 theorem isBanned_expanded_pikachu :
     isBanned .expanded "Pikachu" = false := by
-  native_decide
+  decide
 
 @[simp] theorem isBanned_unlimited_any (name : String) :
     isBanned .unlimited name = false := by
@@ -463,7 +463,7 @@ def setsLeavingStandardIn2026 : List TCGSet :=
 
 theorem setsLeavingStandardIn2026_value :
     setsLeavingStandardIn2026 = [.scarletViolet, .paldeaEvolved] := by
-  native_decide
+  decide
 
 theorem scarletViolet_leaves_in_2026 :
     .scarletViolet ∈ setsLeavingStandardIn2026 := by
@@ -512,26 +512,26 @@ def sampleVSTARCard : FormatCard :=
 
 theorem sampleSVCard_standard_legal :
     cardLegalInFormat .standard sampleSVCard = true := by
-  native_decide
+  decide
 
 theorem sampleGXCard_standard_illegal :
     cardLegalInFormat .standard sampleGXCard = false := by
-  native_decide
+  decide
 
 theorem sampleGXCard_expanded_legal :
     cardLegalInFormat .expanded sampleGXCard = true := by
-  native_decide
+  decide
 
 theorem sampleVSTARCard_standard_illegal :
     cardLegalInFormat .standard sampleVSTARCard = false := by
-  native_decide
+  decide
 
 theorem sampleVSTARCard_expanded_legal :
     cardLegalInFormat .expanded sampleVSTARCard = true := by
-  native_decide
+  decide
 
 theorem sampleVSTARCard_unlimited_legal :
     cardLegalInFormat .unlimited sampleVSTARCard = true := by
-  native_decide
+  decide
 
 end PokemonLean.Format
