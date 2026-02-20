@@ -82,3 +82,4 @@ import PokemonLean.MatchupAnalysis
 import PokemonLean.RealMetagame
 import PokemonLean.TournamentStrategy
 import PokemonLean.TypeEffectiveness
+import PokemonLean.FullReplicator

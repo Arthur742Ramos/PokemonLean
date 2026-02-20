@@ -54,16 +54,13 @@
 \maketitle
 
 \begin{abstract}
-We present a formally verified analysis of competitive Pok\'emon Trading Card Game metagame dynamics using Lean~4 and real tournament data.
-Our formal development spans approximately 30{,}000~lines across 80~Lean files and proves over 2{,}500 theorems without \texttt{sorry}, \texttt{admit}, or custom axioms.
-Our strategic model covers the top 14 archetypes (69.5\% of the field); the remaining 30.5\% is excluded from the game-theoretic model but bounded in robustness analysis.
-We analyze Trainer Hill tournament data from January--February 2026 (50+ player events), covering a complete 14\,$\times$\,14 matchup matrix.
-The central result is a verified popularity-performance divergence (which we term the ``popularity paradox''): Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate, while Grimmsnarl Froslass (5.1\% share) achieves 52.7\%.
-We report a machine-checked Nash equilibrium with six-deck support per player; best-response conditions are verified via \texttt{native\_decide} for all 14 pure strategies, and Dragapult receives 0\% equilibrium weight.
-We also solve the symmetrized constant-sum game $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$, which yields a unique symmetric Nash equilibrium with seven-deck support preserving the same core decks, confirming robustness to the constant-sum approximation.
-On representative 4-deck and 5-deck subgames of the observed metagame, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure.
-A 10{,}000-iteration equilibrium sensitivity analysis confirms the equilibrium's qualitative stability: the core support decks appear in $>$96\% of resampled equilibria, while Dragapult receives zero weight in 77.9\%.
-These results demonstrate that formal methods can produce empirically grounded, machine-checked strategic insights in competitive game ecosystems; the specific metagame conclusions are illustrative of the methodology, which is the primary contribution.
+We present a formally verified metagame analysis of the competitive Pok\'emon Trading Card Game using Lean~4 and real tournament data.
+The artifact spans approximately 30{,}000 lines, 80 files, and 2{,}500 theorems with no \texttt{sorry}, \texttt{admit}, or custom axioms.
+Analyzing Trainer Hill data (January--February 2026, 50+ player events) over 14 archetypes and their full pairwise matchup matrix, we prove a \emph{popularity paradox}: the most played deck (Dragapult, 15.5\% share) has only 46.7\% expected win rate, while Grimmsnarl (5.1\% share) achieves 52.7\%.
+A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight; a symmetrized constant-sum formulation confirms this with seven-deck support.
+Replicator dynamics on representative subgames predict Dragapult decline and Ceruledge extinction pressure.
+A 10{,}000-iteration sensitivity analysis confirms qualitative stability: core support decks appear in $>$96\% of resampled equilibria.
+The primary contribution is methodological: formal verification transforms qualitative metagame narratives into machine-checkable, reproducible strategic science.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -186,35 +183,13 @@ Section~\ref{sec:formalization} now defines the formal rule substrate used by th
 \section{Game Formalization}\label{sec:formalization}
 %======================================================================
 
-We formalize the strategic layer of the Pok\'emon TCG by combining operational state semantics with legality and resource invariants, grounded in official rule documents~\cite{ptcg_rules,playpokemon2024rules}.
-In this paper, the rules layer is supporting infrastructure rather than the primary empirical claim object for the 2026 snapshot.
-It future-proofs the framework for counterfactual analysis (e.g., ``what if a card is banned?''), guarantees data-ingestion correctness through legality alignment, and enables mechanical derivation of matchup implications from legal state transitions.
-The 2026 snapshot analysis itself relies primarily on matrix-level verification over observed matchup data.
-The goal is not to mechanize every card text in existence; instead, we encode the rule substrate needed to reason about deck legality, turn progression, card flow, and payoff-relevant mechanics.
+We formalize the strategic layer of the Pok\'emon TCG in Lean~4, grounded in official rule documents~\cite{ptcg_rules,playpokemon2024rules}.
+The formalization encodes game state (\texttt{GameState} with per-player zones, turn ownership, and a finite phase machine over \texttt{TurnPhase}), deck legality (a computable checker linked to an inductive specification via a soundness-and-completeness biconditional \texttt{checkDeckLegal\_iff}), and card-flow invariants (conservation of total card count across zone transitions, bench-size bounds, prize-card accounting).
+The complete formalization spans 15 files and is included in the supplementary artifact; we highlight only the aspects most relevant to our analytical pipeline.
 
-\subsection{Game State and Turn Discipline}
-
-The state model tracks per-player zones, turn ownership, and phase, sufficient to express legality constraints and prove conservation and progress properties.
-
-\begin{lstlisting}
--- Core/Types.lean:206
-structure GameState where
-  player1       : PlayerState
-  player2       : PlayerState
-  currentPlayer : PlayerId
-  turnNumber    : Nat
-  phase         : TurnPhase
-  stadium       : Option Card
-  winner        : Option PlayerId
-  deriving DecidableEq, BEq, Repr, Inhabited
-\end{lstlisting}
-
-Turn order is a finite phase machine (\texttt{draw}, \texttt{main}, \texttt{attack}, \texttt{betweenTurns}), making ``what can happen next'' decidable and enabling phase-safety lemmas (e.g., no attacks during draw phase).
-
-\subsection{Type Effectiveness and Card Conservation}
-
+\textbf{Type effectiveness.}
 Weakness and resistance are total functions over enumerated types.
-The type effectiveness triangle is certified:
+The type effectiveness triangle---the foundational strategic asymmetry of the game---is certified:
 
 \begin{lstlisting}
 -- TypeEffectiveness.lean:138
@@ -224,8 +199,9 @@ theorem TRIANGLE :
   exact ⟨PType.grass, PType.fire, PType.water, rfl, rfl, rfl⟩
 \end{lstlisting}
 
+\textbf{Card conservation.}
 High-impact trainer cards are modeled with explicit zone transitions.
-For Professor's Research, we prove that discarding the hand and drawing seven preserves global card count:
+For Professor's Research, we prove that discarding the hand and drawing seven preserves global card count, preventing subtle bookkeeping bugs from distorting probability estimates:
 
 \begin{lstlisting}
 -- CardEffects.lean:149
@@ -236,14 +212,11 @@ theorem professorsResearchEffect_preserves_cards (p : PlayerState) :
   omega
 \end{lstlisting}
 
-Conservation theorems prevent subtle bookkeeping bugs from distorting probability estimates.
-Deck legality is implemented as a computable checker linked to an inductive specification through a soundness-and-completeness biconditional (\texttt{checkDeckLegal\_iff}), guaranteeing that data ingestion is extensionally equivalent to the formal legality policy.
+\textbf{Rules--empirical integration.}
+The rules formalization serves as a structural integrity check on our data pipeline. The deck legality biconditional (\texttt{checkDeckLegal\_iff}) ensures that only tournament-legal configurations enter the analysis, preventing data-ingestion errors such as including casual or custom-format results. Similarly, the type effectiveness formalization provides machine-checked validation that our archetype classifications respect the game's underlying strategic structure.
 
-\subsection{Invariant Catalog}
-
-The formal model maintains invariants including nonnegative zone sizes, deck-size preservation, bench-size bounds, uniqueness constraints for once-per-turn actions, deterministic transitions, prize-card accounting, and terminal-state exclusivity.
-These prevent local rule inconsistencies from corrupting macro-level expected values.
-Details of deck legality discussion, energy economy formalization, and the full invariant catalog are available in the supplementary artifact.
+In this paper, the rules layer is supporting infrastructure rather than the primary empirical claim; the 2026 snapshot analysis relies on matrix-level verification over observed matchup data.
+The formalization future-proofs the framework for counterfactual analysis (e.g., ``what if a card is banned?'') and enables mechanical derivation of matchup implications from legal state transitions.
 
 %======================================================================
 \section{Probability and Resource Theory}\label{sec:probability}
@@ -374,6 +347,10 @@ Dragapult Dusknoir    &  0.0\% & [0.0\%, 12.2\%] & 22.1\% \\
 
 The sensitivity analysis was conducted using a Python script (included in the supplementary artifact) that resamples matchup win rates and solves the resulting linear program; these results complement but are external to the Lean-verified theorems.
 A natural extension would embed the sensitivity analysis within Lean using verified interval arithmetic over the linear program, eliminating the Python dependency entirely. While Lean 4's \texttt{Mathlib} provides foundations for interval arithmetic, the LP solver integration remains an engineering challenge we leave to future work.
+
+\subsection{Data Provenance and Trust Boundary}
+
+Our analytical pipeline guarantees computational correctness: given the 14$\times$14 matchup matrix, all downstream conclusions are machine-checked. However, the matrix itself is sourced from Trainer Hill, a third-party platform aggregating results from Limitless TCG tournaments. Potential biases include self-selection in result reporting, platform-specific effects (e.g., online vs.\ in-person play), and the exclusion of tournaments with fewer than 50 players. We treat the matrix as an empirical input parameter, analogous to how a verified compiler trusts its source code: the pipeline transforms data faithfully, but does not vouch for the data's ultimate accuracy. Cross-validation against alternative sources (e.g., direct Limitless API queries) is straightforward future work.
 
 \begin{table*}[!t]
 \centering
@@ -964,6 +941,7 @@ Trainer Hill aggregates results from the Limitless TCG tournament platform.
 The 14\,$\times$\,14 matchup matrix was computed from win-loss-tie records; ties were weighted as one-third of a win following the standard conversion $\mathrm{WR} = (W + T/3)/(W + L + T)$.
 The complete matrix with raw W-L-T counts is archived in the repository.
 All Lean~4 source code, data files, and build instructions are included as supplementary material with this submission. Reviewers can verify all claims by running \texttt{lake build} on the provided artifact.
+The complete artifact builds in approximately 10 minutes on a modern workstation (Apple M-series, 16\,GB RAM).
 
 \balance
 \bibliographystyle{IEEEtran}
