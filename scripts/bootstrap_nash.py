@@ -71,6 +71,10 @@ def parse_matchup_data(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
         row_idx = 0
         for line in lines:
+            if row_idx >= 14:
+                break
+            if "W-L-T" in line and "WR%" in line:
+                continue  # skip header
             m = WLT_RE.search(line)
             if m:
                 w, l, t = int(m.group(1)), int(m.group(2)), int(m.group(3))

@@ -61,6 +61,7 @@ We analyze Trainer Hill tournament data from January--February 2026 (50+ player 
 The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate, while Grimmsnarl Froslass (5.1\% share) achieves 52.7\%.
 We report a machine-checked Nash equilibrium with six-deck support per player; best-response conditions are verified via \texttt{native\_decide} for all 14 pure strategies, and Dragapult receives 0\% equilibrium weight.
 On representative 4-deck and 5-deck subgames of the observed metagame, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure.
+A 10{,}000-iteration bootstrap analysis confirms the equilibrium's qualitative stability: the core support decks appear in $>$96\% of resampled equilibria, while Dragapult receives zero weight in 77.9\%.
 These results demonstrate that formal methods can produce empirically grounded and strategically actionable conclusions in competitive game ecosystems.
 \end{abstract}
 
@@ -409,7 +410,30 @@ For smaller matchups (e.g., Ceruledge vs N's Zoroark: about 100 games), interval
 Critically, the popularity paradox is robust to this uncertainty: Dragapult's expected field win rate of 46.7\% has a 95\% interval of approximately [45.5\%, 47.9\%], entirely below 50\%, while Grimmsnarl's 52.7\% has an interval of approximately [51.0\%, 54.4\%], entirely above 50\%.
 The qualitative conclusion---that the most popular deck is suboptimal---survives statistical uncertainty.
 
-We note that the Wilson confidence intervals~\cite{Wilson1927} quantify uncertainty in individual matchup win rates but are not propagated through the expected win rate or Nash equilibrium computations. The equilibrium is verified for the point-estimate matrix; a full interval-arithmetic or bootstrapped equilibrium analysis is left to future work.
+We note that the Wilson confidence intervals~\cite{Wilson1927} quantify uncertainty in individual matchup win rates but are not directly propagated through the Nash equilibrium computation.
+To assess equilibrium sensitivity, we performed a 10{,}000-iteration bootstrap analysis, sampling each matchup cell uniformly from its Wilson 95\% confidence interval and recomputing the Nash equilibrium.
+While the exact support set is fragile (recovered in only 2.1\% of iterations), the qualitative conclusions are robust: the core trio of Grimmsnarl (96.5\% inclusion), Mega Absol (97.3\%), and Raging Bolt (98.3\%) appear in nearly every bootstrap, and Dragapult receives zero Nash weight in 77.9\% of iterations.
+Table~\ref{tab:bootstrap} summarizes the bootstrap confidence intervals.
+
+\begin{table}[!t]
+\centering
+\caption{Bootstrap Nash weight 95\% confidence intervals (10{,}000 iterations). \emph{Inclusion} is the fraction of bootstraps in which the deck receives nonzero weight.}
+\label{tab:bootstrap}
+\begin{tabular}{l r r r}
+\toprule
+Deck & Point Est. & 95\% CI & Inclusion \\
+\midrule
+Raging Bolt Ogerpon   & 28.7\% & [1.8\%, 32.6\%] & 98.3\% \\
+Grimmsnarl Froslass   & 37.8\% & [0.0\%, 48.4\%] & 96.5\% \\
+Mega Absol Box        & 13.0\% & [0.0\%, 32.9\%] & 97.3\% \\
+Charizard Noctowl     & 11.1\% & [0.0\%, 31.0\%] & 79.5\% \\
+Alakazam Dudunsparce  &  6.0\% & [0.0\%, 20.4\%] & 64.3\% \\
+Gardevoir             &  3.5\% & [0.0\%, 18.9\%] & 42.2\% \\
+Gholdengo Lunatone    &  ---   & [0.0\%, 34.5\%] & 40.5\% \\
+Dragapult Dusknoir    &  0.0\% & [0.0\%, 12.2\%] & 22.1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table*}[!t]
 \centering
