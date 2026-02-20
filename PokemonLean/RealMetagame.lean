@@ -448,7 +448,7 @@ theorem nash_equilibrium_exists :
     · intro i
       change 0 ≤ (1 : Rat) / (14 : Rat)
       decide
-    · decide
+    · native_decide
   exact ⟨s, s, hs, hs⟩
 
 -- ============================================================================
@@ -464,9 +464,9 @@ theorem observed_not_normalized :
     ¬ IsMixedStrategy 14 observedShares := by
   intro h
   have hsum : sumFin 14 observedShares = (695 : Rat) / (1000 : Rat) := by
-    decide
+    native_decide
   have hneq : ((695 : Rat) / (1000 : Rat)) ≠ (1 : Rat) := by
-    decide
+    native_decide
   exact hneq (hsum.symm.trans h.2)
 
 /-- Dragapult is overplayed at 15.5% vs its Nash optimal share of ~6.8% (19/278). -/
