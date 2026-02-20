@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 14:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 14:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -446,45 +446,45 @@ Underfull \hbox (badness 7064) in paragraph at lines 648--654
  []
 
 [7]
-Underfull \hbox (badness 10000) in paragraph at lines 722--728
+Underfull \hbox (badness 10000) in paragraph at lines 730--736
 \OT1/pcr/m/n/10 decide\OT1/ptm/m/n/10 ), (2) arith-metic nor-mal-iza-tion (\OT1/pcr/m/n/10 omega\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 5036) in paragraph at lines 722--728
+Underfull \hbox (badness 5036) in paragraph at lines 730--736
 \OT1/pcr/m/n/10 nlinarith\OT1/ptm/m/n/10 ), (3) def-i-ni-tional un-fold-ing and rewrit-ing
  []
 
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <10> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 729.
-LaTeX Font Info:    Trying to load font information for OMS+pcr on input line 760.
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 737.
+LaTeX Font Info:    Trying to load font information for OMS+pcr on input line 768.
 (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/omspcr.fd
 File: omspcr.fd 
 )
 LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 760.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 768.
 
-Underfull \hbox (badness 10000) in paragraph at lines 759--762
+Underfull \hbox (badness 10000) in paragraph at lines 767--770
 \OT1/ptm/m/n/10 across all \OT1/pcr/m/n/10 .lean \OT1/ptm/m/n/10 files). Most the-o-rem vol-ume is
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 759--762
+Underfull \hbox (badness 10000) in paragraph at lines 767--770
 \OT1/ptm/m/n/10 infrastructure-oriented (rules, ef-fects, prob-a-bil-ity, and
  []
 
-
-Underfull \hbox (badness 7558) in paragraph at lines 765--770
+[8]
+Underfull \hbox (badness 7558) in paragraph at lines 773--778
 []\OT1/ptm/m/n/10 The build pipeline re-gen-er-ates the-o-rem states and
  []
 
-[8]
-Underfull \hbox (badness 4120) in paragraph at lines 792--793
+
+Underfull \hbox (badness 4120) in paragraph at lines 800--801
 []\OT1/ptm/m/n/10 Compute weighted ex-pec-ta-tion from the en-coded
  []
 
 [9]
-Underfull \hbox (badness 4634) in paragraph at lines 839--843
+Underfull \hbox (badness 4634) in paragraph at lines 847--851
 \OT1/ptm/m/n/10 perturbation the-o-rems in \OT1/pcr/m/n/10 SharePerturbation.lean
  []
 
@@ -498,7 +498,10 @@ Underfull \hbox (badness 10000) in paragraph at lines 105--106
 \OT1/ptm/m/n/8 book,'' $https : / / www . pokemon . com / us / play-[]pokemon / about /
  []
 
-) [11] (./main.aux)
+
+Overfull \vbox (6.44397pt too high) has occurred while \output is active []
+
+ [11]) [12] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -507,16 +510,16 @@ L3 programming layer <2026-01-19>
 Here is how much of TeX's memory you used:
  5634 strings out of 469471
  85226 string characters out of 5467771
- 783241 words of memory out of 5000000
+ 784640 words of memory out of 5000000
  34222 multiletter control sequences out of 15000+600000
  677098 words of font info for 141 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
  56i,18n,65p,1020b,1556s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (11 pages, 312308 bytes).
+Output written on main.pdf (12 pages, 313484 bytes).
 PDF statistics:
- 161 PDF objects out of 1000 (max. 8388607)
- 99 compressed objects within 1 object stream
+ 165 PDF objects out of 1000 (max. 8388607)
+ 101 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
