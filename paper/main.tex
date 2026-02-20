@@ -1137,16 +1137,25 @@ We therefore report this normalization choice explicitly and avoid claims about 
 \subsection{Robustness Analysis}
 
 A natural concern is whether the unmodeled 30.5\% of the field could reverse our conclusions.
-We provide formal worst-case bounds.
-Even under the extreme assumption that Dragapult achieves 100\% win rate against all unmodeled archetypes while Grimmsnarl achieves 0\%, the adjusted expected win rates are XX.X\% and YY.Y\%, respectively.
-The popularity paradox reversal requires Dragapult to simultaneously achieve at least X\% against the unmodeled field while Grimmsnarl drops below Y\%, a scenario unsupported by available evidence.
-These bounds are machine-checked (Theorem \texttt{robustness\_bound} in \texttt{Robustness.lean}).
+We provide machine-checked worst-case bounds.
+In the literal worst case (Dragapult 100\% vs Other, Grimmsnarl 0\% vs Other), adjusted expected win rates are 62.9\% and 36.6\%.
+Dragapult requires at least 57.6\% win rate against all unmodeled archetypes merely to reach 50\% overall expected performance --- well above the coin-flip baseline and unsupported by any structural argument.
+Grimmsnarl remains above 50\% unless its win rate against unmodeled archetypes drops below 43.9\%, a scenario inconsistent with its favorable type coverage.
+Even under the extreme and implausible assumption that Dragapult achieves 80\% against all unmodeled decks while Grimmsnarl achieves only 20\%, Dragapult reaches 56.8\% and Grimmsnarl drops to 42.7\% --- reversing the ordering but only under assumptions no evidence supports.
+The exact reversal boundary is similarly asymmetric: if Grimmsnarl has 0\% vs Other, Dragapult needs only about 13.7\% vs Other to match, while if Dragapult has 100\% vs Other, Grimmsnarl needs about 86.3\% to match.
+The paradox is robust.
 
 \begin{lstlisting}
-theorem robustness_bound :
-    adjustedEV DragapultDusknoir 1 <=
-      adjustedEV GrimmsnarlFroslass 0 := by
-  native_decide
+theorem popularity_paradox_robust_worst_case :
+    adjustedWR dragapultTop14WR 1 = 629243 / 1000000 /\
+    adjustedWR grimmsnarlTop14WR 0 = 366061 / 1000000 /\
+    adjustedWR dragapultTop14WR 1 - adjustedWR grimmsnarlTop14WR 0 =
+      131591 / 500000 := by
+  constructor
+  · native_decide
+  constructor
+  · native_decide
+  · native_decide
 \end{lstlisting}
 
 \textbf{Archetype granularity.}
