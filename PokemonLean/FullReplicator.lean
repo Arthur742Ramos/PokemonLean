@@ -8,8 +8,8 @@
   Key results:
   - Dragapult Dusknoir's fitness is BELOW average → share should decline
   - Grimmsnarl Froslass's fitness is ABOVE average → share should grow
-  - Ceruledge has the WORST fitness of all 14 decks → strongest extinction pressure
-  - Full ranking of all 14 decks by fitness
+  - Alakazam has the WORST fitness of all 14 decks → strongest extinction pressure
+  - Full classification: 5 growers, 9 shrinkers
 -/
 import PokemonLean.EvolutionaryDynamics
 
@@ -54,10 +54,9 @@ abbrev metaAvgFitness : Rat :=
   avgFitness 14 fullPayoff normalizedShares
 
 -- ============================================================================
--- CORE REPLICATOR PREDICTIONS
+-- DECK INDICES
 -- ============================================================================
 
--- Deck indices for readability
 def ixDragapult     : Fin 14 := ⟨0,  by omega⟩
 def ixGholdengo     : Fin 14 := ⟨1,  by omega⟩
 def ixGrimmsnarl    : Fin 14 := ⟨2,  by omega⟩
@@ -73,6 +72,10 @@ def ixAlakazam      : Fin 14 := ⟨11, by omega⟩
 def ixKangaskhan    : Fin 14 := ⟨12, by omega⟩
 def ixCeruledge     : Fin 14 := ⟨13, by omega⟩
 
+-- ============================================================================
+-- CORE REPLICATOR PREDICTIONS
+-- ============================================================================
+
 /-- **Dragapult decline**: Dragapult Dusknoir's fitness is below the population average.
     Despite being the most popular deck (15.5%), it has too many losing matchups.
     Under replicator dynamics, its share should decrease. -/
@@ -87,10 +90,10 @@ theorem full_replicator_grimmsnarl_growth :
     deckFitness ixGrimmsnarl > metaAvgFitness := by
   native_decide
 
-/-- **Ceruledge worst**: Ceruledge has the lowest fitness of all 14 decks.
+/-- **Alakazam worst**: Alakazam Dudunsparce has the lowest fitness of all 14 decks.
     It faces the strongest extinction pressure under replicator dynamics. -/
-theorem full_replicator_ceruledge_worst :
-    ∀ i : Fin 14, deckFitness ixCeruledge ≤ deckFitness i := by
+theorem full_replicator_alakazam_worst :
+    ∀ i : Fin 14, deckFitness ixAlakazam ≤ deckFitness i := by
   native_decide
 
 -- ============================================================================
@@ -113,9 +116,14 @@ theorem full_replicator_gardevoir_growth :
     deckFitness ixGardevoir > metaAvgFitness := by
   native_decide
 
-/-- **Gholdengo above average**: Gholdengo Lunatone fitness exceeds average. -/
-theorem full_replicator_gholdengo_growth :
-    deckFitness ixGholdengo > metaAvgFitness := by
+/-- **Kangaskhan above average**: KangaskhanBouffalant fitness exceeds average. -/
+theorem full_replicator_kangaskhan_growth :
+    deckFitness ixKangaskhan > metaAvgFitness := by
+  native_decide
+
+/-- **DragapultCharizard above average**: DragapultCharizard fitness exceeds average. -/
+theorem full_replicator_dragchar_growth :
+    deckFitness ixDragChar > metaAvgFitness := by
   native_decide
 
 -- ============================================================================
@@ -149,29 +157,27 @@ theorem ceruledge_share_decreases :
 -- GROWERS vs SHRINKERS CLASSIFICATION
 -- ============================================================================
 
-/-- Complete classification: decks that GROW under replicator dynamics
-    (fitness above average). Grimmsnarl, MegaAbsol, Gardevoir, Gholdengo,
-    GardevoirJellicent, and DragapultCharizard all have above-average fitness. -/
+/-- Complete classification: the 5 decks that GROW under replicator dynamics
+    (fitness above average). -/
 theorem growers_above_average :
-    deckFitness ixGrimmsnarl    > metaAvgFitness ∧
-    deckFitness ixMegaAbsol     > metaAvgFitness ∧
-    deckFitness ixGardevoir     > metaAvgFitness ∧
-    deckFitness ixGholdengo     > metaAvgFitness ∧
-    deckFitness ixGardJellicent > metaAvgFitness ∧
-    deckFitness ixDragChar      > metaAvgFitness := by
+    deckFitness ixGrimmsnarl > metaAvgFitness ∧
+    deckFitness ixMegaAbsol  > metaAvgFitness ∧
+    deckFitness ixGardevoir  > metaAvgFitness ∧
+    deckFitness ixDragChar   > metaAvgFitness ∧
+    deckFitness ixKangaskhan > metaAvgFitness := by
   native_decide
 
-/-- Complete classification: decks that SHRINK under replicator dynamics
-    (fitness below average). Dragapult, CharNoctowl, CharPidgeot, RagingBolt,
-    NsZoroark, Alakazam, Kangaskhan, and Ceruledge are all below average. -/
+/-- Complete classification: the 9 decks that SHRINK under replicator dynamics
+    (fitness below average). -/
 theorem shrinkers_below_average :
     deckFitness ixDragapult   < metaAvgFitness ∧
+    deckFitness ixGholdengo   < metaAvgFitness ∧
     deckFitness ixCharNoctowl < metaAvgFitness ∧
+    deckFitness ixGardJellicent < metaAvgFitness ∧
     deckFitness ixCharPidgeot < metaAvgFitness ∧
     deckFitness ixRagingBolt  < metaAvgFitness ∧
     deckFitness ixNsZoroark   < metaAvgFitness ∧
     deckFitness ixAlakazam    < metaAvgFitness ∧
-    deckFitness ixKangaskhan  < metaAvgFitness ∧
     deckFitness ixCeruledge   < metaAvgFitness := by
   native_decide
 
