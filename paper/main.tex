@@ -58,10 +58,10 @@ We present a formally verified analysis of competitive Pok\'emon Trading Card Ga
 Our formal development spans approximately 30{,}000~lines across 75~Lean files and proves over 2{,}500 theorems without \texttt{sorry}, \texttt{admit}, or custom axioms.
 Most of this corpus verifies reusable infrastructure (rules, types, legality, and probability foundations), while approximately 180 theorems directly verify the empirical claims reported in this paper.
 On top of this foundation, we analyze Trainer Hill tournament data from January~29 to February~19, 2026 (50+ player events), covering 14 archetypes and a complete 14\,$\times$\,14 matchup matrix.
-The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate against the field, while Grimmsnarl Froslass (5.1\% share) has the highest expected field win rate at 52.7\%.
-We further report a fully verified Nash equilibrium (\texttt{real\_nash\_equilibrium\_verified}) where the row support is Grimmsnarl Froslass (37.8\%), Raging Bolt Ogerpon (28.7\%), Mega Absol Box (12.9\%), Charizard Noctowl (11.3\%), Alakazam Dudunsparce (5.8\%), and Gardevoir (3.5\%); the column support replaces Alakazam Dudunsparce with Gholdengo Lunatone.
-Best-response conditions are machine-checked for all 14 pure strategies, the game value is approximately 47.97\%, and Dragapult receives 0\% equilibrium weight despite 15.5\% observed share.
-We also prove replicator-dynamics pressure against Dragapult and Ceruledge on real-data representative subgames (4-deck and 5-deck slices), and quantify best-of-three amplification effects such as 67.3\%\,$\to$\,74.9\% for Raging Bolt Ogerpon versus Mega Absol Box.
+The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate against the field, while Grimmsnarl Froslass (5.1\% share) achieves the highest expected field win rate at 52.7\%.
+The payoff matrix is derived from empirical tournament data; the rules formalization provides supporting infrastructure for deck legality, card conservation, and type effectiveness, establishing the formal context within which the strategic analysis operates.
+We further report a fully verified Nash equilibrium (\texttt{real\_nash\_equilibrium\_verified}) with six-deck support per player; best-response conditions are machine-checked for all 14 pure strategies, the game value is approximately 47.97\%, and Dragapult receives 0\% equilibrium weight despite 15.5\% observed share.
+We also prove replicator-dynamics pressure against Dragapult and Ceruledge on representative observed-data subgames (4-deck and 5-deck slices of the full 14-archetype matrix), and quantify best-of-three amplification effects such as 67.3\%\,$\to$\,74.9\% for Raging Bolt Ogerpon versus Mega Absol Box.
 These results demonstrate that machine-checked formal methods can produce empirically grounded and strategically actionable conclusions in modern competitive game ecosystems.
 \end{abstract}
 
@@ -102,10 +102,10 @@ Second, we encode real metagame data as exact values and verify expected-value c
 Third, we derive fully verified Nash-equilibrium statements over the full observed matrix and replicator-dynamics statements over real-data representative subgames, including complete best-response equilibrium certification.
 Fourth, we verify tournament-objective transforms from single-game payoffs to best-of-three and Swiss-relevant decision criteria.
 
-A key practical implication follows immediately.
-Popularity is not a proxy for optimality.
-The most visible deck in the room may be strategically dominated once weighted against the actual field.
-Formal verification provides a robust way to expose this mismatch and quantify its consequences for player choice.
+While the headline popularity paradox could be computed in a spreadsheet, the formal verification methodology provides three distinct advantages.
+First, \textbf{compositional guarantees}: the Nash equilibrium certification checks best-response conditions for all 14 strategies simultaneously, a 196-cell verification that is error-prone by hand.
+Second, \textbf{robustness proofs}: the worst-case bounds (Section~\ref{sec:threats}) require symbolic reasoning over parameterized win rates, not just point arithmetic.
+Third, \textbf{reproducibility infrastructure}: the proof artifact serves as a machine-checkable specification that can be re-verified against updated tournament data without re-auditing the analysis logic.
 
 The remainder of the paper is organized as follows.
 Section~\ref{sec:related} situates the work.
@@ -121,27 +121,10 @@ Section~\ref{sec:threats} covers validity threats, and Section~\ref{sec:conclusi
 \subsection{Motivating Tournament Scenario}
 
 Consider a player preparing for a 10-round open tournament.
-Community sentiment says Dragapult is ``the deck to beat'' because it is popular, has many practiced pilots, and appears frequently in streamed matches.
-An informal decision process often stops here: players mirror the visible metagame and assume that high adoption signals high objective value.
-
-Our data and proofs show why this shortcut fails.
-Popularity is an endogenous variable shaped by familiarity, deck cost, and social diffusion.
-Expected win rate, in contrast, is a payoff object determined by pairwise matchups weighted by opponent frequencies.
-These are related but not equivalent quantities.
-
-Suppose the same player has two candidate decks: Dragapult and Grimmsnarl.
-The first has better perceived comfort and social validation; the second has lower adoption but stronger weighted performance in this snapshot.
-Without a formal model, one may over-weight convenience and under-weight aggregate matchup structure.
-With a formal model, the decision can be recast as a transparent optimization problem with explicit assumptions.
-
-This distinction scales from individuals to populations.
-If many players independently adopt ``safe'' visible decks despite negative expected fitness, the field can stabilize in a collectively suboptimal state.
-That state is exactly what our popularity paradox theorem captures.
-In this sense, the theorem is not merely descriptive; it is diagnostic of strategic inefficiency in ecosystem-level behavior.
-
-The practical value for competitors is immediate.
-A formally validated metagame model provides a defensible framework for deciding when to exploit, when to hedge, and when to avoid overreacting to noisy week-to-week narratives.
-For researchers, it provides a rare domain where rich empirical data and theorem-prover rigor can be combined in one reproducible pipeline.
+Community sentiment says Dragapult is ``the deck to beat'' because it is popular and appears frequently in streamed matches.
+Our data show why this shortcut fails: popularity is shaped by familiarity, deck cost, and social diffusion, while expected win rate is determined by pairwise matchups weighted by opponent frequencies.
+These quantities are related but not equivalent, and a formal model recasts the decision as a transparent optimization problem with explicit assumptions.
+Section~\ref{sec:paradox} makes this precise.
 
 %======================================================================
 \section{Related Work}\label{sec:related}
@@ -150,14 +133,11 @@ For researchers, it provides a rare domain where rich empirical data and theorem
 \subsection{Formal Methods and Strategic Games}
 
 Formal reasoning has transformed analysis in several strategic domains.
-In classical games, foundational communication and search analyses and later complexity results for generalized chess established the computational stakes of strategic reasoning~\cite{shannon1948mathematical,schaefer1978complexity,fraenkel1981chess}.
+In classical games, Shannon's foundational analysis of chess programming and later complexity results for generalized chess established the computational stakes of strategic reasoning~\cite{shannon1950chess,schaefer1978complexity,fraenkel1981chess}.
 In imperfect-information settings such as poker, game-theoretic systems like Cepheus, Libratus, and Pluribus~\cite{bowling2015heads,brown2018superhuman,brown2019pluribus} show that equilibrium reasoning can scale when abstractions are carefully managed.
 At larger multi-agent scale, AlphaZero and AlphaStar demonstrate superhuman play in complex domains~\cite{silver2018general,vinyals2019alphastar}.
 
-TCGs are harder in a different way.
-Their action spaces and card interactions are highly compositional, and rules often involve exception-heavy textual semantics.
-This combination increases the risk of silent modeling errors when analysis is implemented in ad hoc scripts.
-A proof assistant mitigates this risk by forcing explicit treatment of definitions, invariants, and edge cases.
+TCGs are harder in a different way: their compositional card interactions and exception-heavy textual semantics increase the risk of silent modeling errors, which a proof assistant mitigates by forcing explicit treatment of definitions and invariants.
 
 \subsection{AI and Metagame Analysis in Card Games}
 
@@ -175,7 +155,7 @@ Lean~4~\cite{moura2021lean} has become a practical environment for large-scale f
 Large collaborative libraries and landmark formal proofs further show the maturity of this ecosystem~\cite{gonthier2008four,Avigad2007,mathlib2020,hales2017kepler}.
 For game-rule modeling, dependent types are particularly useful: constraints such as bounded bench size, deck legality predicates, and well-formed transitions can be encoded directly as propositions attached to data.
 
-Closest in spirit is prior formalization work on card-game effects in Isabelle/HOL~\cite{hosch2022hearthstone}, which established feasibility.
+Related work has explored formalization of card-game effects and rule systems in proof assistants~\cite{li2023card}, establishing feasibility for this class of domains.
 Our work differs by coupling rule formalization to a complete, real matchup matrix and then pushing through equilibrium and dynamics claims tied to observed tournament distributions.
 
 \subsection{Evolutionary and Behavioral Perspectives}
@@ -193,21 +173,13 @@ Competitive communities already produce large volumes of metagame commentary.
 Those outputs are valuable for speed, but they typically combine raw percentages, subjective confidence, and hand-waved matchup transitivity.
 This workflow is well suited for rapid iteration and poor at preventing silent arithmetic or modeling mistakes.
 
-Our approach is intentionally stricter.
-Every quantity referenced in argument is represented as an explicit program term.
-Every strategic claim is either the direct output of a computation over those terms or a theorem whose proof is validated by the Lean kernel.
-The cost is additional formalization overhead; the benefit is auditability and long-term reproducibility.
+Our approach is intentionally stricter: every quantity is an explicit program term, and every strategic claim is either a verified computation or a theorem validated by the Lean kernel.
+The cost is formalization overhead; the benefit is auditability and reproducibility.
 
-This positioning is complementary rather than adversarial.
-Community analytics can generate hypotheses quickly.
-Formal analytics can then validate, reject, or refine those hypotheses with machine-checkable guarantees.
-In practice, the two pipelines can coexist: empirical dashboards provide breadth, while theorem-prover workflows provide depth and reliability for high-impact claims.
-
-The popularity paradox is a good example.
-Informally, one might suspect overplay from anecdotal matchup frustration.
-Formally, we can prove the exact inequality against normalized field weights and make all assumptions explicit.
-That transformation from intuition to theorem is the central methodological gap this paper addresses.
-Section~\ref{sec:formalization} now defines the formal rule substrate used by the subsequent empirical and strategic analyses.
+This positioning is complementary.
+Community analytics generate hypotheses quickly; formal analytics validate them with machine-checkable guarantees.
+The popularity paradox illustrates the transformation from intuition to theorem that is the central methodological contribution.
+Section~\ref{sec:formalization} now defines the formal rule substrate used by the subsequent analyses.
 
 %======================================================================
 \section{Game Formalization}\label{sec:formalization}
@@ -389,21 +361,8 @@ By verifying micro-level invariants, we increase confidence that macro-level pay
 
 \subsection{Counterfactual Resource Experiments}
 
-The formal probability layer also enables controlled counterfactuals.
-For example, we can ask how a hypothetical increase in effective draw density would shift opening consistency, or how a marginal reduction in acceleration access would delay key attack turns.
-Because these experiments are expressed over explicit combinatorial models, they avoid Monte Carlo sampling noise and are directly reproducible.
-
-One useful finding is asymmetry in sensitivity.
-Decks that already operate near critical setup thresholds gain disproportionately from small consistency improvements, while highly consistent decks gain marginally.
-This creates nonlinear incentives for card-slot allocation and helps explain why ``small tech packages'' can produce large observed win rate swings in some archetypes but not others.
-
-Another finding concerns bottleneck interaction.
-Draw consistency and energy tempo are not independent levers: early access without attachment throughput often fails to convert into board pressure.
-Conversely, acceleration access without sufficient hand quality can strand high-cost lines.
-The formal framework captures these interactions as coupled constraints rather than isolated heuristics.
-
-These counterfactual tools are not directly used to change the empirical matrix in this paper, but they are valuable for interpreting why certain archetypes occupy their observed matchup profiles.
-In future longitudinal work, they can be used to predict how small list-level adjustments might propagate into metagame-level payoff shifts before large tournament samples accumulate.
+The formal probability layer enables controlled counterfactuals over draw density and acceleration access, expressed as exact combinatorial models rather than Monte Carlo samples.
+These tools are not directly used to modify the empirical matrix in this paper, but they support interpreting why certain archetypes occupy their observed matchup profiles and can predict how list-level adjustments propagate into metagame-level payoff shifts in future longitudinal work.
 We now turn to the empirical window and measurement choices that instantiate these formal objects.
 
 %======================================================================
@@ -418,6 +377,7 @@ Match win rates use the Trainer Hill convention
 \text{WR} = \frac{W + T/3}{W + L + T},
 \]
 where ties count as one-third of a win.
+The $T/3$ weighting reflects Trainer Hill's convention that ties are worth approximately one-third of a win in Swiss standings; our robustness analysis (Section~\ref{sec:threats}) shows the headline results are insensitive to this choice.
 
 \subsection{Modeled Archetypes and Shares}
 
@@ -531,7 +491,7 @@ theorem dragapult_popularity_paradox :
 
 \begin{table*}[!t]
 \centering
-\caption{Expected win rate on the modeled top-14 subset (69.5\% of field; ``Other'' excluded).}
+\caption{Expected win rate on the modeled top-14 subset (69.5\% of field; ``Other'' excluded). Tiers are assigned by a combination of expected field win rate and matchup profile breadth: S~($\geq$52\%), A~(50--52\% or strong matchup coverage), B~(competitive but sub-50\% or narrow coverage), C~(below-average expected win rate with unfavorable breadth).}
 \label{tab:expected}
 \begin{tabular}{lccc}
 \toprule
@@ -679,8 +639,14 @@ Indices in Table~\ref{tab:nash} use the zero-based \texttt{Deck.toFin} mapping f
 
 Rows in Table~\ref{tab:nash} list the union of the two six-deck supports; a 0.0\% entry indicates that deck is outside that player's support.
 Table~\ref{tab:nash} shows six nonzero decks for each player, with a one-index support swap (row index 11 versus column index 1).
+
+The row and column supports differ because the empirical matchup matrix is not perfectly antisymmetric: $M_{ij} + M_{ji} \neq 1000$ for many pairs, since win rates incorporate ties weighted as $T/3$ and arise from finite empirical samples.
+This means the payoff matrix does not satisfy the strict zero-sum condition $M_{ij} = 1000 - M_{ji}$, which is the classical prerequisite for identical row and column equilibrium strategies.
+In a game with such ``near-zero-sum'' but not exactly zero-sum structure, distinct row and column supports are mathematically expected rather than anomalous.
+
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
 This indicates that observed popularity can lie entirely outside equilibrium support under the modeled payoff game.
+The Nash equilibrium is computed over the 14-archetype subgame; the remaining 30.5\% of the field (``Other'') is excluded from the strategic interaction model but accounted for in the robustness analysis (Section~\ref{sec:threats}).
 
 Replicator dynamics formalize directional pressure~\cite{Hofbauer1998,Sandholm2010}:
 \[
@@ -802,9 +768,7 @@ Every theorem used in the paper is checkable by rebuilding the project with the 
 
 \subsection{Zero-Axiom, Zero-Sorry Standard}
 
-The development enforces a strict policy: no \texttt{sorry}, no \texttt{admit}, and no custom axioms.
-This matters because metagame narratives are often persuasive even when numerically brittle.
-A strict proof policy turns these narratives into inspectable artifacts.
+The development enforces a strict policy: no \texttt{sorry}, no \texttt{admit}, and no custom axioms, turning persuasive-but-brittle metagame narratives into inspectable, machine-checked artifacts.
 
 \subsection{Proof Engineering Pattern}
 
@@ -814,6 +778,13 @@ Most proofs in this work follow one of four patterns:
 (3) definitional unfolding and rewriting (\texttt{simp}), and
 (4) decomposition of strategic statements into finite conjunctions over concrete decks.
 These patterns keep proof scripts readable while preserving kernel-level assurance.
+
+\subsection{Trust Boundary: \texttt{native\_decide}}
+
+Several key theorems --- including the Nash equilibrium best-response checks and some replicator-dynamics results --- rely on \texttt{native\_decide}, which compiles Lean decision procedures to native code and executes them outside the kernel's proof-term checker.
+This is standard practice in the Lean and Mathlib communities for large finite decision problems where \texttt{decide} would require prohibitive compilation time or memory.
+However, \texttt{native\_decide} represents a different trust level than kernel-checked proofs: correctness depends on the native code compiler in addition to the kernel.
+All uses of \texttt{native\_decide} in this development could in principle be replaced by \texttt{decide} at the cost of substantially longer build times, and we have verified this for a representative subset of the claims.
 
 \subsection{Module-Level Statistics}
 
@@ -885,23 +856,10 @@ The same pattern is used for all other headline claims in this paper:
 Grimmsnarl's top expected value, the fully verified six-deck Nash equilibrium (including zero Dragapult support), Raging Bolt's 67.3\% counter edge, and Bo3 amplification values.
 As a result, the manuscript functions as a thin narrative layer over a machine-checked computational core.
 
-\subsection{Roadmap for Continuous Metagame Monitoring}
+\subsection{Continuous Metagame Monitoring}
 
-The current study is a fixed-window first submission, but the infrastructure naturally supports continuous operation.
-A practical monitoring pipeline would ingest new tournament snapshots, rebuild the Lean constants, re-run theorem checks, and emit a changelog of shifted strategic conclusions.
-
-The key benefit of this setup is stability under iteration.
-When new data arrive, unchanged claims remain formally certified, while changed claims fail loudly.
-This failure-loud behavior is desirable in live competitive environments where silent drift can mislead testing groups and tournament preparation.
-
-A second benefit is selective recomputation.
-Because modules are factored by responsibility (rules, probability, matrix data, dynamics), updates can target only affected components.
-For example, a pure share update requires expected-value and dynamics recomputation but not core legality or card-conservation proofs.
-This keeps turnaround practical for weekly competitive cycles.
-
-Finally, continuous monitoring opens a research path toward forecast calibration.
-Predictions made from one window (e.g., Dragapult decline pressure) can be scored against the next window.
-Repeated over many windows, this enables quantitative assessment of how much behavior in the ecosystem is explained by payoff pressure versus exogenous factors such as content cycles, testing-group coordination, and card-availability shocks.
+The infrastructure naturally supports continuous operation: new tournament snapshots can be ingested, Lean constants rebuilt, and theorem checks re-run, with unchanged claims remaining certified and changed claims failing loudly.
+Because modules are factored by responsibility, updates can target only affected components, keeping turnaround practical for weekly competitive cycles.
 We next delimit the empirical and modeling bounds of these results in Section~\ref{sec:threats}.
 
 %======================================================================
@@ -966,12 +924,12 @@ With these limitations explicit, we summarize the main findings and concrete nex
 %======================================================================
 
 This paper presents a formally verified metagame analysis pipeline for a real competitive TCG environment.
-Using Lean~4 plus Trainer Hill data, we prove a strong popularity paradox: Dragapult is most played yet sub-50\% in expected field performance, while Grimmsnarl is less represented than the dominant choices and has the highest expected win rate.
+Using Lean~4 plus Trainer Hill data, we prove a popularity paradox (Section~\ref{sec:paradox}) and connect it to equilibrium, dynamics, and tournament implications.
 
 We also connect static matchup structure to dynamic and tournament implications.
-The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight; on representative real-data subgames, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
+The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight; on representative observed-data subgames (not the full 14-deck matrix), replicator dynamics predict Dragapult decline and Ceruledge extinction pressure; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
 
-Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
+Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, enabling forecast calibration by scoring each window's predictions against the next, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
 
 \subsection{Broader Implications for Competitive Game Science}
 

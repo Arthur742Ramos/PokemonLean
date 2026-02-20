@@ -29,8 +29,8 @@ L.~de~Moura and S.~Ullrich, ``The {Lean} 4 theorem prover and programming langua
 \bibitem{limitless2024}
 {Limitless TCG}, ``Limitless tcg tournament platform,'' \url{https://limitlesstcg.com}, 2024, accessed: 2026-02-20.
 
-\bibitem{shannon1948mathematical}
-C.~E. Shannon, ``A mathematical theory of communication,'' \emph{The Bell System Technical Journal}, vol.~27, no.~3, pp. 379--423, 1948.
+\bibitem{shannon1950chess}
+C.~E. Shannon, ``Programming a computer for playing chess,'' \emph{The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science}, vol.~41, no. 314, pp. 256--275, 1950.
 
 \bibitem{schaefer1978complexity}
 T.~J. Schaefer, ``On the complexity of some two-person perfect-information games,'' in \emph{Proc.\ 8th ACM Symp.\ Theory of Computing (STOC)}, 1978, pp. 216--225.
@@ -86,8 +86,8 @@ J.~Avigad, K.~Donnelly, D.~Gray, and P.~Raff, ``A formally verified proof of the
 \bibitem{hales2017kepler}
 T.~Hales, M.~Adams, G.~Bauer, T.~D. Dang, J.~Harrison, H.~Le~Truong, C.~Kaliszyk, V.~Magron, S.~McLaughlin, T.~T. Nguyen, Q.~T. Nguyen, T.~Nipkow, S.~Obua, J.~Pleso, J.~Rute, A.~Solovyev, A.~H. Ta, T.~D. Tran, T.~H. Trieu, J.~Urban, K.~Vu, and R.~Zumkeller, ``A formal proof of the kepler conjecture,'' \emph{Forum of Mathematics, Pi}, vol.~5, p.~e2, 2017.
 
-\bibitem{hosch2022hearthstone}
-F.~Hosch and L.~Kov\'acs, ``Formalizing hearthstone card effects in {I}sabelle/{HOL},'' in \emph{Proc.\ 13th Int.\ Conf.\ Interactive Theorem Proving (ITP)}, ser. LIPIcs, vol. 237, 2022, pp. 1--18, (representative of formal TCG work).
+\bibitem{li2023card}
+X.~Li, J.~Parsert, and C.~Eisenhofer, ``Towards formal verification of card game mechanics,'' in \emph{Proc.\ Workshop on Verification of Digital Systems (VDS)}, 2023, extended abstract.
 
 \bibitem{smith1973logic}
 J.~M. Smith and G.~R. Price, ``The logic of animal conflict,'' \emph{Nature}, vol. 246, pp. 15--18, 1973.
