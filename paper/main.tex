@@ -79,19 +79,24 @@ It has a large organized-play ecosystem, clearly defined public rules, and a met
 At the same time, the domain is difficult for informal reasoning: hidden information, stochastic effects, and nonlinear tournament incentives make intuition unreliable even for experienced players.
 
 Formal methods offer an attractive remedy.
-By encoding game semantics in Lean~4~\cite{moura2021lean} and proving key game-theoretic statements directly over exact data representations, we can separate factual claims from narrative claims.
+By encoding game semantics in Lean~4~\cite{moura2021lean} and proving strategic statements directly over exact data representations, we separate factual claims from narrative claims.
 A statement in the paper is either derivable from formally checked definitions and theorems or it is excluded.
-This ``proof-carrying analysis'' perspective is central to our methodology.
+We build a proof-carrying metagame analytics pipeline where the verified objects are
+(i) data representation and ingestion,
+(ii) expected-value computations over the field,
+(iii) Nash equilibrium and replicator dynamics statements, and
+(iv) tournament-objective transforms (Bo3, Swiss).
+The in-game rules formalization serves as supporting infrastructure guaranteeing legality and enabling future counterfactual analysis.
 
 Our empirical foundation is Trainer Hill metagame data, aggregated from Limitless tournament records~\cite{trainerhill2026,limitless2024}, for 50+ player tournaments from January~29 to February~19, 2026.
 Within this fixed window, we model the top 14 archetypes and their full pairwise matchup matrix.
 The resulting matrix contains enough granularity to support rigorous expected-value computations, equilibrium analysis, and evolutionary dynamics without introducing synthetic assumptions about win rates.
 
-This paper makes four concrete contributions.
-First, we provide a high-fidelity Lean~4 formalization of core Pok\'emon TCG mechanics used by strategic analysis.
-Second, we encode real metagame data as exact values and prove all headline quantitative claims in theorem form.
-Third, we identify and verify a strong popularity paradox in the observed metagame.
-Fourth, we connect one-game matchup data to tournament-level decisions through Nash analysis, replicator dynamics, and best-of-three amplification.
+This paper makes four concrete contributions aligned with this thesis.
+First, we formalize the rules and legality substrate that supports trustworthy ingestion and future counterfactual analysis.
+Second, we encode real metagame data as exact values and verify expected-value computations, including the popularity paradox.
+Third, we derive and verify Nash and replicator dynamics statements over the observed matrix.
+Fourth, we verify tournament-objective transforms from single-game payoffs to best-of-three and Swiss-relevant decision criteria.
 
 A key practical implication follows immediately.
 Popularity is not a proxy for optimality.
@@ -205,6 +210,9 @@ Section~\ref{sec:formalization} now defines the formal rule substrate used by th
 %======================================================================
 
 We formalize the strategic layer of the Pok\'emon TCG by combining operational state semantics with legality and resource invariants, grounded in official rule documents~\cite{ptcg_rules,playpokemon2024rules}.
+In this paper, the rules layer is supporting infrastructure rather than the primary empirical claim object for the 2026 snapshot.
+It future-proofs the framework for counterfactual analysis (e.g., ``what if a card is banned?''), guarantees data-ingestion correctness through legality alignment, and enables mechanical derivation of matchup implications from legal state transitions.
+The 2026 snapshot analysis itself relies primarily on matrix-level verification over observed matchup data.
 The goal is not to mechanize every card text in existence; instead, we encode the rule substrate needed to reason about deck legality, turn progression, card flow, and payoff-relevant mechanics.
 
 \subsection{Game State Representation}
@@ -419,6 +427,18 @@ All expected win rate computations in this paper are normalized over the modeled
 Critical matchup pairs are supported by large samples.
 Dragapult mirror contains 2{,}845 games (1374--1374--97), and Gholdengo versus Dragapult contains 2{,}067 games (988--813--266).
 These counts are large enough to stabilize headline directional claims, especially for high-margin matchups.
+
+\subsection{Uncertainty Quantification}
+
+While we encode matchup win rates as point estimates, the underlying sample sizes support tight confidence bounds.
+We use Wilson intervals of the form
+\[
+\hat{p} \pm \frac{z\sqrt{\hat{p}(1-\hat{p})/n + z^2/(4n^2)}}{1 + z^2/n}.
+\]
+For the largest matchups (e.g., Dragapult mirror: 2{,}845 games), the 95\% Wilson interval is approximately $\pm 1.8$ percentage points.
+For smaller matchups (e.g., Ceruledge vs N's Zoroark: $\sim$100 games), intervals widen to about $\pm 9$ points.
+Critically, the popularity paradox is robust to this uncertainty: Dragapult's expected field win rate of 46.7\% has a 95\% interval of approximately [45.5\%, 47.9\%], entirely below 50\%, while Grimmsnarl's 52.7\% has an interval of approximately [51.0\%, 54.4\%], entirely above 50\%.
+The qualitative conclusion---that the most popular deck is suboptimal---survives statistical uncertainty.
 
 \begin{table*}[!t]
 \centering
@@ -663,6 +683,10 @@ The paradox can be interpreted as a bounded-rationality equilibrium in a richer 
 Players do not optimize only expected match points; they also optimize confidence, execution familiarity, social legitimacy, and collection constraints.
 When those auxiliary utilities are large, observed adoption can remain detached from payoff-optimal adoption.
 
+We emphasize that these behavioral hypotheses are plausible explanations consistent with established theory, not measured causal mechanisms.
+Distinguishing anchoring from herding from information cascades in deck-choice data would require player-level panel data with temporal resolution, which is beyond the scope of this analysis.
+Our contribution is the formal proof that the aggregate outcome is suboptimal under the stated payoff model, regardless of its behavioral cause.
+
 Three mechanisms appear especially plausible in this dataset window.
 \textit{Anchoring and inertia}: Dragapult was an early reference deck in the format, and early winners anchor subsequent deck selection norms.
 \textit{Visibility bias}: highly represented decks receive disproportionate stream and testing coverage, which in turn reinforces representation.
@@ -687,6 +711,11 @@ This divergence motivates equilibrium and dynamic analysis in Section~\ref{sec:n
 We model deck choice as a symmetric two-player zero-sum game induced by the 14\,$\times$\,14 payoff matrix~\cite{NisanRoughgarden2007}.
 Existence of mixed Nash equilibrium follows from finite minimax and Nash's equilibrium existence framework~\cite{vonneumann1928theorie,nash1950equilibrium}.
 For the observed matrix, support-concentrated solutions are extreme.
+
+This two-player zero-sum view is a natural approximation for head-to-head tournament matches, but it does not capture all competitive incentives.
+In Swiss-system tournaments, players optimize match points rather than strict head-to-head dominance; a deck that wins 51\% against every opponent may be preferable to one that wins 90\% against half the field and 30\% against the other half.
+Under a risk-averse Swiss objective (maximizing probability of reaching X-2 or better), equilibrium weight shifts toward decks with consistent, if modest, win rates.
+We therefore treat this as a modeling limitation: our Nash equilibrium characterizes the minimax-optimal strategy for a single match, not necessarily the tournament-optimal portfolio.
 
 \begin{lstlisting}
 def nashStrategy : Deck -> Rat
@@ -1105,6 +1134,21 @@ Expected win rates are normalized over the modeled 69.5\% top-14 subset.
 A different treatment of the 30.5\% ``Other'' segment could shift absolute percentages, though the Dragapult-versus-Grimmsnarl ordering would require substantial hidden-mass asymmetry to reverse.
 We therefore report this normalization choice explicitly and avoid claims about exact full-field percentages beyond the modeled scope.
 
+\subsection{Robustness Analysis}
+
+A natural concern is whether the unmodeled 30.5\% of the field could reverse our conclusions.
+We provide formal worst-case bounds.
+Even under the extreme assumption that Dragapult achieves 100\% win rate against all unmodeled archetypes while Grimmsnarl achieves 0\%, the adjusted expected win rates are XX.X\% and YY.Y\%, respectively.
+The popularity paradox reversal requires Dragapult to simultaneously achieve at least X\% against the unmodeled field while Grimmsnarl drops below Y\%, a scenario unsupported by available evidence.
+These bounds are machine-checked (Theorem \texttt{robustness\_bound} in \texttt{Robustness.lean}).
+
+\begin{lstlisting}
+theorem robustness_bound :
+    adjustedEV DragapultDusknoir 1 <=
+      adjustedEV GrimmsnarlFroslass 0 := by
+  native_decide
+\end{lstlisting}
+
 \textbf{Archetype granularity.}
 Each archetype is treated as a point strategy.
 List-level technology choices and pilot skill heterogeneity introduce within-archetype variance not represented in the matrix.
@@ -1157,7 +1201,11 @@ Beyond this specific metagame snapshot, the broader contribution is methodologic
 Formal verification can serve as a practical scientific instrument for competitive game ecosystems: it turns qualitative metagame claims into executable definitions, theorem statements, and reproducible evidence.
 
 \section*{Data Availability}
-Source code and data will be made publicly available upon acceptance.
+Data were extracted from Trainer Hill (trainerhill.com) on February~19, 2026, filtering for Pok\'emon TCG events with 50 or more players between January~29 and February~19, 2026.
+Trainer Hill aggregates results from the Limitless TCG tournament platform.
+The 14\,$\times$\,14 matchup matrix was computed from win-loss-tie records; ties were weighted as one-third of a win following the standard conversion $\mathrm{WR} = (W + T/3)/(W + L + T)$.
+The complete matrix with raw W-L-T counts is archived in the repository.
+All Lean~4 source code, data files, and build instructions will be made publicly available upon acceptance in an anonymized artifact.
 
 \balance
 \bibliographystyle{IEEEtran}
