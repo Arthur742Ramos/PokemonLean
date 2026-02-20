@@ -21,28 +21,43 @@
 \BIBdecl
 
 \bibitem{moura2021lean}
-L.~de~Moura and S.~Ullrich, ``The {Lean} 4 theorem prover and programming language,'' in \emph{Proc.\ 28th Int.\ Conf.\ Automated Deduction (CADE-28)}, ser. LNCS, vol. 12699.\hskip 1em plus 0.5em minus 0.4em\relax Springer, 2021, pp. 625--635.
+L.~de~Moura and S.~Ullrich, ``The {Lean} 4 theorem prover and programming language,'' in \emph{Automated Deduction -- {CADE}-28}, ser. LNCS, vol. 12699.\hskip 1em plus 0.5em minus 0.4em\relax Springer, 2021, pp. 625--635.
 
 \bibitem{trainerhill2026}
-{Trainer Hill}, ``Pok{\'e}mon tcg tournament metagame aggregates,'' \url{https://www.trainerhill.com}, 2026, aggregates Limitless TCG tournament results; accessed: 2026-02-19.
+{Trainer Hill}, ``Pok{\'e}mon tcg tournament metagame aggregates,'' \url{https://www.trainerhill.com}, 2026, aggregates Limitless TCG tournament results; accessed: 2026-02-20.
+
+\bibitem{limitless2024}
+{Limitless TCG}, ``Limitless tcg tournament platform,'' \url{https://limitlesstcg.com}, 2024, accessed: 2026-02-20.
+
+\bibitem{shannon1948mathematical}
+C.~E. Shannon, ``A mathematical theory of communication,'' \emph{The Bell System Technical Journal}, vol.~27, no.~3, pp. 379--423, 1948.
+
+\bibitem{schaefer1978complexity}
+T.~J. Schaefer, ``On the complexity of some two-person perfect-information games,'' in \emph{Proc.\ 8th ACM Symp.\ Theory of Computing (STOC)}, 1978, pp. 216--225.
+
+\bibitem{fraenkel1981chess}
+A.~S. Fraenkel and D.~Lichtenstein, ``Computing a perfect strategy for $n \times n$ chess requires time exponential in $n$,'' \emph{Journal of Combinatorial Theory, Series A}, vol.~31, no.~2, pp. 199--214, 1981.
 
 \bibitem{bowling2015heads}
 M.~Bowling, N.~Burch, M.~Johanson, and O.~Tammelin, ``Heads-up limit hold'em poker is solved,'' \emph{Science}, vol. 347, no. 6218, pp. 145--149, 2015.
 
 \bibitem{brown2018superhuman}
-N.~Brown and T.~Sandholm, ``Superhuman {AI} for heads-up no-limit poker: {L}ibratus beats top professionals,'' in \emph{Science}, vol. 359, no. 6374, 2018, pp. 418--424.
+N.~Brown and T.~Sandholm, ``Superhuman {AI} for heads-up no-limit poker: {L}ibratus beats top professionals,'' \emph{Science}, vol. 359, no. 6374, pp. 418--424, 2018.
 
 \bibitem{brown2019pluribus}
 ------, ``Superhuman {AI} for multiplayer poker,'' \emph{Science}, vol. 365, no. 6456, pp. 885--890, 2019.
 
+\bibitem{silver2018general}
+D.~Silver, T.~Hubert, J.~Schrittwieser, I.~Antonoglou \emph{et~al.}, ``A general reinforcement learning algorithm that masters chess, shogi, and {Go} through self-play,'' \emph{Science}, vol. 362, no. 6419, pp. 1140--1144, 2018.
+
 \bibitem{vinyals2019alphastar}
-O.~Vinyals, I.~Babuschkin, W.~M. Czarnecki \emph{et~al.}, ``Grandmaster level in {StarCraft II} using multi-agent reinforcement learning,'' \emph{Nature}, vol. 575, pp. 350--354, 2019.
+O.~Vinyals, I.~Babuschkin, W.~M. Czarnecki \emph{et~al.}, ``Grandmaster level in {StarCraft II} using multi-agent reinforcement learning,'' \emph{Nature}, vol. 575, no. 7782, pp. 350--354, 2019.
 
 \bibitem{cowling2012information}
-P.~I. Cowling, C.~D. Ward, and E.~J. Powley, ``Ensemble determinization in {M}onte {C}arlo tree search for the imperfect information card game {M}agic: The gathering,'' in \emph{IEEE Trans.\ Computational Intelligence and AI in Games}, vol.~4, no.~4, 2012, pp. 267--277.
+P.~I. Cowling, C.~D. Ward, and E.~J. Powley, ``Ensemble determinization in {M}onte {C}arlo tree search for the imperfect information card game {M}agic: The gathering,'' \emph{IEEE Transactions on Computational Intelligence and {AI} in Games}, vol.~4, no.~4, pp. 241--257, 2012.
 
 \bibitem{ward2009monte}
-C.~D. Ward and P.~I. Cowling, ``{M}onte {C}arlo search applied to card selection in {M}agic: {T}he {G}athering,'' \emph{Proc.\ IEEE Symp.\ Computational Intelligence and Games (CIG)}, pp. 9--16, 2009.
+C.~D. Ward and P.~I. Cowling, ``{M}onte {C}arlo search applied to card selection in {M}agic: {T}he {G}athering,'' in \emph{2009 {IEEE} Symposium on Computational Intelligence and Games}, 2009, pp. 9--16.
 
 \bibitem{santos2017monte}
 A.~Santos, P.~Barros, and M.~Arag\~ao, ``{M}onte {C}arlo tree search experiments in {H}earthstone,'' in \emph{Proc.\ IEEE Conf.\ Computational Intelligence and Games (CIG)}, 2017, pp. 272--279.
@@ -56,6 +71,15 @@ M.~Bj{\o}rke and D.~Fludal, ``Deckbuilding in {Magic: The Gathering} using a gen
 \bibitem{dockhorn2019hearthstone}
 T.~Dockhorn \emph{et~al.}, ``Introducing the hearthstone-{AI} competition,'' \emph{arXiv preprint arXiv:1906.04238}, 2019.
 
+\bibitem{kowalski2020summon}
+J.~Kowalski and R.~Miernik, ``Summarizing strategy card game {AI} competition,'' in \emph{2023 {IEEE} Conference on Games ({CoG})}, 2023, pp. 1--8.
+
+\bibitem{gonthier2008four}
+G.~Gonthier, ``Formal proof --- the four-color theorem,'' \emph{Notices of the American Mathematical Society}, vol.~55, no.~11, pp. 1382--1393, 2008.
+
+\bibitem{Avigad2007}
+J.~Avigad, K.~Donnelly, D.~Gray, and P.~Raff, ``A formally verified proof of the prime number theorem,'' \emph{ACM Transactions on Computational Logic}, vol.~9, no.~1, pp. 2:1--2:23, 2007.
+
 \bibitem{mathlib2020}
 {The mathlib Community}, ``The {Lean} mathematical library,'' in \emph{Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP)}.\hskip 1em plus 0.5em minus 0.4em\relax ACM, 2020, pp. 367--381.
 
@@ -65,11 +89,20 @@ T.~Hales, M.~Adams, G.~Bauer, T.~D. Dang, J.~Harrison, H.~Le~Truong, C.~Kaliszyk
 \bibitem{hosch2022hearthstone}
 F.~Hosch and L.~Kov\'acs, ``Formalizing hearthstone card effects in {I}sabelle/{HOL},'' in \emph{Proc.\ 13th Int.\ Conf.\ Interactive Theorem Proving (ITP)}, ser. LIPIcs, vol. 237, 2022, pp. 1--18, (representative of formal TCG work).
 
+\bibitem{smith1973logic}
+J.~M. Smith and G.~R. Price, ``The logic of animal conflict,'' \emph{Nature}, vol. 246, pp. 15--18, 1973.
+
 \bibitem{taylor1978evolutionary}
 P.~D. Taylor and L.~B. Jonker, ``Evolutionary stable strategies and game dynamics,'' \emph{Mathematical Biosciences}, vol.~40, no. 1--2, pp. 145--156, 1978.
 
 \bibitem{weibull1997evolutionary}
-J.~W. Weibull, ``Evolutionary game theory,'' \emph{MIT Press}, 1997.
+J.~W. Weibull, \emph{Evolutionary Game Theory}.\hskip 1em plus 0.5em minus 0.4em\relax MIT Press, 1997.
+
+\bibitem{ptcg_rules}
+{The Pok\'emon Company International}, ``Pok\'emon trading card game --- rules \& resources,'' \url{https://www.pokemon.com/us/pokemon-tcg/rules}, 2024, accessed: 2026-02-20.
+
+\bibitem{playpokemon2024rules}
+------, ``Play pok{\'e}mon tournament rules handbook,'' \url{https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources}, 2024, accessed: 2026-02-20.
 
 \bibitem{Tversky1974}
 A.~Tversky and D.~Kahneman, ``Judgment under uncertainty: Heuristics and biases,'' \emph{Science}, vol. 185, no. 4157, pp. 1124--1131, 1974.
@@ -88,6 +121,9 @@ N.~Nisan, T.~Roughgarden, E.~Tardos, and V.~V. Vazirani, Eds., \emph{Algorithmic
 
 \bibitem{vonneumann1928theorie}
 J.~von Neumann, ``{Zur Theorie der Gesellschaftsspiele},'' \emph{Mathematische Annalen}, vol. 100, no.~1, pp. 295--320, 1928.
+
+\bibitem{nash1950equilibrium}
+J.~F. Nash, ``Equilibrium points in $n$-person games,'' \emph{Proceedings of the National Academy of Sciences}, vol.~36, no.~1, pp. 48--49, 1950.
 
 \bibitem{Hofbauer1998}
 J.~Hofbauer and K.~Sigmund, \emph{Evolutionary Games and Population Dynamics}.\hskip 1em plus 0.5em minus 0.4em\relax Cambridge University Press, 1998.
