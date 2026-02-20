@@ -569,17 +569,18 @@ Indices in Table~\ref{tab:nash} use the zero-based \texttt{Deck.toFin} mapping f
 \centering
 \caption{Lean-verified real Nash supports for row strategy \texttt{realNashRow} and column strategy \texttt{realNashCol}.}
 \label{tab:nash}
-\begin{tabular}{rlcc}
+\scriptsize
+\begin{tabular}{@{}rlrr@{}}
 \toprule
-\textbf{Idx} & \textbf{Deck} & \textbf{Row weight (\texttt{realNashRow})} & \textbf{Column weight (\texttt{realNashCol})} \\
+\textbf{Idx} & \textbf{Deck} & \textbf{Row wt.} & \textbf{Col wt.} \\
 \midrule
-1 & GholdengoLunatone & 0.0\% & 3.7\% \\
-2 & GrimssnarlFroslass & 37.8\% & 40.5\% \\
-3 & MegaAbsolBox & 12.9\% & 7.2\% \\
+1 & Gholdengo Lunatone & 0.0\% & 3.7\% \\
+2 & Grimmsnarl Froslass & 37.8\% & 40.5\% \\
+3 & Mega Absol Box & 12.9\% & 7.2\% \\
 4 & Gardevoir & 3.5\% & 7.6\% \\
-5 & CharizardNoctowl & 11.3\% & 5.0\% \\
-9 & RagingBoltOgerpon & 28.7\% & 35.9\% \\
-11 & AlakazamDudunsparce & 5.8\% & 0.0\% \\
+5 & Charizard Noctowl & 11.3\% & 5.0\% \\
+9 & Raging Bolt Ogerpon & 28.7\% & 35.9\% \\
+11 & Alakazam Dudunsparce & 5.8\% & 0.0\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -592,25 +593,25 @@ This means the payoff matrix does not satisfy the constant-sum condition $M_{ij}
 In a bimatrix game with such approximately-constant-sum but not exactly constant-sum structure, distinct row and column supports are mathematically expected rather than anomalous.
 
 In a large-field tournament, deck selection is a symmetric population game: each player independently chooses a deck and faces opponents drawn from the population mix. The natural solution concept is a symmetric Nash equilibrium. Our bimatrix formulation yields distinct row and column strategies because the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs due to tie weighting). To address this, we also solve the symmetrized game $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$, which yields a unique symmetric Nash equilibrium. The symmetrized equilibrium preserves the core support: Grimmsnarl Froslass (34.3\%), Raging Bolt Ogerpon (29.4\%), Charizard Noctowl (10.2\%), Mega Absol Box (10.2\%), Gholdengo Lunatone (9.2\%), Gardevoir (4.3\%), and Alakazam Dudunsparce (2.5\%), confirming that the qualitative conclusions are robust to the constant-sum approximation. The symmetrized game value is exactly 500 (50.0\%), as expected for a constant-sum game.
-Table~\ref{tab:symmetric} reports the symmetric Nash equilibrium weights; the equilibrium is machine-checked by \texttt{symmetric\_nash\_equilibrium\_verified} in \texttt{SymmetricNash.lean} (Listing~\ref{lst:symnash}).
+Table~\ref{tab:symmetric} reports the symmetric Nash equilibrium weights; the equilibrium is machine-checked by \texttt{sym\_nash\_equilibrium\_verified} in \texttt{SymmetricNash.lean} (Listing~\ref{lst:symnash}).
 
 \begin{lstlisting}[caption={Symmetric Nash verification (SymmetricNash.lean).},label={lst:symnash}]
 -- Game value is exactly 500 (50%)
 theorem sym_nash_game_value :
-    expectedPayoff symMetaGame symNashStrategy
-                   symNashStrategy = 500 := by
-  native_decide
+  expectedPayoff symMetaGame
+    symNashStrategy symNashStrategy
+    = 500 := by native_decide
 
 -- Main result: verified Nash equilibrium
-theorem symmetric_nash_equilibrium_verified :
-    NashEquilibrium symMetaGame symNashStrategy
-                    symNashStrategy := by
-  native_decide
+theorem sym_nash_equilibrium_verified :
+  NashEquilibrium symMetaGame
+    symNashStrategy symNashStrategy
+    := by native_decide
 
 -- Dragapult has zero weight
-theorem symmetric_nash_dragapult_zero :
-    symNashStrategy ⟨0, by omega⟩ = 0 := by
-  native_decide
+theorem sym_nash_dragapult_zero :
+  symNashStrategy (0, by omega) = 0
+    := by native_decide
 \end{lstlisting}
 
 \begin{table}[!htbp]
