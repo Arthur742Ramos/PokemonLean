@@ -615,7 +615,26 @@ This means the payoff matrix does not satisfy the constant-sum condition $M_{ij}
 In a bimatrix game with such approximately-constant-sum but not exactly constant-sum structure, distinct row and column supports are mathematically expected rather than anomalous.
 
 In a large-field tournament, deck selection is a symmetric population game: each player independently chooses a deck and faces opponents drawn from the population mix. The natural solution concept is a symmetric Nash equilibrium. Our bimatrix formulation yields distinct row and column strategies because the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs due to tie weighting). To address this, we also solve the symmetrized game $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$, which yields a unique symmetric Nash equilibrium. The symmetrized equilibrium preserves the core support: Grimmsnarl Froslass (34.3\%), Raging Bolt Ogerpon (29.4\%), Charizard Noctowl (10.2\%), Mega Absol Box (10.2\%), Gholdengo Lunatone (9.2\%), Gardevoir (4.3\%), and Alakazam Dudunsparce (2.5\%), confirming that the qualitative conclusions are robust to the constant-sum approximation. The symmetrized game value is exactly 500 (50.0\%), as expected for a constant-sum game.
-Table~\ref{tab:symmetric} reports the symmetric Nash equilibrium weights.
+Table~\ref{tab:symmetric} reports the symmetric Nash equilibrium weights; the equilibrium is machine-checked by \texttt{symmetric\_nash\_equilibrium\_verified} in \texttt{SymmetricNash.lean} (Listing~\ref{lst:symnash}).
+
+\begin{lstlisting}[caption={Symmetric Nash verification (SymmetricNash.lean).},label={lst:symnash}]
+-- Game value is exactly 500 (50%)
+theorem sym_nash_game_value :
+    expectedPayoff symMetaGame symNashStrategy
+                   symNashStrategy = 500 := by
+  native_decide
+
+-- Main result: verified Nash equilibrium
+theorem symmetric_nash_equilibrium_verified :
+    NashEquilibrium symMetaGame symNashStrategy
+                    symNashStrategy := by
+  native_decide
+
+-- Dragapult has zero weight
+theorem symmetric_nash_dragapult_zero :
+    symNashStrategy ⟨0, by omega⟩ = 0 := by
+  native_decide
+\end{lstlisting}
 
 \begin{table}[h]
 \caption{Symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$.}
@@ -671,6 +690,7 @@ theorem mega_absol_grows_fastest :
     realCycleMeta ⟨1, by native_decide⟩ := by
   optimize_proof
 \end{lstlisting}
+The tactic \texttt{optimize\_proof} is a project-local Lean macro that expands to \texttt{native\_decide}, delegating decidable goals to compiled native code for faster kernel checking.
 These dynamics theorems are currently proved on representative observed-data slices (\texttt{realCyclePayoff/realCycleMeta} with 4 decks and \texttt{realCeruPayoff/realCeruMeta} with 5 decks), and there is not yet a full 14-deck replicator theorem in the artifact.
 We emphasize that subgame replicator dynamics do not generally transfer to the full 14-deck game due to indirect fitness effects; these results characterize local competitive cycles within the identified subgames.
 Applying these subgame results to the observed 2026 snapshot yields three verified qualitative predictions used throughout the paper:
