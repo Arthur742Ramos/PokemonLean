@@ -200,7 +200,6 @@ This positioning is complementary rather than adversarial.
 Community analytics can generate hypotheses quickly.
 Formal analytics can then validate, reject, or refine those hypotheses with machine-checkable guarantees.
 In practice, the two pipelines can coexist: empirical dashboards provide breadth, while theorem-prover workflows provide depth and reliability for high-impact claims.
-A Python script can reproduce percentages quickly, but it cannot enforce theorem-level linkage between assumptions, computations, and manuscript claims; the Lean workflow makes those links explicit and checkable.
 
 The popularity paradox is a good example.
 Informally, one might suspect overplay from anecdotal matchup frustration.
@@ -445,6 +444,7 @@ We use Wilson intervals with center adjustment
 \qquad
 \tilde{p} \pm \frac{z}{1 + z^2/n}\sqrt{\hat{p}(1-\hat{p})/n + z^2/(4n^2)}.
 \]
+Both the adjusted center and the half-width include the $1/(1+z^2/n)$ factor.
 For the largest matchups (e.g., Dragapult mirror: 2{,}845 games), the 95\% Wilson interval is approximately $\pm 1.8$ percentage points.
 For smaller matchups (e.g., Ceruledge vs N's Zoroark: about 100 games), intervals widen to about $\pm 9$ points.
 Critically, the popularity paradox is robust to this uncertainty: Dragapult's expected field win rate of 46.7\% has a 95\% interval of approximately [45.5\%, 47.9\%], entirely below 50\%, while Grimmsnarl's 52.7\% has an interval of approximately [51.0\%, 54.4\%], entirely above 50\%.
@@ -491,25 +491,7 @@ Raging Bolt vs Dragapult & 51.0\% & Completes the observed four-deck interaction
 
 Cross-tier interactions in Table~\ref{tab:crosstier} clarify why local matchup spikes do not guarantee global success.
 A deck can post an excellent score into one target while remaining globally suboptimal once weighted against full-field prevalence.
-
-\subsection{Share-Sensitivity Stress Tests}
-
-A useful robustness check is to perturb shares while holding matchup values fixed.
-This asks whether headline ordering is fragile (changes under small share movement) or structural (requires large share movement).
-Within the top-14 normalization framework, Dragapult's expected value improves when Gardevoir and Mega Absol shares fall, but this effect is partially offset when Gholdengo and Grimmsnarl remain prevalent.
-
-Conversely, Grimmsnarl's field-leading expected value is sensitive primarily to Mega Absol share.
-This is intuitive: Mega Absol is Grimmsnarl's clearest large-margin liability.
-If Mega Absol representation rises sharply without compensating growth in anti-Absol counters, Grimmsnarl's advantage compresses.
-
-Mega Absol exhibits opposite sensitivity.
-Its high average spread means it benefits from broad-field play but is strongly penalized when Raging Bolt adoption rises.
-Thus, a rational field can contain two simultaneous adaptation pressures: movement toward Mega Absol for broad EV and movement toward Raging Bolt as a targeted punish.
-
-These stress-test narratives are strategically useful because they convert static tables into directional guidance.
-Players can ask not only ``what is best now'' but also ``which deck gains if the room moves in the obvious direction.''
-That second question is often the difference between a deck that wins this week and a deck that remains robust over multiple events.
-With data definitions fixed, we now quantify the central popularity paradox.
+These subset contrasts motivate the full-field weighted calculation used in the next section.
 
 %======================================================================
 \section{The Popularity Paradox}\label{sec:paradox}
@@ -567,7 +549,6 @@ Ceruledge & 2.3\% & 44.8\% & C \\
 \end{table*}
 
 Table~\ref{tab:expected} makes the paradox visible: the right tail of popularity is not aligned with the right tail of expected performance.
-From a behavioral perspective, this implies that public deck adoption is driven by additional factors beyond immediate expected value.
 
 \begin{figure}[!t]
 \centering
@@ -600,15 +581,6 @@ From a behavioral perspective, this implies that public deck adoption is driven 
 Figure~\ref{fig:paradoxscatter} summarizes the structural tension.
 Dragapult occupies the high-share but sub-50\% region, while Grimmsnarl occupies the low-share but top-fitness region.
 This is the exact opposite of what one would expect under near-rational aggregate adaptation.
-
-Behavioral mechanisms can explain this gap, consistent with canonical bounded-rationality results in judgment and choice~\cite{Tversky1974,Kahneman1979}.
-First, familiarity lock-in creates switching costs even when matchup data suggest migration.
-Second, social proof and content visibility produce herd effects and informational cascades~\cite{Banerjee1992,Bikhchandani1992}.
-Third, prior-format success can induce recency-biased overextension.
-Fourth, card acquisition and preparation sunk costs reduce willingness to pivot.
-
-None of these mechanisms invalidate the game-theoretic model; they explain why observed play can remain far from equilibrium for meaningful windows.
-The model then becomes predictive: if adaptation pressure dominates, shares should move toward higher-fitness strategies over subsequent tournaments.
 
 \subsection{Decomposing Dragapult's Expected Fitness}
 
@@ -652,26 +624,21 @@ For the observed matrix, support-concentrated solutions are extreme.
 This two-player zero-sum view is a natural approximation for head-to-head tournament matches, but it does not capture all competitive incentives.
 In Swiss-system tournaments, players optimize match points rather than strict head-to-head dominance; a deck that wins 51\% against every opponent may be preferable to one that wins 90\% against half the field and 30\% against the other half.
 Under a risk-averse Swiss objective (maximizing probability of reaching X-2 or better), equilibrium weight shifts toward decks with consistent, if modest, win rates.
-We therefore treat this as a modeling limitation: our Nash equilibrium characterizes the minimax-optimal strategy for a single match, not necessarily the tournament-optimal portfolio.
+We therefore treat this as a modeling limitation: the analysis below targets a minimax benchmark for a single match, not a full Swiss-utility optimum.
 
 \begin{lstlisting}
-theorem nash_equilibrium_exists :
-    Exists fun s1 : MixedStrategy 14 =>
-      Exists fun s2 : MixedStrategy 14 =>
-        IsMixedStrategy 14 s1 /\ IsMixedStrategy 14 s2 := by
-  let s : MixedStrategy 14 := fun _ => (1 : Rat) / (14 : Rat)
-  have hs : IsMixedStrategy 14 s := by
-    constructor
-    · intro i
-      change 0 <= (1 : Rat) / (14 : Rat)
-      decide
-    · native_decide
-  exact Exists.intro s (Exists.intro s (And.intro hs hs))
+theorem mega_absol_dragapult_candidate_is_mixed :
+    IsMixedStrategy 14 megaAbsolDragapultCandidate := by
+  native_decide
+
+theorem mega_absol_dragapult_not_nash :
+    ¬ NashEquilibrium realMetaGame
+      megaAbsolDragapultCandidate megaAbsolDragapultCandidate := by
+  native_decide
 \end{lstlisting}
 
-This theorem certifies that the modeled 14-deck game admits valid mixed strategies.
-The support-concentrated profile in Table~\ref{tab:nash} is therefore reported as a linear-programming candidate equilibrium that we verify as a valid mixed strategy.
-Because the current manuscript does not include a theorem proving the candidate profile satisfies full best-response inequalities, we do not claim full equilibrium verification for that specific profile.
+The support-concentrated profile in Table~\ref{tab:nash} is therefore reported as an LP-computed candidate equilibrium and verified only as a valid mixed strategy.
+Theorems \texttt{mega\_absol\_dragapult\_row\_best\_response\_checks\_fail}, \texttt{mega\_absol\_dragapult\_col\_best\_response\_checks\_fail}, and \texttt{mega\_absol\_dragapult\_not\_nash} show this specific profile does not satisfy full best-response equilibrium conditions.
 Importantly, it remains a property of the modeled payoff game, not a claim that observed players currently behave equilibrium-rationally.
 
 \begin{table*}[!t]
@@ -732,73 +699,7 @@ and (iii) highest growth pressure points toward Mega Absol support growth.
 
 Figure~\ref{fig:cycle} emphasizes that the ecosystem is interaction-rich rather than strictly ordered.
 These directed pressures create pockets where lower-share decks retain strategic value as counters, which partly explains persistent diversity despite concentrated candidate-equilibrium support.
-
-\subsection{Interpreting Dynamic Pressure in Practice}
-
-Replicator updates should not be read as literal week-to-week forecasts.
-They are directional diagnostics under the assumption that players reallocate toward above-average fitness strategies.
-Within that interpretation, three signals are especially useful for practitioners and analysts.
-
-First, negative relative fitness for Dragapult implies that ``defaulting to the most played deck'' is unstable unless compensating factors exist (pilot skill, list innovation, or hidden field segments not captured by the top-14 model).
-Second, monotone Ceruledge decline indicates a classic specialist trap: one or two excellent targets cannot sustain share when the rest of the field is unfavorable.
-Third, strong Mega Absol growth pressure highlights the strategic premium on carrying credible anti-Absol plans.
-
-Boundary behavior matters as well.
-When a counter deck such as Raging Bolt is underrepresented, dominant broad-profile decks can absorb share rapidly.
-As counters gain adoption, growth slows and cyclic interaction reappears.
-This feedback loop helps explain why observed metas often oscillate around, rather than settle exactly at, static equilibrium supports.
-
-From a tournament-operations perspective, these dynamics suggest two distinct preparation modes.
-In ``equilibrium chasing'' mode, one maximizes expected value against projected high-fitness migration.
-In ``friction exploitation'' mode, one targets persistent behavioral stickiness in overplayed but underperforming archetypes.
-Our formal framework provides quantitative hooks for both modes.
-
-\subsection{From Static Equilibrium to Weekly Metagame Updates}
-
-Static Nash analysis and dynamic replicator analysis answer different questions.
-Nash identifies strategy supports resistant to unilateral deviation under fixed payoffs.
-Replicator dynamics model directional adaptation under local fitness feedback.
-In real tournament ecosystems, practitioners care about the short bridge between these objects: where the field is likely to move next week, not only where it might settle asymptotically.
-
-Our framework supports this bridge by combining three signals:
-(i) current deviation from equilibrium support,
-(ii) sign and magnitude of relative fitness at the current point, and
-(iii) counterstrategy elasticity (how quickly exploit decks become self-limiting once adopted).
-Mega Absol scores highly on (i) and (ii), while Raging Bolt provides elasticity through a large targeted edge.
-
-This creates a characteristic update pattern.
-Phase~1: broad-profile deck growth (Mega Absol pressure increases).
-Phase~2: targeted counter growth (Raging Bolt value rises).
-Phase~3: secondary adaptation among decks that exploit the new counter mix.
-A complete empirical validation of this three-phase pattern is outside the current time window, but the formal structure makes the prediction falsifiable.
-
-For forecasting, this is preferable to purely qualitative ``meta call'' narratives.
-Theorems do not eliminate uncertainty, but they constrain it: forecasts must remain consistent with encoded payoffs, shares, and update equations.
-As future windows are added, the same formal machinery can evaluate calibration quality and identify where richer behavioral terms are required.
-
-\subsection{Falsifiable Predictions for Subsequent Windows}
-
-The framework yields concrete, testable predictions for the immediate post-window period:
-\begin{enumerate}
-\item Dragapult share should trend downward unless offset by major list-level innovation.
-\item Grimmsnarl share should rise when Mega Absol exposure is constrained.
-\item Mega Absol share should rise when Raging Bolt representation is weak.
-\item Ceruledge share should decline monotonically in broad fields.
-\item Raging Bolt adoption should positively correlate with perceived Mega Absol prevalence.
-\end{enumerate}
-
-These predictions are directional rather than exact-point forecasts, which is appropriate given unmodeled behavioral and logistical factors.
-Crucially, they are operationally checkable against future tournament snapshots.
-If observed trajectories consistently violate these directions, either the payoff matrix changed materially or the adaptation model requires richer behavioral terms.
-
-This falsifiability is important for scientific credibility.
-Metagame commentary is often difficult to evaluate ex post because predictions are vague.
-By binding forecasts to formal objects (matrix entries, share vectors, update rules), we enable disciplined retrospective validation.
-
-A further advantage is modular debugging.
-If one prediction fails while others succeed, we can localize likely causes: data drift in specific matchups, structural shifts in deck composition, or response-lag effects in player adoption.
-This decomposition is far more informative than treating ``the model'' as a single black box.
-Section~\ref{sec:tournament} translates these directional pressures into registration guidance.
+We therefore treat replicator outputs as directional diagnostics: Dragapult pressure is downward, Ceruledge pressure is extinction-like, and Mega Absol pressure is upward when dedicated counters are scarce. These directions are falsifiable against subsequent tournament windows and provide a compact bridge from static equilibrium objects to week-to-week metagame interpretation.
 
 %======================================================================
 \section{Tournament Strategy}\label{sec:tournament}
@@ -812,6 +713,7 @@ Most major events run best-of-three matches and Swiss-style pairings, so the rel
 For game win probability $p$, best-of-three match win probability is
 $P_{\mathrm{Bo3}} = 3p^2 - 2p^3$.
 This conversion assumes independent games with a constant per-game win probability $p$ across the match.
+We treat this as an approximation because sideboarding and revealed-information effects can induce game-to-game dependence.
 
 \begin{lstlisting}
 def bo3WinProb (p : Rat) : Rat :=
@@ -845,65 +747,14 @@ Dragapult vs Charizard Noctowl & 64.1\% & 70.6\% \\
 Table~\ref{tab:bo3} shows that the 67.3\%\,$\to$\,74.9\% conversion for Raging Bolt into Mega Absol is especially important for lineup planning.
 Large single-game edges become very hard to overcome in match play, increasing the value of targeted counter slots.
 
-\subsection{Tiering and Registration Policy}
-
-Tiering summarizes both expected value and matchup breadth.
-The mechanically verified classification used in this paper is:
-S = [Grimmsnarl],
-A = [Mega Absol, Dragapult Charizard],
-B = [Dragapult, Gholdengo, Gardevoir, Charizard Noctowl, Gardevoir Jellicent, Charizard Pidgeot, Raging Bolt Ogerpon, Alakazam Dudunsparce, Kangaskhan Bouffalant],
-C = [N's Zoroark, Ceruledge].
-
-\begin{lstlisting}
-theorem TIER_CLASSIFICATION :
-    sTier = [GrimmsnarlFroslass] /\
-    aTier = [MegaAbsolBox, DragapultCharizard] /\
-    bTier = [DragapultDusknoir, GholdengoLunatone, Gardevoir, CharizardNoctowl,
-      GardevoirJellicent, CharizardPidgeot, RagingBoltOgerpon,
-      AlakazamDudunsparce, KangaskhanBouffalant] /\
-    cTier = [NsZoroark, Ceruledge] := by
-  decide
-\end{lstlisting}
-
-A practical registration heuristic follows.
-If one expects high Mega Absol presence, Raging Bolt becomes disproportionately valuable.
-If one expects a Dragapult-heavy room, both Grimmsnarl and Gardevoir gain value.
-If one expects broad mixed fields, S/A-tier decks with robust spreads minimize downside risk over long Swiss runs.
-
 \subsection{Swiss Considerations}
 
 Swiss tournaments reward consistency and resilience to bad pairings.
 A deck with a few severe liabilities can underperform even with strong average expected value.
 Therefore, in addition to maximizing expected WR, one should minimize exposure to high-share bad matchups and evaluate cut-line probabilities under realistic field distributions~\cite{romero2022swiss}.
-
-\subsection{Practical Registration Checklist}
-
-A practical workflow for first-submission-era events is:
-\begin{enumerate}
-\item Estimate field shares using the most recent high-player-count windows.
-\item Compute weighted expected WR against the projected field, not against a generic ladder population.
-\item Stress-test top counters: identify whether your deck has at least one ``disaster pairing'' above approximately 5\% share.
-\item Convert critical Bo1 edges to Bo3 values using $3p^2 - 2p^3$.
-\item Evaluate cut-line robustness under plausible pairings, not just average-round EV.
-\item Prefer lineups whose worst common matchup is survivable over long Swiss.
-\end{enumerate}
-
-This checklist is intentionally conservative.
-Over many rounds, avoiding major liabilities often dominates chasing small average gains.
-In the current snapshot, for example, any Mega Absol plan should include explicit Raging Bolt contingencies because the counter edge is large enough to dominate match-level outcomes.
-
-The same logic applies to anti-Dragapult planning.
-Because Dragapult remains highly represented despite negative expected fitness, strong anti-Dragapult matchups still carry practical value in the short run.
-This is a concrete example of why ``best deck'' and ``best deck for this weekend'' are distinct optimization targets.
-
-\subsection{Worked Swiss Qualification Example}
-
-For an eight-round Swiss event with an X--2 qualification target and field-level Bo3 win probability $p_m$, qualification probability is
-\[
-P(\text{X--2 or better}) =
-\sum_{k=6}^{8} \binom{8}{k} p_m^k (1-p_m)^{8-k}.
-\]
-This closed-form transform is the key point: decks with similar Bo1 EV can have materially different qualification odds once Bo3 conversion and tail-risk exposure are accounted for. Section~\ref{sec:methodology} details how this mapping is kept synchronized with the formal artifacts.
+For an eight-round Swiss event with an X--2 qualification target and field-level Bo3 win probability $p_m$, the cut-line transform is
+$P(\text{X--2 or better}) = \sum_{k=6}^{8} \binom{8}{k} p_m^k (1-p_m)^{8-k}$.
+In practice, registration should combine projected field shares, weighted expected WR, and explicit stress tests on the largest counter-edges (especially Mega Absol versus Raging Bolt) rather than rely on average EV alone.
 
 %======================================================================
 \section{Formalization Methodology}\label{sec:methodology}
@@ -960,6 +811,8 @@ Most theorem volume is infrastructure-oriented (rules, effects, probability, and
 The build pipeline regenerates theorem states and manuscript artifacts from versioned sources.
 Data tables in the manuscript match constants in \texttt{RealMetagame.lean} and \texttt{MatchupAnalysis.lean}; key strategic claims are mirrored by named theorems.
 This one-to-one mapping sharply reduces the risk of drift between code and prose.
+A Python script can recompute percentages quickly, but it does not enforce theorem-level linkage between assumptions, constants, and manuscript claims.
+The Lean pipeline adds that linkage and fails loudly when any claim drifts from its formal source.
 
 \subsection{Human Review and Artifact Audit}
 

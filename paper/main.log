@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 10:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 11:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -301,127 +301,127 @@ LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 58
 (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 59.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 60.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 59.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 60.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1{/Users/arthur/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/arthur/Library/TinyTeX/texmf-dist/fonts/enc/dvips/base/8r.enc}
 
 
 ] [2] [3]
-Underfull \hbox (badness 3000) in paragraph at lines 326--329
+Underfull \hbox (badness 3000) in paragraph at lines 327--330
 []\OT1/ptm/m/n/10 These in-vari-ants mat-ter for metagame work be-cause
  []
 
 [4]
-Underfull \hbox (badness 1424) in paragraph at lines 414--416
+Underfull \hbox (badness 1424) in paragraph at lines 415--417
 []\OT1/ptm/m/n/10 All em-pir-i-cal val-ues come from Trainer Hill [2] for
  []
 
 
-Underfull \hbox (badness 2626) in paragraph at lines 423--425
-\OT1/ptm/m/n/10 Grimm-snarl Froslass (5.1%), Mega Ab-sol Box (5.0%),
+Underfull \hbox (badness 5563) in paragraph at lines 424--426
+\OT1/ptm/m/n/10 Alakazam Dudun-sparce (2.8%), Kan-gaskhan Bouf-falant
  []
 
 
-Underfull \hbox (badness 2103) in paragraph at lines 423--425
-\OT1/ptm/m/n/10 Garde-voir (4.6%), Charizard Noc-towl (4.3%), Garde-voir
+Overfull \hbox (5.73637pt too wide) detected at line 446
+[] \OT1/cmr/m/n/10 = []\OML/cmm/m/it/10 ;  [] \OMS/cmsy/m/n/10 ^^F [][]\OML/cmm/m/it/10 :
  []
 
 
-Underfull \hbox (badness 3068) in paragraph at lines 423--425
-\OT1/ptm/m/n/10 Jel-li-cent (4.2%), Charizard Pid-geot ($\OMS/cmsy/m/n/10 ^^X$\OT1/ptm/m/n/10 3.5%), Dra-ga-pult
- []
-
-
-Underfull \hbox (badness 2165) in paragraph at lines 477--478
+Underfull \hbox (badness 2165) in paragraph at lines 483--484
 []|\OT1/ptm/m/n/8 B-tier check on pop-u-lar
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 479--479
+Underfull \hbox (badness 10000) in paragraph at lines 485--485
 []|\OT1/ptm/m/n/8 Dragapult vs Charizard
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 479--480
+Underfull \hbox (badness 10000) in paragraph at lines 485--486
 []|\OT1/ptm/m/n/8 Popularity sus-tained by
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 481--482
-[]|\OT1/ptm/m/n/8 Specialist spike de-spite
+Underfull \hbox (badness 6893) in paragraph at lines 487--488
+[]|\OT1/ptm/m/n/8 Completes the ob-served
+ []
+
+[5] [6]
+Underfull \hbox (badness 10000) in paragraph at lines 640--643
+\OT1/ptm/m/n/10 re-ported as an LP-computed can-di-date equi-lib-rium
  []
 
 
-Underfull \hbox (badness 1701) in paragraph at lines 500--501
-[]\OT1/ptm/b/n/10 Charizard Noc-towl (4.3%). \OT1/ptm/m/n/10 Strong into Garde-voir
- []
-
-[5]
-Underfull \hbox (badness 6094) in paragraph at lines 538--539
-[]\OT1/ptm/b/n/10 Dragapult Dus-knoir row: \OT1/ptm/m/n/10 key pos-i-tives in-clude
+Underfull \hbox (badness 1661) in paragraph at lines 640--643
+\OT1/ptm/m/n/10 and ver-i-fied only as a valid mixed strat-egy. The-o-rems
  []
 
 
-Underfull \hbox (badness 2790) in paragraph at lines 538--539
-\OT1/ptm/m/n/10 Charizard Noc-towl (64.1%) and Alakazam Dudun-
+Overfull \hbox (50.5pt too wide) in paragraph at lines 640--643
+\OT1/pcr/m/n/10 mega_absol_dragapult_row_best_response_checks_fail\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 4254) in paragraph at lines 543--544
-[]\OT1/ptm/b/n/10 Charizard Noc-towl row: \OT1/ptm/m/n/10 pos-i-tive into Garde-voir
+Overfull \hbox (50.5pt too wide) in paragraph at lines 640--643
+\OT1/pcr/m/n/10 mega_absol_dragapult_col_best_response_checks_fail\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 2027) in paragraph at lines 544--545
-[]\OT1/ptm/b/n/10 Gardevoir Jel-li-cent row: \OT1/ptm/m/n/10 fa-vor-able into Dra-ga-pult
+Underfull \hbox (badness 6125) in paragraph at lines 640--643
+\OT1/ptm/m/n/10 and \OT1/pcr/m/n/10 mega_absol_dragapult_not_nash \OT1/ptm/m/n/10 show this
  []
 
-[6]
-Underfull \hbox (badness 1762) in paragraph at lines 554--557
-[]\OT1/ptm/m/n/10 Taken to-gether, these row iden-ti-ties ex-plain why the
+
+Overfull \hbox (37.7493pt too wide) in paragraph at lines 681--686
+[]\OT1/ptm/m/n/10 Lean the-o-rems \OT1/pcr/m/n/10 metagame_shift_combo_increases_step1\OT1/ptm/m/n/10 ,
  []
 
-[7] [8] [9] [10]
-Underfull \hbox (badness 1874) in paragraph at lines 982--983
-[]\OT1/ptm/b/n/10 Dragapult Charizard\OT1/ptm/m/n/10 : ro-bust A-tier fall-back when
+
+Underfull \hbox (badness 10000) in paragraph at lines 681--686
+\OT1/pcr/m/n/10 metagame_shift_aggro_decreases_step1\OT1/ptm/m/n/10 , and
  []
 
-[11]
-Underfull \hbox (badness 10000) in paragraph at lines 1037--1043
+
+Underfull \hbox (badness 10000) in paragraph at lines 681--686
+\OT1/pcr/m/n/10 ceruledge_share_decreases \OT1/ptm/m/n/10 pro-vide con-crete
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 681--686
+\OT1/ptm/m/n/10 machine-checked di-rec-tional up-dates for the mod-eled
+ []
+
+[7]
+Underfull \hbox (badness 10000) in paragraph at lines 775--781
 \OT1/pcr/m/n/10 decide\OT1/ptm/m/n/10 ), (2) arith-metic nor-mal-iza-tion (\OT1/pcr/m/n/10 omega\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 5036) in paragraph at lines 1037--1043
+Underfull \hbox (badness 5036) in paragraph at lines 775--781
 \OT1/pcr/m/n/10 nlinarith\OT1/ptm/m/n/10 ), (3) def-i-ni-tional un-fold-ing and rewrit-ing
  []
 
 
-Underfull \hbox (badness 7558) in paragraph at lines 1072--1075
+Underfull \hbox (badness 7558) in paragraph at lines 811--816
 []\OT1/ptm/m/n/10 The build pipeline re-gen-er-ates the-o-rem states and
  []
 
-
-Underfull \hbox (badness 4120) in paragraph at lines 1097--1098
+[8]
+Underfull \hbox (badness 4120) in paragraph at lines 838--839
 []\OT1/ptm/m/n/10 Compute weighted ex-pec-ta-tion from the en-coded
  []
 
-[12]
-Underfull \hbox (badness 4634) in paragraph at lines 1157--1161
+[9]
+Underfull \hbox (badness 4634) in paragraph at lines 898--902
 \OT1/ptm/m/n/10 perturbation the-o-rems in \OT1/pcr/m/n/10 SharePerturbation.lean
  []
 
-[13] (./main.bbl
-
-Package balance Warning: You have called \balance in second column
-(balance)                Columns might not be balanced.
-
-[14]
+[10] (./main.bbl
 Underfull \hbox (badness 10000) in paragraph at lines 105--106
 []\OT1/ptm/m/n/8 ------, ``Play pok[]emon tour-na-ment rules hand-
  []
@@ -431,28 +431,25 @@ Underfull \hbox (badness 10000) in paragraph at lines 105--106
 \OT1/ptm/m/n/8 book,'' $https : / / www . pokemon . com / us / play-[]pokemon / about /
  []
 
-)
-Overfull \vbox (1.14395pt too high) has occurred while \output is active []
-
- [15] (./main.aux)
+) [11] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 5615 strings out of 469471
- 84778 string characters out of 5467771
- 793344 words of memory out of 5000000
- 34214 multiletter control sequences out of 15000+600000
+ 5586 strings out of 469471
+ 84352 string characters out of 5467771
+ 764665 words of memory out of 5000000
+ 34185 multiletter control sequences out of 15000+600000
  675348 words of font info for 135 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 56i,18n,65p,427b,1543s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 56i,18n,65p,793b,1695s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 287004 bytes).
+Output written on main.pdf (11 pages, 268050 bytes).
 PDF statistics:
- 154 PDF objects out of 1000 (max. 8388607)
- 96 compressed objects within 1 object stream
+ 141 PDF objects out of 1000 (max. 8388607)
+ 87 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
