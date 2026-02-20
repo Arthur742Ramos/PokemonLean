@@ -69,7 +69,8 @@ Formal verification, game theory, trading card games, Nash equilibrium, theorem 
 \section{Introduction}
 %======================================================================
 
-Competitive trading card games (TCGs) are strategically distinctive because players make two coupled decisions: how to play a game state and which deck to register before a tournament begins.
+Tournament outcomes in competitive trading card games (TCGs) are often shaped before round one begins.
+Players must make two coupled decisions: how to play each game state and which deck to register.
 The first decision is local and tactical; the second is global and game-theoretic.
 The pre-tournament deck-selection problem is naturally modeled as a strategic game where payoffs derive from matchup win rates and the population distribution of opponents.
 
@@ -82,7 +83,7 @@ By encoding game semantics in Lean~4~\cite{moura2021lean} and proving key game-t
 A statement in the paper is either derivable from formally checked definitions and theorems or it is excluded.
 This ``proof-carrying analysis'' perspective is central to our methodology.
 
-Our empirical foundation is Trainer Hill metagame data~\cite{trainerhill2026} for 50+ player tournaments from January~29 to February~19, 2026.
+Our empirical foundation is Trainer Hill metagame data, aggregated from Limitless tournament records~\cite{trainerhill2026,limitless2024}, for 50+ player tournaments from January~29 to February~19, 2026.
 Within this fixed window, we model the top 14 archetypes and their full pairwise matchup matrix.
 The resulting matrix contains enough granularity to support rigorous expected-value computations, equilibrium analysis, and evolutionary dynamics without introducing synthetic assumptions about win rates.
 
@@ -140,9 +141,9 @@ For researchers, it provides a rare domain where rich empirical data and theorem
 \subsection{Formal Methods and Strategic Games}
 
 Formal reasoning has transformed analysis in several strategic domains.
-In classical games, exhaustive and near-exhaustive computation has produced solved or near-solved regimes, while theorem proving has improved confidence in correctness of critical algorithms.
+In classical games, foundational communication and search analyses and later complexity results for generalized chess established the computational stakes of strategic reasoning~\cite{shannon1948mathematical,schaefer1978complexity,fraenkel1981chess}.
 In imperfect-information settings such as poker, game-theoretic systems like Cepheus, Libratus, and Pluribus~\cite{bowling2015heads,brown2018superhuman,brown2019pluribus} show that equilibrium reasoning can scale when abstractions are carefully managed.
-At larger multi-agent scale, AlphaStar demonstrates superhuman play in StarCraft~II~\cite{vinyals2019alphastar}.
+At larger multi-agent scale, AlphaZero and AlphaStar demonstrate superhuman play in complex domains~\cite{silver2018general,vinyals2019alphastar}.
 
 TCGs are harder in a different way.
 Their action spaces and card interactions are highly compositional, and rules often involve exception-heavy textual semantics.
@@ -152,7 +153,7 @@ A proof assistant mitigates this risk by forcing explicit treatment of definitio
 \subsection{AI and Metagame Analysis in Card Games}
 
 Prior card-game AI work has emphasized in-game decision quality, including Monte Carlo methods for games such as Magic and Hearthstone~\cite{cowling2012information,ward2009monte,santos2017monte,zhang2017deck}.
-Related work also includes deckbuilding optimization and competition environments for TCG AI~\cite{bjorke2017deckbuilding,dockhorn2019hearthstone}.
+Related work also includes deckbuilding optimization and competition environments for TCG AI~\cite{bjorke2017deckbuilding,dockhorn2019hearthstone,kowalski2020summon}.
 That line of work is valuable but orthogonal to the question we study: how should a player choose a deck before round one, given a population distribution and matchup matrix?
 
 Metagame-level analysis appears frequently in practitioner content but rarely as reproducible formal scholarship.
@@ -162,7 +163,7 @@ Our approach fills this gap by treating metagame analysis as theorem proving ove
 \subsection{Theorem Proving for Rule Systems}
 
 Lean~4~\cite{moura2021lean} has become a practical environment for large-scale formalization because it combines expressive dependent types with efficient decision procedures.
-Large collaborative libraries and landmark formal proofs further show the maturity of this ecosystem~\cite{mathlib2020,hales2017kepler}.
+Large collaborative libraries and landmark formal proofs further show the maturity of this ecosystem~\cite{gonthier2008four,Avigad2007,mathlib2020,hales2017kepler}.
 For game-rule modeling, dependent types are particularly useful: constraints such as bounded bench size, deck legality predicates, and well-formed transitions can be encoded directly as propositions attached to data.
 
 Closest in spirit is prior formalization work on card-game effects in Isabelle/HOL~\cite{hosch2022hearthstone}, which established feasibility.
@@ -170,7 +171,7 @@ Our work differs by coupling rule formalization to a complete, real matchup matr
 
 \subsection{Evolutionary and Behavioral Perspectives}
 
-Replicator dynamics~\cite{taylor1978evolutionary,weibull1997evolutionary} provide a natural lens for metagame adaptation: strategies with above-average fitness gain share, while below-average strategies lose share.
+Replicator dynamics~\cite{smith1973logic,taylor1978evolutionary,weibull1997evolutionary} provide a natural lens for metagame adaptation: strategies with above-average fitness gain share, while below-average strategies lose share.
 In practice, observed metagames often drift slowly because human behavior is not perfectly rational.
 This motivates interpreting deviations from equilibrium in behavioral-economic terms rather than treating them as model failure.
 
@@ -197,12 +198,13 @@ The popularity paradox is a good example.
 Informally, one might suspect overplay from anecdotal matchup frustration.
 Formally, we can prove the exact inequality against normalized field weights and make all assumptions explicit.
 That transformation from intuition to theorem is the central methodological gap this paper addresses.
+Section~\ref{sec:formalization} now defines the formal rule substrate used by the subsequent empirical and strategic analyses.
 
 %======================================================================
 \section{Game Formalization}\label{sec:formalization}
 %======================================================================
 
-We formalize the strategic layer of the Pok\'emon TCG by combining operational state semantics with legality and resource invariants.
+We formalize the strategic layer of the Pok\'emon TCG by combining operational state semantics with legality and resource invariants, grounded in official rule documents~\cite{ptcg_rules,playpokemon2024rules}.
 The goal is not to mechanize every card text in existence; instead, we encode the rule substrate needed to reason about deck legality, turn progression, card flow, and payoff-relevant mechanics.
 
 \subsection{Game State Representation}
@@ -320,6 +322,7 @@ This minimizes accidental model drift and keeps historical comparisons meaningfu
 Finally, invariants support modularity.
 Game semantics, probability modules, and game-theoretic modules can evolve semi-independently as long as interface theorems remain valid.
 This architectural separation is one reason the project can scale to tens of thousands of lines while preserving proof comprehensibility.
+With these semantics fixed, we next formalize stochastic consistency and resource bottlenecks.
 
 %======================================================================
 \section{Probability and Resource Theory}\label{sec:probability}
@@ -379,7 +382,7 @@ Because these experiments are expressed over explicit combinatorial models, they
 
 One useful finding is asymmetry in sensitivity.
 Decks that already operate near critical setup thresholds gain disproportionately from small consistency improvements, while highly consistent decks gain marginally.
-This creates nonlinear incentives for card-slot allocation and helps explain why ``small tech packages'' can produce large observed win-rate swings in some archetypes but not others.
+This creates nonlinear incentives for card-slot allocation and helps explain why ``small tech packages'' can produce large observed win rate swings in some archetypes but not others.
 
 Another finding concerns bottleneck interaction.
 Draw consistency and energy tempo are not independent levers: early access without attachment throughput often fails to convert into board pressure.
@@ -388,6 +391,7 @@ The formal framework captures these interactions as coupled constraints rather t
 
 These counterfactual tools are not directly used to change the empirical matrix in this paper, but they are valuable for interpreting why certain archetypes occupy their observed matchup profiles.
 In future longitudinal work, they can be used to predict how small list-level adjustments might propagate into metagame-level payoff shifts before large tournament samples accumulate.
+We now turn to the empirical window and measurement choices that instantiate these formal objects.
 
 %======================================================================
 \section{Tournament Data and Methodology}\label{sec:data}
@@ -408,7 +412,7 @@ We model 14 archetypes with observed metagame shares:
 Dragapult Dusknoir (15.5\%), Gholdengo Lunatone (9.9\%), Grimmsnarl Froslass (5.1\%), Mega Absol Box (5.0\%), Gardevoir (4.6\%), Charizard Noctowl (4.3\%), Gardevoir Jellicent (4.2\%), Charizard Pidgeot ($\sim$3.5\%), Dragapult Charizard ($\sim$3.5\%), Raging Bolt Ogerpon ($\sim$3.3\%), N's Zoroark ($\sim$3.0\%), Alakazam Dudunsparce ($\sim$2.8\%), Kangaskhan Bouffalant ($\sim$2.5\%), and Ceruledge ($\sim$2.3\%).
 
 The top-14 aggregate is 69.5\% of the full field; the remaining 30.5\% is grouped as ``Other'' and excluded from pairwise matrix analysis.
-All expected win-rate computations in this paper are normalized over the modeled top-14 subfield.
+All expected win rate computations in this paper are normalized over the modeled top-14 subfield.
 
 \subsection{Sample Sizes and Reliability}
 
@@ -525,6 +529,7 @@ These notes are intended to help readers connect raw pairwise numbers to strateg
 
 Taken together, these row identities explain why the metagame remains strategically rich despite a concentrated equilibrium object.
 Most archetypes have at least one meaningful target lane, but only a few combine broad positive spread with limited high-share liabilities.
+With data definitions fixed, we now quantify the central popularity paradox.
 
 %======================================================================
 \section{The Popularity Paradox}\label{sec:paradox}
@@ -673,13 +678,14 @@ Raw snapshots are insufficient because they do not force the weighting step that
 
 Finally, the paradox highlights a broader methodological point: formal verification does not only increase arithmetic confidence; it disciplines interpretation.
 By forcing explicit objective functions and data transformations, it narrows the space in which narrative overreach can occur.
+This divergence motivates equilibrium and dynamic analysis in Section~\ref{sec:nash}.
 
 %======================================================================
 \section{Nash Equilibrium and Metagame Dynamics}\label{sec:nash}
 %======================================================================
 
 We model deck choice as a symmetric two-player zero-sum game induced by the 14\,$\times$\,14 payoff matrix~\cite{NisanRoughgarden2007}.
-Existence of mixed Nash equilibrium follows from finite minimax~\cite{vonneumann1928theorie}.
+Existence of mixed Nash equilibrium follows from finite minimax and Nash's equilibrium existence framework~\cite{vonneumann1928theorie,nash1950equilibrium}.
 For the observed matrix, support-concentrated solutions are extreme.
 
 \begin{lstlisting}
@@ -830,6 +836,7 @@ By binding forecasts to formal objects (matrix entries, share vectors, update ru
 A further advantage is modular debugging.
 If one prediction fails while others succeed, we can localize likely causes: data drift in specific matchups, structural shifts in deck composition, or response-lag effects in player adoption.
 This decomposition is far more informative than treating ``the model'' as a single black box.
+Section~\ref{sec:tournament} translates these directional pressures into registration guidance.
 
 %======================================================================
 \section{Tournament Strategy}\label{sec:tournament}
@@ -971,6 +978,7 @@ Formalizing the tournament objective exposes this tradeoff and allows explicit r
 The same framework can support team-level preparation.
 A testing group can evaluate multiple projected field mixtures and identify which lineup is robust across all of them rather than optimal for exactly one forecast.
 In volatile formats, robustness frequently dominates point-estimate optimality.
+Section~\ref{sec:methodology} then details the reproducibility workflow that underpins these recommendations.
 
 %======================================================================
 \section{Formalization Methodology}\label{sec:methodology}
@@ -1079,6 +1087,7 @@ This keeps turnaround practical for weekly competitive cycles.
 Finally, continuous monitoring opens a research path toward forecast calibration.
 Predictions made from one window (e.g., Dragapult decline pressure) can be scored against the next window.
 Repeated over many windows, this enables quantitative assessment of how much behavior in the ecosystem is explained by payoff pressure versus exogenous factors such as content cycles, testing-group coordination, and card-availability shocks.
+We next delimit the empirical and modeling bounds of these results in Section~\ref{sec:threats}.
 
 %======================================================================
 \section{Threats to Validity}\label{sec:threats}
@@ -1106,16 +1115,19 @@ A natural extension is hierarchical modeling with sub-archetype clusters once sa
 Players optimize mixed objectives (comfort, risk tolerance, card access, practice time), not only expected match points.
 Observed non-equilibrium play can therefore be rational under private utility functions even when suboptimal under public payoff assumptions.
 Our ``suboptimal'' terminology is therefore always relative to the stated payoff model, not a universal claim about all player preferences.
+With these limitations explicit, we summarize the main findings and concrete next steps in Section~\ref{sec:conclusion}.
 
 %======================================================================
 \section{Conclusion}\label{sec:conclusion}
 %======================================================================
 
 This paper presents a formally verified metagame analysis pipeline for a real competitive TCG environment.
-Using Lean~4 plus Trainer Hill data, we prove a strong popularity paradox: Dragapult is most played yet sub-50\% in expected field performance, while Grimmsnarl is least represented among top decks but highest in expected win rate.
+Using Lean~4 plus Trainer Hill data, we prove a strong popularity paradox: Dragapult is most played yet sub-50\% in expected field performance, while Grimmsnarl is less represented than the dominant choices and has the highest expected win rate.
 
 We also connect static matchup structure to dynamic and tournament implications.
 The Nash profile is highly concentrated, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure, and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
+
+Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
 
 \subsection{Broader Implications for Competitive Game Science}
 
