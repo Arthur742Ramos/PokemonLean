@@ -59,7 +59,7 @@ Our formal development spans approximately 30{,}000~lines across 75~Lean files a
 Most of this corpus verifies reusable infrastructure (rules, types, legality, and probability foundations), while approximately 180 theorems directly verify the empirical claims reported in this paper.
 On top of this foundation, we analyze Trainer Hill tournament data from January~29 to February~19, 2026 (50+ player events), covering 14 archetypes and a complete 14\,$\times$\,14 matchup matrix.
 The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate against the field, while Grimmsnarl Froslass (5.1\% share) has the highest expected field win rate at 52.7\%.
-We further report a fully verified Nash equilibrium (\texttt{real\_nash\_equilibrium\_verified}) where the row support is Grimssnarl Froslass (37.8\%), Raging Bolt Ogerpon (28.7\%), Mega Absol Box (12.9\%), Charizard Noctowl (11.3\%), Alakazam Dudunsparce (5.8\%), and Gardevoir (3.5\%); the column support replaces Alakazam Dudunsparce with Gholdengo Lunatone.
+We further report a fully verified Nash equilibrium (\texttt{real\_nash\_equilibrium\_verified}) where the row support is Grimmsnarl Froslass (37.8\%), Raging Bolt Ogerpon (28.7\%), Mega Absol Box (12.9\%), Charizard Noctowl (11.3\%), Alakazam Dudunsparce (5.8\%), and Gardevoir (3.5\%); the column support replaces Alakazam Dudunsparce with Gholdengo Lunatone.
 Best-response conditions are machine-checked for all 14 pure strategies, the game value is approximately 47.97\%, and Dragapult receives 0\% equilibrium weight despite 15.5\% observed share.
 We also prove replicator-dynamics pressure against Dragapult and Ceruledge on real-data representative subgames (4-deck and 5-deck slices), and quantify best-of-three amplification effects such as 67.3\%\,$\to$\,74.9\% for Raging Bolt Ogerpon versus Mega Absol Box.
 These results demonstrate that machine-checked formal methods can produce empirically grounded and strategically actionable conclusions in modern competitive game ecosystems.
@@ -225,21 +225,16 @@ The state model explicitly tracks per-player zones, turn ownership, and phase.
 This representation is sufficient to express legality constraints and to prove conservation and progress properties.
 
 \begin{lstlisting}
+-- PokemonLean/Core/Types.lean:206
 structure GameState where
-  activeP1   : Pokemon
-  benchP1    : List Pokemon
-  handP1     : List Card
-  deckP1     : List Card
-  prizesP1   : List Card
-  discardP1  : List Card
-  activeP2   : Pokemon
-  benchP2    : List Pokemon
-  handP2     : List Card
-  deckP2     : List Card
-  prizesP2   : List Card
-  discardP2  : List Card
-  turnPlayer : Player
-  turnPhase  : Phase
+  player1       : PlayerState
+  player2       : PlayerState
+  currentPlayer : PlayerId
+  turnNumber    : Nat
+  phase         : TurnPhase
+  stadium       : Option Card
+  winner        : Option PlayerId
+  deriving DecidableEq, BEq, Repr, Inhabited
 \end{lstlisting}
 
 A state-level encoding gives us a uniform target for rules, tactics, and metatheory.
@@ -251,12 +246,13 @@ Turn order is represented as a finite phase machine.
 This makes ``what can happen next'' decidable, enabling automation for many local proofs.
 
 \begin{lstlisting}
-inductive Phase where
-  | DrawPhase
-  | MainPhase
-  | AttackPhase
-  | BetweenTurns
-  deriving DecidableEq, Repr
+-- PokemonLean/Core/Types.lean:181
+inductive TurnPhase where
+  | draw
+  | main
+  | attack
+  | betweenTurns
+  deriving DecidableEq, BEq, Repr, Inhabited
 \end{lstlisting}
 
 By constraining transitions through this type, we can prove phase safety lemmas (e.g., no attacks during draw phase) and derive stronger progress claims.
@@ -268,7 +264,7 @@ Weakness and resistance are encoded as total functions over enumerated types.
 The Grass$\to$Fire interaction appears in the certified weakness-cycle theorem.
 
 \begin{lstlisting}
--- File: PokemonLean/TypeEffectiveness.lean
+-- PokemonLean/TypeEffectiveness.lean:138
 theorem TRIANGLE :
     ∃ A B C : PType,
       weakness A B = true ∧ weakness B C = true ∧ weakness C A = true := by
@@ -284,7 +280,7 @@ We model high-impact trainer cards with explicit zone transitions.
 For Professor's Research, we prove that discarding the hand and drawing seven preserves global card count across all zones.
 
 \begin{lstlisting}
--- File: PokemonLean/CardEffects.lean
+-- PokemonLean/CardEffects.lean:149
 theorem professorsResearchEffect_preserves_cards (p : PlayerState) :
     playerCardCount (professorsResearchEffect p) = playerCardCount p := by
   unfold professorsResearchEffect playerCardCount inPlayCount
@@ -301,7 +297,7 @@ With them, resource-theoretic statements in later sections inherit mechanical gu
 Deck legality is implemented as a computable checker and linked to an inductive specification through a soundness-and-completeness theorem.
 
 \begin{lstlisting}
--- File: PokemonLean/DeckLegality.lean
+-- PokemonLean/DeckLegality.lean:107
 theorem checkDeckLegal_iff (deck : List Card) :
     checkDeckLegal deck = true ↔ DeckLegal deck := by
   constructor
@@ -353,7 +349,7 @@ Opening-hand consistency follows hypergeometric structure.
 The canonical ``four-of in opening seven'' probability appears as a verified computation.
 
 \begin{lstlisting}
--- File: PokemonLean/DeckConsistency.lean
+-- PokemonLean/DeckConsistency.lean:49
 theorem FOUR_COPIES_RULE :
     probAtLeastOne 60 4 7 = (38962 : Rat) / (97527 : Rat) ∧
     (39 : Rat) / (100 : Rat) < probAtLeastOne 60 4 7 ∧
@@ -371,7 +367,7 @@ One attachment per turn imposes a hard tempo cap.
 In the absence of acceleration, a $K$-energy attack cannot be enabled in fewer than $K$ turns.
 
 \begin{lstlisting}
--- File: PokemonLean/EnergyEconomy.lean
+-- PokemonLean/EnergyEconomy.lean:37
 theorem ENERGY_BOTTLENECK (K : Nat) :
     turnsToPowerUp K 0 ≥ K := by
   simp [turnsToPowerUp, attachmentsPerTurn, ceilDiv]
@@ -519,7 +515,7 @@ For Grimmsnarl Froslass (5.1\% share), we obtain
 which is the maximum among all 14 modeled decks.
 
 \begin{lstlisting}
--- File: PokemonLean/RealMetagame.lean
+-- PokemonLean/RealMetagame.lean:398
 theorem dragapult_popularity_paradox :
     -- Dragapult has losing (<500) matchups against at least 8 of 14 decks
     matchupWR .DragapultDusknoir .GholdengoLunatone < 500 ∧
@@ -638,7 +634,7 @@ Under a risk-averse Swiss objective (maximizing probability of reaching X-2 or b
 We therefore treat this as a modeling limitation: the analysis below targets a minimax benchmark for a single match, not a full Swiss-utility optimum.
 
 \begin{lstlisting}
--- File: PokemonLean/NashEquilibrium.lean
+-- PokemonLean/NashEquilibrium.lean:320
 theorem real_nash_row_best_response_checks :
     ∀ i : Fin 14, rowPurePayoff realMetaGame14 i realNashCol ≤ realNashValue := by
   native_decide
@@ -655,6 +651,7 @@ theorem real_nash_equilibrium_verified :
 Table~\ref{tab:nash} reports the verified supports for both players.
 The theorem \texttt{real\_nash\_equilibrium\_verified} is backed by best-response checks quantified over all 14 pure strategies for both players, so the equilibrium claim is now fully machine-checked rather than merely mixed-strategy-valid.
 The game value is \texttt{realNashValue} $= \frac{162188991282520}{338129962783} \approx 479.665$ (47.97\%).
+Win rates are encoded on a 0--1000 scale, so a game value of 479.67 corresponds to a 47.97\% win probability.
 The nonzero entries of \texttt{realNashRowData} (row player) are at indices \{2,3,4,5,9,11\}, while the nonzero entries of \texttt{realNashColData} (column player) are at indices \{1,2,3,4,5,9\}.
 Indices in Table~\ref{tab:nash} use the zero-based \texttt{Deck.toFin} mapping from \texttt{PokemonLean/RealMetagame.lean}:
 0 DragapultDusknoir, 1 GholdengoLunatone, 2 GrimssnarlFroslass, 3 MegaAbsolBox, 4 Gardevoir, 5 CharizardNoctowl, 6 GardevoirJellicent, 7 CharizardPidgeot, 8 DragapultCharizard, 9 RagingBoltOgerpon, 10 NsZoroark, 11 AlakazamDudunsparce, 12 KangaskhanBouffalant, 13 Ceruledge.
@@ -692,7 +689,7 @@ Replicator dynamics formalize directional pressure~\cite{Hofbauer1998,Sandholm20
 
 Lean theorems \texttt{dragapult\_share\_decreases}, \texttt{ceruledge\_share\_decreases}, and \texttt{mega\_absol\_grows\_fastest} (\texttt{PokemonLean/EvolutionaryDynamics.lean}) provide concrete machine-checked directional updates for real-data metagame subgames.
 \begin{lstlisting}
--- File: PokemonLean/EvolutionaryDynamics.lean
+-- PokemonLean/EvolutionaryDynamics.lean:463
 theorem dragapult_share_decreases :
     replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by native_decide⟩ <
     realCycleMeta ⟨0, by native_decide⟩ := by
@@ -746,9 +743,10 @@ For game win probability $p$, best-of-three match win probability is
 $P_{\mathrm{Bo3}} = 3p^2 - 2p^3$.
 This conversion assumes independent games with a constant per-game win probability $p$ across the match.
 We treat this as an approximation because sideboarding and revealed-information effects can induce game-to-game dependence.
+Notably, the Pok\'emon TCG does not have a sideboard mechanism, unlike games such as Magic: The Gathering, so decklists remain fixed across all games in a match; this makes the independence assumption substantially more defensible here than in other TCGs.
 
 \begin{lstlisting}
--- File: PokemonLean/TournamentStrategy.lean
+-- PokemonLean/TournamentStrategy.lean:31
 def bo3WinProb (p : Rat) : Rat :=
   p * p * (3 - 2 * p)
 
@@ -933,16 +931,16 @@ Machine-checked share-perturbation theorems in \texttt{SharePerturbation.lean} s
 The paradox is structural: it derives from the matchup matrix, not the share vector, so the central finding is not an artifact of a particular metagame snapshot but reflects a persistent property of the underlying strategic landscape.
 
 \begin{lstlisting}
--- File: PokemonLean/Robustness.lean
+-- PokemonLean/Robustness.lean:54
 theorem popularity_paradox_robust_worst_case :
     adjustedWR dragapultTop14WR 1 = 629243 / 1000000 ∧
     adjustedWR grimmsnarlTop14WR 0 = 366061 / 1000000 ∧
     adjustedWR dragapultTop14WR 1 - adjustedWR grimmsnarlTop14WR 0 = 131591 / 500000 := by
   constructor
-  · native_decide
+  · decide
   constructor
-  · native_decide
-  · native_decide
+  · decide
+  · decide
 \end{lstlisting}
 
 \textbf{Archetype granularity.}
