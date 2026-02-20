@@ -8,10 +8,11 @@ namespace PokemonLean.EvolutionaryDynamics
 open PokemonLean.NashEquilibrium
 open PokemonLean.RealMetagame
 
+
 /-! # Evolutionary Dynamics — Replicator Dynamics for Metagame Evolution
 
   Formalizes metagame evolution using discrete replicator dynamics from
-  evolutionary game theory.  Every theorem is closed by `native_decide`
+  evolutionary game theory.  Every theorem is closed by `decide`
   on concrete rational instances — zero `sorry`, zero `admit`, zero `axiom`.
 
   Part I:  Abstract 3-archetype Rock-Paper-Scissors dynamics (original)
@@ -373,7 +374,7 @@ theorem lyapunov_invariant_at_nash_iter5 :
 --  We instantiate the replicator dynamics framework with actual competitive
 --  Pokémon TCG matchup data from Trainer Hill (Jan–Feb 2026).
 --
---  To keep native_decide tractable, we work with a 4-deck subcycle that
+--  To keep decide tractable, we work with a 4-deck subcycle that
 --  captures the core metagame cycle:
 --    Dragapult (0), Grimmsnarl (1), MegaAbsol (2), RagingBolt (3)
 --

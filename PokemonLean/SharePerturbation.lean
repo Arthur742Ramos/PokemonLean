@@ -54,7 +54,7 @@ def maxTop6MatchupSpread : Rat := 323 / 1000
 def conservativeTierFlipL1Bound : Rat :=
   minTop6TierBoundaryGap / maxTop6MatchupSpread
 
-theorem top14_share_total : top14ShareTotal = 695 := by native_decide
+theorem top14_share_total : top14ShareTotal = 695 := by decide
 
 theorem paradox_holds_drag_at_10pct :
     expectedWRUnderShift .DragapultDusknoir .DragapultDusknoir 100 < 1 / 2 := by
@@ -84,6 +84,6 @@ theorem share_sensitivity_bound :
     minTop6TierBoundaryGap = 770547 / 69230000 ∧
     conservativeTierFlipL1Bound = 770547 / 22361290 ∧
     conservativeTierFlipL1Bound > 3 / 100 := by
-  native_decide
+  decide
 
 end PokemonLean.SharePerturbation

@@ -337,7 +337,7 @@ def realMetaGame : FiniteGame :=
     matrix := realMatchupMatrix }
 
 -- ============================================================================
--- KEY MATCHUP FACTS (all via native_decide on Nat comparisons)
+-- KEY MATCHUP FACTS (all via decide on Nat comparisons)
 -- ============================================================================
 
 /-- No deck dominates all 13 others (every deck has at least one losing matchup <500). -/
@@ -433,7 +433,7 @@ theorem worst_matchup_in_matrix :
 -- NASH EQUILIBRIUM (existence via minimax theorem)
 -- ============================================================================
 
--- For a 14×14 matrix, exact Nash computation via native_decide is infeasible in Lean.
+-- For a 14×14 matrix, exact Nash computation via decide is infeasible in Lean.
 -- We prove existence abstractly via the minimax theorem for finite zero-sum games.
 
 /-- Every finite zero-sum game has a Nash equilibrium (minimax theorem).
@@ -443,7 +443,13 @@ theorem nash_equilibrium_exists :
       IsMixedStrategy 14 s1 ∧ IsMixedStrategy 14 s2 := by
   -- Exhibit two valid mixed strategies (uniform distributions)
   let s : MixedStrategy 14 := fun _ => (1 : Rat) / (14 : Rat)
-  exact ⟨s, s, by native_decide, by native_decide⟩
+  have hs : IsMixedStrategy 14 s := by
+    constructor
+    · intro i
+      change 0 ≤ (1 : Rat) / (14 : Rat)
+      decide
+    · native_decide
+  exact ⟨s, s, hs, hs⟩
 
 -- ============================================================================
 -- OBSERVED META ≠ NASH
@@ -455,11 +461,17 @@ def observedShares : MixedStrategy 14 := fun i =>
 
 /-- The observed meta shares do not sum to 1 (they sum to 695/1000). -/
 theorem observed_not_normalized :
-    ¬ IsMixedStrategy 14 observedShares := by native_decide
+    ¬ IsMixedStrategy 14 observedShares := by
+  intro h
+  have hsum : sumFin 14 observedShares = (695 : Rat) / (1000 : Rat) := by
+    native_decide
+  have hneq : ((695 : Rat) / (1000 : Rat)) ≠ (1 : Rat) := by
+    decide
+  exact hneq (hsum.symm.trans h.2)
 
 /-- Dragapult is overplayed at 15.5% vs its Nash optimal share of ~6.8% (19/278). -/
 theorem dragapult_overplayed :
-    observedShares ⟨0, by omega⟩ > (19 : Rat) / (278 : Rat) := by native_decide
+    observedShares ⟨0, by omega⟩ > (19 : Rat) / (278 : Rat) := by decide
 
 -- ============================================================================
 -- STRUCTURAL METAGAME PROPERTIES

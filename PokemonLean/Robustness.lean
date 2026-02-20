@@ -40,7 +40,7 @@ def grimmsnarlToFiftyOtherWR : Rat := 133939 / 305000
 /-- Reversal gap on `Other` WR (Dragapult minus Grimmsnarl) for equal adjusted WR. -/
 def paradoxReversalDelta : Rat := 41818 / 305000
 
-theorem total_share_eq_one : totalShare = 1 := by native_decide
+theorem total_share_eq_one : totalShare = 1 := by decide
 
 theorem dragapult_top14_wr_exact :
     expectedWinRateVsField .DragapultDusknoir = dragapultTop14WR := by
@@ -56,10 +56,10 @@ theorem popularity_paradox_robust_worst_case :
     adjustedWR grimmsnarlTop14WR 0 = 366061 / 1000000 ∧
     adjustedWR dragapultTop14WR 1 - adjustedWR grimmsnarlTop14WR 0 = 131591 / 500000 := by
   constructor
-  · native_decide
+  · decide
   constructor
-  · native_decide
-  · native_decide
+  · decide
+  · decide
 
 /-- 80/20 stress test (highly favorable to Dragapult in `Other`). -/
 theorem popularity_paradox_survives_80pct :
@@ -67,26 +67,26 @@ theorem popularity_paradox_survives_80pct :
     adjustedWR grimmsnarlTop14WR (1 / 5) = 427061 / 1000000 ∧
     adjustedWR dragapultTop14WR (4 / 5) > adjustedWR grimmsnarlTop14WR (1 / 5) := by
   constructor
-  · native_decide
+  · decide
   constructor
-  · native_decide
-  · native_decide
+  · decide
+  · decide
 
 /-- Dragapult needs 175757/305000 (~57.625%) vs `Other` to hit 50% overall. -/
 theorem dragapult_below_50_robust :
     adjustedWR dragapultTop14WR dragapultToFiftyOtherWR = 1 / 2 ∧
     dragapultToFiftyOtherWR > 1 / 2 := by
   constructor
-  · native_decide
-  · native_decide
+  · decide
+  · decide
 
 /-- Grimmsnarl stays above 50% unless its WR vs `Other` drops below 133939/305000 (~43.914%). -/
 theorem grimmsnarl_above_50_robust :
     adjustedWR grimmsnarlTop14WR grimmsnarlToFiftyOtherWR = 1 / 2 ∧
     grimmsnarlToFiftyOtherWR < 1 / 2 := by
   constructor
-  · native_decide
-  · native_decide
+  · decide
+  · decide
 
 /-- Exact reversal points:
     - if Grimmsnarl is 0% vs Other, Dragapult must be 41818/305000 (~13.711%);
@@ -95,7 +95,7 @@ theorem paradox_reversal_bound :
     adjustedWR dragapultTop14WR paradoxReversalDelta = adjustedWR grimmsnarlTop14WR 0 ∧
     adjustedWR dragapultTop14WR 1 = adjustedWR grimmsnarlTop14WR (263182 / 305000) := by
   constructor
-  · native_decide
-  · native_decide
+  · decide
+  · decide
 
 end PokemonLean.Robustness

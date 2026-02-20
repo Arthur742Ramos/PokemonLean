@@ -99,12 +99,12 @@ def uniformEntropyTop14MicroBits : Nat := 3807355
 
 /-- 14-deck universe is exactly the Trainer Hill full matrix from RealMetagame. -/
 theorem FULL_14_DECK_UNIVERSE : allDecks.length = 14 := by
-  native_decide
+  decide
 
 /-- 1) No dominant deck across all 14 (every deck has at least one losing matchup). -/
 theorem NO_DOMINANT_DECK_ACROSS_14 :
     (allDecks.all (fun d => isDominant d = false)) = true := by
-  native_decide
+  decide
 
 /-- 2) Dragapult popularity paradox: 15.5% share with 9 losing non-mirror matchups. -/
 theorem DRAGAPULT_POPULARITY_PARADOX :
@@ -112,24 +112,24 @@ theorem DRAGAPULT_POPULARITY_PARADOX :
     (nonMirrorOpps DragapultDusknoir).length = 13 ∧
     losingMatchupCount DragapultDusknoir = 9 ∧
     losingMatchupCount DragapultDusknoir >= 9 := by
-  native_decide
+  decide
 
 /-- 3) Counter deck value: Raging Bolt is the best anti-Mega Absol counter at 67.3%. -/
 theorem RAGING_BOLT_COUNTER_VALUE :
     matchupWRx10 RagingBoltOgerpon MegaAbsolBox = 673 ∧
     (allDecks.filter (fun d => d != MegaAbsolBox)).all
       (fun d => matchupWRx10 d MegaAbsolBox <= matchupWRx10 RagingBoltOgerpon MegaAbsolBox) = true := by
-  native_decide
+  decide
 
 /-- 4) Mega Absol counters Grimssnarl at 62.1%. -/
 theorem MEGA_ABSOL_COUNTERS_GRIMSSNARL :
     matchupWRx10 MegaAbsolBox GrimssnarlFroslass = 621 := by
-  native_decide
+  decide
 
 /-- 5) Gardevoir counters Dragapult at 62.7%. -/
 theorem GARDEVOIR_COUNTERS_DRAGAPULT :
     matchupWRx10 Gardevoir DragapultDusknoir = 627 := by
-  native_decide
+  decide
 
 /-- 6) Alakazam is a Gholdengo tech (58.8%) against the #2 most played deck. -/
 theorem ALAKAZAM_IS_GHOLDENGO_TECH :
@@ -137,24 +137,24 @@ theorem ALAKAZAM_IS_GHOLDENGO_TECH :
     metaShareX10 GholdengoLunatone = 99 ∧
     (allDecks.filter (fun d => d != DragapultDusknoir)).all
       (fun d => metaShareX10 d <= metaShareX10 GholdengoLunatone) = true := by
-  native_decide
+  decide
 
 /-- 7) Kangaskhan rogue value against top decks. -/
 theorem KANGASKHAN_ROGUE_VALUE :
     matchupWRx10 KangaskhanBouffalant CharizardNoctowl = 635 ∧
     matchupWRx10 KangaskhanBouffalant DragapultDusknoir = 582 := by
-  native_decide
+  decide
 
 /-- 8) Format diversity: observed Shannon entropy is below uniform over 14 decks. -/
 theorem FORMAT_DIVERSITY_SHANNON :
     observedEntropyTop14MicroBits < uniformEntropyTop14MicroBits := by
-  native_decide
+  decide
 
 /-- 9) Ceruledge is worst-positioned by losing-count (tied highest at 10 losses). -/
 theorem CERULEDGE_WORST_POSITIONED :
     losingMatchupCount Ceruledge = 10 ∧
     (allDecks.all (fun d => losingMatchupCount d <= losingMatchupCount Ceruledge)) = true := by
-  native_decide
+  decide
 
 /-- 10) Full metagame cycle: Grimm > Drag > CharNoc > GardJell > Gard > DragDusk. -/
 theorem FULL_METAGAME_CYCLE :
@@ -163,7 +163,7 @@ theorem FULL_METAGAME_CYCLE :
     matchupWRx10 CharizardNoctowl GardevoirJellicent > 500 ∧
     matchupWRx10 GardevoirJellicent Gardevoir > 500 ∧
     matchupWRx10 Gardevoir DragapultDusknoir > 500 := by
-  native_decide
+  decide
 
 /-- 11) Ban analysis: removing Dragapult changes weighted field win rates. -/
 theorem BAN_ANALYSIS_WEIGHTED_WR_SHIFT :
@@ -175,13 +175,13 @@ theorem BAN_ANALYSIS_WEIGHTED_WR_SHIFT :
     weightedWRx10VsFieldWithoutDragapult Gardevoir = 461 ∧
     weightedWRx10VsField MegaAbsolBox = 517 ∧
     weightedWRx10VsFieldWithoutDragapult MegaAbsolBox = 500 := by
-  native_decide
+  decide
 
 theorem BAN_ANALYSIS_REORDERS_WEIGHTED_RANKS :
     weightedWRx10VsField Gardevoir > weightedWRx10VsField CharizardNoctowl ∧
     weightedWRx10VsFieldWithoutDragapult CharizardNoctowl >
       weightedWRx10VsFieldWithoutDragapult Gardevoir := by
-  native_decide
+  decide
 
 /-- 12) Tier classification by average non-mirror WR (x10 scale). -/
 theorem TIER_CLASSIFICATION :
@@ -191,6 +191,6 @@ theorem TIER_CLASSIFICATION :
       GardevoirJellicent, CharizardPidgeot, RagingBoltOgerpon,
       AlakazamDudunsparce, KangaskhanBouffalant] ∧
     cTier = [NsZoroark, Ceruledge] := by
-  native_decide
+  decide
 
 end PokemonLean.MatchupAnalysis
