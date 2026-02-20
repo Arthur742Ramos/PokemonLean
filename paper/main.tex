@@ -639,10 +639,12 @@ theorem real_nash_row_best_response_checks :
     ∀ i : Fin 14, rowPurePayoff realMetaGame14 i realNashCol ≤ realNashValue := by
   native_decide
 
+-- PokemonLean/NashEquilibrium.lean:324
 theorem real_nash_col_best_response_checks :
     ∀ j : Fin 14, realNashValue ≤ colPurePayoff realMetaGame14 realNashRow j := by
   native_decide
 
+-- PokemonLean/NashEquilibrium.lean:328
 theorem real_nash_equilibrium_verified :
     NashEquilibrium realMetaGame14 realNashRow realNashCol := by
   native_decide
@@ -752,9 +754,11 @@ Notably, the Pok\'emon TCG does not have a sideboard mechanism, unlike games suc
 def bo3WinProb (p : Rat) : Rat :=
   p * p * (3 - 2 * p)
 
+-- PokemonLean/TournamentStrategy.lean:41
 def favoredRates : List Rat :=
   [11/20, 12/20, 13/20, 14/20, 15/20, 16/20, 17/20, 18/20, 19/20]
 
+-- PokemonLean/TournamentStrategy.lean:46
 theorem BO3_AMPLIFIES_ADVANTAGE :
     ∀ p ∈ favoredRates, bo3WinProb p > p := by decide
 \end{lstlisting}

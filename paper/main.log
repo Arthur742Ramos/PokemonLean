@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 12:24
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 12:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -355,148 +355,151 @@ Underfull \hbox (badness 6893) in paragraph at lines 487--488
  []
 
 [5] [6]
-LaTeX Font Info:    Trying to load font information for OMS+ptm on input line 655.
+LaTeX Font Info:    Trying to load font information for OMS+ptm on input line 657.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 655.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 657.
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 The the-o-rem \OT1/pcr/m/n/10 real_nash_equilibrium_verified
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 strategy-valid. The game value is \OT1/pcr/m/n/10 realNashValue
  []
 
 
-Underfull \hbox (badness 4886) in paragraph at lines 651--658
+Underfull \hbox (badness 4886) in paragraph at lines 653--660
 \OT1/cmr/m/n/10 = [] \OMS/cmsy/m/n/10 ^^Y \OT1/cmr/m/n/10 479\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 665$ \OT1/ptm/m/n/10 (47.97%). Win rates
  []
 
 
-Underfull \hbox (badness 5607) in paragraph at lines 651--658
+Underfull \hbox (badness 5607) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 are en-coded on a 0--1000 scale, so a game value
  []
 
 
-Underfull \hbox (badness 5345) in paragraph at lines 651--658
+Underfull \hbox (badness 5345) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 of 479.67 cor-re-sponds to a 47.97% win prob-a-bil-ity.
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 The nonzero en-tries of \OT1/pcr/m/n/10 realNashRowData \OT1/ptm/m/n/10 (row
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 player) are at in-dices \OMS/cmsy/m/n/10 f\OT1/ptm/m/n/10 2,3,4,5,9,11\OMS/cmsy/m/n/10 g\OT1/ptm/m/n/10 , while the
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 nonzero en-tries of \OT1/pcr/m/n/10 realNashColData \OT1/ptm/m/n/10 (col-umn
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 player) are at in-dices \OMS/cmsy/m/n/10 f\OT1/ptm/m/n/10 1,2,3,4,5,9\OMS/cmsy/m/n/10 g\OT1/ptm/m/n/10 . In-dices in
  []
 
 
-Underfull \hbox (badness 5681) in paragraph at lines 651--658
+Underfull \hbox (badness 5681) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 Ta-ble IV[] use the zero-based \OT1/pcr/m/n/10 Deck.toFin \OT1/ptm/m/n/10 map-ping
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 from \OT1/pcr/m/n/10 PokemonLean/RealMetagame.lean\OT1/ptm/m/n/10 :
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 651--658
+Underfull \hbox (badness 10000) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 0 Dra-ga-pult-Dus-knoir, 1 Ghold-en-goL-u-na-tone, 2
  []
 
 
-Underfull \hbox (badness 7722) in paragraph at lines 651--658
+Underfull \hbox (badness 7722) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 Grimss-narl-Froslass, 3 MegaAb-sol-Box, 4 Garde-voir, 5
  []
 
 
-Underfull \hbox (badness 2653) in paragraph at lines 651--658
+Underfull \hbox (badness 2653) in paragraph at lines 653--660
 \OT1/ptm/m/n/10 11 Alakaza-m-Dudun-sparce, 12 Kan-gaskhan-Bouf-falant, 13
  []
 
 
-Overfull \hbox (98.81453pt too wide) in paragraph at lines 663--676
+Overfull \hbox (98.81453pt too wide) in paragraph at lines 665--678
  [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 690--691
+Underfull \hbox (badness 10000) in paragraph at lines 692--693
 []\OT1/ptm/m/n/10 Lean the-o-rems \OT1/pcr/m/n/10 dragapult_share_decreases\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 690--691
+Underfull \hbox (badness 10000) in paragraph at lines 692--693
 \OT1/pcr/m/n/10 ceruledge_share_decreases\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 690--691
+Underfull \hbox (badness 10000) in paragraph at lines 692--693
 \OT1/ptm/m/n/10 and \OT1/pcr/m/n/10 mega_absol_grows_fastest
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 690--691
+Underfull \hbox (badness 10000) in paragraph at lines 692--693
 \OT1/ptm/m/n/10 (\OT1/pcr/m/n/10 PokemonLean/EvolutionaryDynamics.lean\OT1/ptm/m/n/10 )
  []
 
 [7]
-Underfull \hbox (badness 10000) in paragraph at lines 710--715
+Underfull \hbox (badness 10000) in paragraph at lines 714--719
 \OT1/ptm/m/n/10 These dy-nam-ics the-o-rems are cur-rently
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 710--715
+Underfull \hbox (badness 10000) in paragraph at lines 714--719
 \OT1/ptm/m/n/10 proved on rep-re-sen-ta-tive observed-data slices
  []
 
 
-Underfull \hbox (badness 7064) in paragraph at lines 710--715
+Underfull \hbox (badness 7064) in paragraph at lines 714--719
 \OT1/ptm/m/n/10 (\OT1/pcr/m/n/10 realCyclePayoff/realCycleMeta \OT1/ptm/m/n/10 with 4 decks
  []
 
 [8]
-Underfull \hbox (badness 10000) in paragraph at lines 805--811
+Underfull \hbox (badness 10000) in paragraph at lines 811--817
 \OT1/pcr/m/n/10 decide\OT1/ptm/m/n/10 ), (2) arith-metic nor-mal-iza-tion (\OT1/pcr/m/n/10 omega\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 5036) in paragraph at lines 805--811
+Underfull \hbox (badness 5036) in paragraph at lines 811--817
 \OT1/pcr/m/n/10 nlinarith\OT1/ptm/m/n/10 ), (3) def-i-ni-tional un-fold-ing and rewrit-ing
  []
 
 
-Underfull \hbox (badness 7558) in paragraph at lines 841--846
+Underfull \hbox (badness 7558) in paragraph at lines 847--852
 []\OT1/ptm/m/n/10 The build pipeline re-gen-er-ates the-o-rem states and
  []
 
 
-Underfull \hbox (badness 4120) in paragraph at lines 868--869
+Underfull \hbox (badness 4120) in paragraph at lines 874--875
 []\OT1/ptm/m/n/10 Compute weighted ex-pec-ta-tion from the en-coded
  []
 
 [9]
-Underfull \hbox (badness 4634) in paragraph at lines 928--932
+Underfull \hbox (badness 4634) in paragraph at lines 934--938
 \OT1/ptm/m/n/10 perturbation the-o-rems in \OT1/pcr/m/n/10 SharePerturbation.lean
  []
 
-[10] (./main.bbl
+
+Underfull \vbox (badness 6078) has occurred while \output is active []
+
+ [10] (./main.bbl
 
 Package balance Warning: You have called \balance in second column
 (balance)                Columns might not be balanced.
@@ -511,10 +514,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 105--106
 \OT1/ptm/m/n/8 book,'' $https : / / www . pokemon . com / us / play-[]pokemon / about /
  []
 
-)
-Overfull \vbox (1.64395pt too high) has occurred while \output is active []
-
- [12] (./main.aux)
+) [12] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -529,7 +529,7 @@ Here is how much of TeX's memory you used:
  36 hyphenation exceptions out of 8191
  56i,18n,65p,793b,1700s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/latxfont/line10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (12 pages, 289066 bytes).
+Output written on main.pdf (12 pages, 289303 bytes).
 PDF statistics:
  149 PDF objects out of 1000 (max. 8388607)
  92 compressed objects within 1 object stream
