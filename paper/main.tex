@@ -1145,6 +1145,11 @@ Even under the extreme and implausible assumption that Dragapult achieves 80\% a
 The exact reversal boundary is similarly asymmetric: if Grimmsnarl has 0\% vs Other, Dragapult needs only about 13.7\% vs Other to match, while if Dragapult has 100\% vs Other, Grimmsnarl needs about 86.3\% to match.
 The paradox is robust.
 
+We also verify robustness to meta share perturbation.
+The popularity paradox arises from Dragapult's matchup spread --- it loses to 9 of 13 non-mirror opponents --- rather than from any particular share distribution.
+Machine-checked share-perturbation theorems in \texttt{SharePerturbation.lean} show that even if Dragapult's share drops from 15.5\% to 5\%, its expected field win rate remains below 50\%; conversely, if Grimmsnarl's share rises from 5.1\% to 15.5\% (absorbing Dragapult's current share), its expected field win rate remains above 50\%.
+The paradox is structural: it derives from the matchup matrix, not the share vector, so the central finding is not an artifact of a particular metagame snapshot but reflects a persistent property of the underlying strategic landscape.
+
 \begin{lstlisting}
 theorem popularity_paradox_robust_worst_case :
     adjustedWR dragapultTop14WR 1 = 629243 / 1000000 /\
