@@ -430,26 +430,50 @@ theorem worst_matchup_in_matrix :
     matchupWR .KangaskhanBouffalant .AlakazamDudunsparce = 198 := by decide
 
 -- ============================================================================
--- NASH EQUILIBRIUM (existence via minimax theorem)
+-- CANDIDATE NASH PROFILE CHECKS (Dragapult + Mega Absol)
 -- ============================================================================
 
--- For a 14×14 matrix, exact Nash computation via decide is infeasible in Lean.
--- We prove existence abstractly via the minimax theorem for finite zero-sum games.
+/-- Candidate profile from the metagame discussion:
+    Dragapult Dusknoir (index 0) at 19/278 and Mega Absol Box (index 3) at 259/278. -/
+def megaAbsolDragapultCandidate : MixedStrategy 14
+  | ⟨0, _⟩ => (19 : Rat) / (278 : Rat)
+  | ⟨3, _⟩ => (259 : Rat) / (278 : Rat)
+  | _ => 0
 
-/-- Every finite zero-sum game has a Nash equilibrium (minimax theorem).
-    For the 14×14 game, we exhibit an equilibrium from the embedded 2-deck support. -/
-theorem nash_equilibrium_exists :
-    ∃ s1 s2 : MixedStrategy 14,
-      IsMixedStrategy 14 s1 ∧ IsMixedStrategy 14 s2 := by
-  -- Exhibit two valid mixed strategies (uniform distributions)
-  let s : MixedStrategy 14 := fun _ => (1 : Rat) / (14 : Rat)
-  have hs : IsMixedStrategy 14 s := by
-    constructor
-    · intro i
-      change 0 ≤ (1 : Rat) / (14 : Rat)
-      decide
-    · native_decide
-  exact ⟨s, s, hs, hs⟩
+def ragingBoltIx : Fin 14 := ⟨9, by omega⟩
+
+def megaAbsolDragapultValue : Rat :=
+  expectedPayoff realMetaGame megaAbsolDragapultCandidate megaAbsolDragapultCandidate
+
+theorem mega_absol_dragapult_candidate_is_mixed :
+    IsMixedStrategy 14 megaAbsolDragapultCandidate := by
+  native_decide
+
+theorem mega_absol_dragapult_value :
+    megaAbsolDragapultValue = (19015333 : Rat) / (38642 : Rat) := by
+  native_decide
+
+theorem mega_absol_dragapult_row_best_response_checks_fail :
+    ¬ ∀ i : Fin 14, rowPurePayoff realMetaGame i megaAbsolDragapultCandidate ≤ megaAbsolDragapultValue := by
+  native_decide
+
+theorem mega_absol_dragapult_col_best_response_checks_fail :
+    ¬ ∀ j : Fin 14, megaAbsolDragapultValue ≤ colPurePayoff realMetaGame megaAbsolDragapultCandidate j := by
+  native_decide
+
+theorem raging_bolt_row_deviation_improves :
+    megaAbsolDragapultValue <
+      rowPurePayoff realMetaGame ragingBoltIx megaAbsolDragapultCandidate := by
+  native_decide
+
+theorem raging_bolt_col_deviation_reduces :
+    colPurePayoff realMetaGame megaAbsolDragapultCandidate ragingBoltIx <
+      megaAbsolDragapultValue := by
+  native_decide
+
+theorem mega_absol_dragapult_not_nash :
+    ¬ NashEquilibrium realMetaGame megaAbsolDragapultCandidate megaAbsolDragapultCandidate := by
+  native_decide
 
 -- ============================================================================
 -- OBSERVED META ≠ NASH
