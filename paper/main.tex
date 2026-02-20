@@ -55,14 +55,15 @@
 
 \begin{abstract}
 We present a formally verified analysis of competitive Pok\'emon Trading Card Game metagame dynamics using Lean~4 and real tournament data.
-Our formal development spans approximately 30{,}000~lines across 75~Lean files and proves over 2{,}500 theorems without \texttt{sorry}, \texttt{admit}, or custom axioms.
+Our formal development spans approximately 30{,}000~lines across 80~Lean files and proves over 2{,}500 theorems without \texttt{sorry}, \texttt{admit}, or custom axioms.
 Our strategic model covers the top 14 archetypes (69.5\% of the field); the remaining 30.5\% is excluded from the game-theoretic model but bounded in robustness analysis.
 We analyze Trainer Hill tournament data from January--February 2026 (50+ player events), covering a complete 14\,$\times$\,14 matchup matrix.
-The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate, while Grimmsnarl Froslass (5.1\% share) achieves 52.7\%.
+The central result is a verified popularity-performance divergence (which we term the ``popularity paradox''): Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate, while Grimmsnarl Froslass (5.1\% share) achieves 52.7\%.
 We report a machine-checked Nash equilibrium with six-deck support per player; best-response conditions are verified via \texttt{native\_decide} for all 14 pure strategies, and Dragapult receives 0\% equilibrium weight.
+We also solve the symmetrized constant-sum game $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$, which yields a unique symmetric Nash equilibrium with seven-deck support preserving the same core decks, confirming robustness to the constant-sum approximation.
 On representative 4-deck and 5-deck subgames of the observed metagame, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure.
 A 10{,}000-iteration equilibrium sensitivity analysis confirms the equilibrium's qualitative stability: the core support decks appear in $>$96\% of resampled equilibria, while Dragapult receives zero weight in 77.9\%.
-These results demonstrate that formal methods can produce empirically grounded and strategically actionable conclusions in competitive game ecosystems.
+These results demonstrate that formal methods can produce empirically grounded, machine-checked strategic insights in competitive game ecosystems; the specific metagame conclusions are illustrative of the methodology, which is the primary contribution.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -191,10 +192,9 @@ It future-proofs the framework for counterfactual analysis (e.g., ``what if a ca
 The 2026 snapshot analysis itself relies primarily on matrix-level verification over observed matchup data.
 The goal is not to mechanize every card text in existence; instead, we encode the rule substrate needed to reason about deck legality, turn progression, card flow, and payoff-relevant mechanics.
 
-\subsection{Game State Representation}
+\subsection{Game State and Turn Discipline}
 
-The state model explicitly tracks per-player zones, turn ownership, and phase.
-This representation is sufficient to express legality constraints and to prove conservation and progress properties.
+The state model tracks per-player zones, turn ownership, and phase, sufficient to express legality constraints and prove conservation and progress properties.
 
 \begin{lstlisting}
 -- Core/Types.lean:206
@@ -209,31 +209,12 @@ structure GameState where
   deriving DecidableEq, BEq, Repr, Inhabited
 \end{lstlisting}
 
-A state-level encoding gives us a uniform target for rules, tactics, and metatheory.
-In particular, all strategic claims can be connected to primitive transition semantics, preventing the common mismatch where high-level analysis assumes mechanics that are absent from the underlying rules implementation.
+Turn order is a finite phase machine (\texttt{draw}, \texttt{main}, \texttt{attack}, \texttt{betweenTurns}), making ``what can happen next'' decidable and enabling phase-safety lemmas (e.g., no attacks during draw phase).
 
-\subsection{Turn Phases and Transition Discipline}
+\subsection{Type Effectiveness and Card Conservation}
 
-Turn order is represented as a finite phase machine.
-This makes ``what can happen next'' decidable, enabling automation for many local proofs.
-
-\begin{lstlisting}
--- Core/Types.lean:181
-inductive TurnPhase where
-  | draw
-  | main
-  | attack
-  | betweenTurns
-  deriving DecidableEq, BEq, Repr, Inhabited
-\end{lstlisting}
-
-By constraining transitions through this type, we can prove phase safety lemmas (e.g., no attacks during draw phase) and derive stronger progress claims.
-These lemmas are not just implementation detail: they ensure that all strategy-level simulations are grounded in legal game trajectories.
-
-\subsection{Type Effectiveness}
-
-Weakness and resistance are encoded as total functions over enumerated types.
-The Grass$\to$Fire interaction appears in the certified weakness-cycle theorem.
+Weakness and resistance are total functions over enumerated types.
+The type effectiveness triangle is certified:
 
 \begin{lstlisting}
 -- TypeEffectiveness.lean:138
@@ -243,13 +224,8 @@ theorem TRIANGLE :
   exact ⟨PType.grass, PType.fire, PType.water, rfl, rfl, rfl⟩
 \end{lstlisting}
 
-Even elementary facts matter because they serve as trusted building blocks for larger proofs, especially when computing expected damage and trade sequences.
-Encoding them in the core logic avoids accidental divergence between prose assumptions and executable semantics.
-
-\subsection{Card Conservation and Trainer Effects}
-
-We model high-impact trainer cards with explicit zone transitions.
-For Professor's Research, we prove that discarding the hand and drawing seven preserves global card count across all zones.
+High-impact trainer cards are modeled with explicit zone transitions.
+For Professor's Research, we prove that discarding the hand and drawing seven preserves global card count:
 
 \begin{lstlisting}
 -- CardEffects.lean:149
@@ -260,53 +236,14 @@ theorem professorsResearchEffect_preserves_cards (p : PlayerState) :
   omega
 \end{lstlisting}
 
-Conservation theorems are critical for trust.
-Without them, subtle bookkeeping bugs can distort probability estimates and strategic value calculations.
-With them, resource-theoretic statements in later sections inherit mechanical guarantees.
+Conservation theorems prevent subtle bookkeeping bugs from distorting probability estimates.
+Deck legality is implemented as a computable checker linked to an inductive specification through a soundness-and-completeness biconditional (\texttt{checkDeckLegal\_iff}), guaranteeing that data ingestion is extensionally equivalent to the formal legality policy.
 
-\subsection{Deck Legality as a Biconditional}
+\subsection{Invariant Catalog}
 
-Deck legality is implemented as a computable checker and linked to an inductive specification through a soundness-and-completeness theorem.
-
-\begin{lstlisting}
--- DeckLegality.lean:107
-theorem checkDeckLegal_iff (deck : List Card) :
-    checkDeckLegal deck = true ↔ DeckLegal deck := by
-  constructor
-  · exact checkDeckLegal_sound deck
-  · exact checkDeckLegal_complete deck
-\end{lstlisting}
-
-This biconditional is essential for reproducibility.
-It guarantees that data ingestion and deck filtering in empirical analysis are extensionally equivalent to the formal legality policy, rather than ``close enough'' approximations.
-
-\subsection{Invariant Catalog and Proof Obligations}
-
-Beyond the highlighted theorems, the formal model maintains a broad invariant catalog used by downstream analysis and simulation tooling.
-Representative invariants include:
-(i) nonnegative zone sizes,
-(ii) deck-size preservation except under explicit draw/mill transitions,
-(iii) bench-size upper bounds,
-(iv) uniqueness constraints for once-per-turn actions,
-(v) deterministic transition behavior under fixed randomness traces,
-(vi) legality of retreat and switching operations,
-(vii) prize-card accounting invariants,
-(viii) terminal-state exclusivity conditions, and
-(ix) well-typed status-effect transitions.
-
-These invariants matter for metagame work because matchup payoffs are aggregate outputs of many local game interactions.
-If local rule mechanics leak cards, skip phase guards, or violate zone consistency, macro-level expected values become unreliable.
-The invariant layer prevents this by making such inconsistencies theorem-level failures.
-
-A second benefit is maintainability.
-As card-effect libraries expand, invariant checks serve as regression barriers.
-New effect encodings must satisfy shared structural properties before they can influence strategic analysis.
-This minimizes accidental model drift and keeps historical comparisons meaningful across commits.
-
-Finally, invariants support modularity.
-Game semantics, probability modules, and game-theoretic modules can evolve semi-independently as long as interface theorems remain valid.
-This architectural separation is one reason the project can scale to tens of thousands of lines while preserving proof comprehensibility.
-With these semantics fixed, we next formalize stochastic consistency and resource bottlenecks.
+The formal model maintains invariants including nonnegative zone sizes, deck-size preservation, bench-size bounds, uniqueness constraints for once-per-turn actions, deterministic transitions, prize-card accounting, and terminal-state exclusivity.
+These prevent local rule inconsistencies from corrupting macro-level expected values.
+Details of deck legality discussion, energy economy formalization, and the full invariant catalog are available in the supplementary artifact.
 
 %======================================================================
 \section{Probability and Resource Theory}\label{sec:probability}
@@ -504,7 +441,7 @@ which is the maximum among all 14 modeled decks.
 \begin{lstlisting}
 -- RealMetagame.lean:398
 theorem dragapult_popularity_paradox :
-    -- Dragapult has losing (<500) matchups against at least 8 of 14 decks
+    -- Dragapult has losing (<500) matchups against 9 of 13 non-mirror decks
     matchupWR .DragapultDusknoir .GholdengoLunatone < 500 ∧
     matchupWR .DragapultDusknoir .GrimssnarlFroslass < 500 ∧
     matchupWR .DragapultDusknoir .MegaAbsolBox < 500 ∧
@@ -642,6 +579,7 @@ Table~\ref{tab:nash} reports the verified supports for both players.
 The theorem \texttt{real\_nash\_equilibrium\_verified} is backed by best-response checks quantified over all 14 pure strategies for both players, so the equilibrium claim is machine-checked rather than merely mixed-strategy-valid.
 The row player's guaranteed expected payoff is \texttt{realNashValue} $= \frac{162188991282520}{338129962783} \approx 479.665$ (47.97\%).
 Win rates are encoded on a 0--1000 scale, so a value of 479.67 corresponds to a 47.97\% win probability.
+The sub-50\% game value reflects the tie convention: ties distribute fewer win-equivalents than decisive outcomes, reducing the average payoff below the 50\% baseline of a perfectly constant-sum game.
 The nonzero entries of \texttt{realNashRowData} (row player) are at indices \{2,3,4,5,9,11\}, while the nonzero entries of \texttt{realNashColData} (column player) are at indices \{1,2,3,4,5,9\}.
 Indices in Table~\ref{tab:nash} use the zero-based \texttt{Deck.toFin} mapping from \texttt{RealMetagame.lean}:
 0 DragapultDusknoir, 1 GholdengoLunatone, 2 GrimssnarlFroslass, 3 MegaAbsolBox, 4 Gardevoir, 5 CharizardNoctowl, 6 GardevoirJellicent, 7 CharizardPidgeot, 8 DragapultCharizard, 9 RagingBoltOgerpon, 10 NsZoroark, 11 AlakazamDudunsparce, 12 KangaskhanBouffalant, 13 Ceruledge.
@@ -672,7 +610,7 @@ The row and column supports differ because the empirical matchup matrix is not p
 This means the payoff matrix does not satisfy the constant-sum condition $M_{ij} + M_{ji} = 1000$, which would be required for identical row and column equilibrium strategies.
 In a bimatrix game with such approximately-constant-sum but not exactly constant-sum structure, distinct row and column supports are mathematically expected rather than anomalous.
 
-In a large-field tournament, deck selection is a symmetric population game: each player independently chooses a deck and faces opponents drawn from the population mix. The natural solution concept is a symmetric Nash equilibrium. Our bimatrix formulation yields distinct row and column strategies because the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs due to tie weighting). In the symmetric population interpretation, the equilibrium recommendation is the average of the row and column strategies, which preserves the qualitative conclusion: the core support (Grimmsnarl, Mega Absol, Raging Bolt) is stable across both, and Dragapult receives near-zero weight in both. For players seeking a single mixed strategy, the column strategy (which includes Gholdengo at 3.7\% and excludes Alakazam) is marginally more conservative as it faces the row player's best response.
+In a large-field tournament, deck selection is a symmetric population game: each player independently chooses a deck and faces opponents drawn from the population mix. The natural solution concept is a symmetric Nash equilibrium. Our bimatrix formulation yields distinct row and column strategies because the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs due to tie weighting). To address this, we also solve the symmetrized game $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$, which yields a unique symmetric Nash equilibrium. The symmetrized equilibrium preserves the core support: Grimmsnarl Froslass (34.3\%), Raging Bolt Ogerpon (29.4\%), Charizard Noctowl (10.2\%), Mega Absol Box (10.2\%), Gholdengo Lunatone (9.2\%), Gardevoir (4.3\%), and Alakazam Dudunsparce (2.5\%), confirming that the qualitative conclusions are robust to the constant-sum approximation. The symmetrized game value is exactly 500 (50.0\%), as expected for a constant-sum game.
 
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
 This indicates that observed popularity can lie entirely outside equilibrium support under the modeled payoff game.
@@ -738,27 +676,12 @@ We therefore treat replicator outputs as directional diagnostics: Dragapult pres
 Theoretical win rates are only useful if they transfer to tournament formats.
 Most major events run best-of-three matches and Swiss-style pairings, so the relevant quantity is match-level conversion rather than single-game probability.
 
-\subsection{Best-of-Three Amplification}
+\subsection{Best-of-Three and Swiss Considerations}
 
 For game win probability $p$, best-of-three match win probability is
 $P_{\mathrm{Bo3}} = 3p^2 - 2p^3$.
-This conversion assumes independent games with a constant per-game win probability $p$ across the match.
-We treat this as an approximation because sideboarding and revealed-information effects can induce game-to-game dependence.
-Notably, the Pok\'emon TCG does not have a sideboard mechanism, unlike games such as Magic: The Gathering, so decklists remain fixed across all games in a match; this makes the independence assumption substantially more defensible here than in other TCGs.
-
-\begin{lstlisting}
--- TournamentStrategy.lean:31
-def bo3WinProb (p : Rat) : Rat :=
-  p * p * (3 - 2 * p)
-
--- TournamentStrategy.lean:41
-def favoredRates : List Rat :=
-  [11/20, 12/20, 13/20, 14/20, 15/20, 16/20, 17/20, 18/20, 19/20]
-
--- TournamentStrategy.lean:46
-theorem BO3_AMPLIFIES_ADVANTAGE :
-    ∀ p ∈ favoredRates, bo3WinProb p > p := by decide
-\end{lstlisting}
+The Pok\'emon TCG lacks sideboarding, making the independence assumption substantially more defensible than in other TCGs.
+Lean verifies that Bo3 amplifies advantage for all favorable rates from 55\% to 95\% (\texttt{BO3\_AMPLIFIES\_ADVANTAGE}).
 
 \begin{table}[!t]
 \centering
@@ -777,17 +700,10 @@ Dragapult vs Charizard Noctowl & 64.1\% & 70.6\% \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:bo3} shows that the 67.3\%\,$\to$\,74.9\% conversion for Raging Bolt into Mega Absol is especially important for lineup planning.
-Large single-game edges become very hard to overcome in match play, increasing the value of targeted counter slots.
-
-\subsection{Swiss Considerations}
-
-Swiss tournaments reward consistency and resilience to bad pairings.
-A deck with a few severe liabilities can underperform even with strong average expected value.
-Therefore, in addition to maximizing expected WR, one should minimize exposure to high-share bad matchups and evaluate cut-line probabilities under realistic field distributions~\cite{romero2022swiss}.
-For an eight-round Swiss event with an X--2 qualification target and field-level Bo3 win probability $p_m$, the cut-line transform is
+Table~\ref{tab:bo3} shows that large single-game edges become very hard to overcome in match play, increasing the value of targeted counter slots.
+Swiss tournaments further reward consistency: for an eight-round event with an X--2 qualification target and field-level Bo3 win probability $p_m$, the cut-line probability is
 $P(\text{X--2 or better}) = \sum_{k=6}^{8} \binom{8}{k} p_m^k (1-p_m)^{8-k}$.
-In practice, registration should combine projected field shares, weighted expected WR, and explicit stress tests on the largest counter-edges (especially Mega Absol versus Raging Bolt) rather than rely on average EV alone.
+Registration should combine projected field shares, weighted expected WR, and stress tests on the largest counter-edges rather than rely on average EV alone.
 
 %======================================================================
 \section{Formalization Methodology}\label{sec:methodology}
@@ -833,9 +749,9 @@ Probability \& Resources & 8 & 2{,}522 & 176 \\
 Game Theory \& Dynamics & 6 & 3{,}562 & 350 \\
 Real Metagame Analysis & 6 & 2{,}013 & 179 \\
 Infrastructure \& Validation & 7 & 1{,}872 & 97 \\
-Additional Specialized Modules & 30 & 12{,}672 & 1{,}284 \\
+Additional Specialized Modules & 35 & 12{,}672 & 1{,}284 \\
 \midrule
-\textbf{Total} & \textbf{75} & \textbf{29{,}793} & \textbf{2{,}510} \\
+\textbf{Total} & \textbf{80} & \textbf{29{,}793} & \textbf{2{,}510} \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -954,7 +870,8 @@ With these limitations explicit, we summarize the main findings and concrete nex
 \section{Conclusion}\label{sec:conclusion}
 %======================================================================
 
-This paper presents a formally verified metagame analysis pipeline for a real competitive TCG environment.
+This paper presents a formally verified metagame analysis pipeline for a real competitive TCG environment, demonstrating that formal methods can serve as a practical scientific instrument for competitive game ecosystems.
+The specific metagame results are illustrative of the methodology, which is the primary contribution.
 Using Lean~4 plus Trainer Hill data, we prove a popularity paradox (Section~\ref{sec:paradox}) and connect it to equilibrium, dynamics, and tournament implications.
 
 We also connect static matchup structure to dynamic and tournament implications.
