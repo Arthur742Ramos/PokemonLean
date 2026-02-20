@@ -104,6 +104,9 @@ J.~W. Weibull, \emph{Evolutionary Game Theory}.\hskip 1em plus 0.5em minus 0.4em
 \bibitem{playpokemon2024rules}
 ------, ``Play pok{\'e}mon tournament rules handbook,'' \url{https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources}, 2024, accessed: 2026-02-20.
 
+\bibitem{Wilson1927}
+E.~B. Wilson, ``Probable inference, the law of succession, and statistical inference,'' \emph{Journal of the American Statistical Association}, vol.~22, no. 158, pp. 209--212, 1927.
+
 \bibitem{Tversky1974}
 A.~Tversky and D.~Kahneman, ``Judgment under uncertainty: Heuristics and biases,'' \emph{Science}, vol. 185, no. 4157, pp. 1124--1131, 1974.
 
@@ -119,11 +122,11 @@ S.~Bikhchandani, D.~Hirshleifer, and I.~Welch, ``A theory of fads, fashion, cust
 \bibitem{NisanRoughgarden2007}
 N.~Nisan, T.~Roughgarden, E.~Tardos, and V.~V. Vazirani, Eds., \emph{Algorithmic Game Theory}.\hskip 1em plus 0.5em minus 0.4em\relax Cambridge University Press, 2007.
 
-\bibitem{vonneumann1928theorie}
-J.~von Neumann, ``{Zur Theorie der Gesellschaftsspiele},'' \emph{Mathematische Annalen}, vol. 100, no.~1, pp. 295--320, 1928.
-
 \bibitem{nash1950equilibrium}
 J.~F. Nash, ``Equilibrium points in $n$-person games,'' \emph{Proceedings of the National Academy of Sciences}, vol.~36, no.~1, pp. 48--49, 1950.
+
+\bibitem{vonneumann1928theorie}
+J.~von Neumann, ``{Zur Theorie der Gesellschaftsspiele},'' \emph{Mathematische Annalen}, vol. 100, no.~1, pp. 295--320, 1928.
 
 \bibitem{Hofbauer1998}
 J.~Hofbauer and K.~Sigmund, \emph{Evolutionary Games and Population Dynamics}.\hskip 1em plus 0.5em minus 0.4em\relax Cambridge University Press, 1998.

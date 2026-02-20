@@ -1,0 +1,12 @@
+Parsing matchup data...
+Traceback (most recent call last):
+  File "/Users/arthur/clawd/PokemonLean/scripts/bootstrap_nash.py", line 335, in <module>
+    main()
+    ~~~~^^
+  File "/Users/arthur/clawd/PokemonLean/scripts/bootstrap_nash.py", line 319, in main
+    W, L, T = parse_matchup_data(data_path)
+              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/arthur/clawd/PokemonLean/scripts/bootstrap_nash.py", line 77, in parse_matchup_data
+    W[i, row_idx] = w
+    ~^^^^^^^^^^^^
+IndexError: index 14 is out of bounds for axis 1 with size 14
