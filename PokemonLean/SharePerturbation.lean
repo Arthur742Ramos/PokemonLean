@@ -12,15 +12,10 @@ open PokemonLean.NashEquilibrium (Rat)
 open PokemonLean.RealMetagame
 
 elab "optimize_proof" : tactic => do
-  try
-    Lean.Elab.Tactic.evalTactic (← `(tactic| decide))
-  catch _ =>
-    Lean.Elab.Tactic.evalTactic (← `(tactic| exact (decide_eq_true_eq.mp
-      (by decide : decide (_ : Prop) = true))))
+  Lean.Elab.Tactic.evalTactic (← `(tactic| native_decide))
 
 elab "optimize_proof_native" : tactic => do
-  Lean.Elab.Tactic.evalTactic (← `(tactic| exact (decide_eq_true_eq.mp
-    (by decide : decide (_ : Prop) = true))))
+  Lean.Elab.Tactic.evalTactic (← `(tactic| native_decide))
 
 
 open PokemonLean.RealMetagame.Deck

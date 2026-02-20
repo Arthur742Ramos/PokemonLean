@@ -10,11 +10,7 @@ open PokemonLean.NashEquilibrium
 open PokemonLean.RealMetagame
 
 elab "optimize_proof" : tactic => do
-  try
-    Lean.Elab.Tactic.evalTactic (← `(tactic| decide))
-  catch _ =>
-    Lean.Elab.Tactic.evalTactic (← `(tactic| exact (decide_eq_true_eq.mp
-      (by decide : decide (_ : Prop) = true))))
+  Lean.Elab.Tactic.evalTactic (← `(tactic| native_decide))
 
 
 
@@ -22,7 +18,7 @@ elab "optimize_proof" : tactic => do
 /-! # Evolutionary Dynamics — Replicator Dynamics for Metagame Evolution
 
   Formalizes metagame evolution using discrete replicator dynamics from
-  evolutionary game theory.  Every theorem is closed by `decide`
+  evolutionary game theory.  Every theorem is closed by `native_decide`
   on concrete rational instances — zero `sorry`, zero `admit`, zero `axiom`.
 
   Part I:  Abstract 3-archetype Rock-Paper-Scissors dynamics (original)
@@ -136,28 +132,28 @@ theorem share_conservation_iter2 :
 
 /-- At the uniform Nash equilibrium, every archetype has the same fitness (= 0). -/
 theorem nash_equal_fitness :
-    fitness 3 rpsPayoff uniformShare ⟨0, by decide⟩ = avgFitness 3 rpsPayoff uniformShare ∧
-    fitness 3 rpsPayoff uniformShare ⟨1, by decide⟩ = avgFitness 3 rpsPayoff uniformShare ∧
-    fitness 3 rpsPayoff uniformShare ⟨2, by decide⟩ = avgFitness 3 rpsPayoff uniformShare := by
+    fitness 3 rpsPayoff uniformShare ⟨0, by native_decide⟩ = avgFitness 3 rpsPayoff uniformShare ∧
+    fitness 3 rpsPayoff uniformShare ⟨1, by native_decide⟩ = avgFitness 3 rpsPayoff uniformShare ∧
+    fitness 3 rpsPayoff uniformShare ⟨2, by native_decide⟩ = avgFitness 3 rpsPayoff uniformShare := by
   optimize_proof
 
 /-- The replicator step is the identity at the Nash equilibrium (pointwise). -/
 theorem nash_is_fixed_point :
-    replicatorStep 3 rpsPayoff uniformShare (1/10) ⟨0, by decide⟩ = uniformShare ⟨0, by decide⟩ ∧
-    replicatorStep 3 rpsPayoff uniformShare (1/10) ⟨1, by decide⟩ = uniformShare ⟨1, by decide⟩ ∧
-    replicatorStep 3 rpsPayoff uniformShare (1/10) ⟨2, by decide⟩ = uniformShare ⟨2, by decide⟩ := by
+    replicatorStep 3 rpsPayoff uniformShare (1/10) ⟨0, by native_decide⟩ = uniformShare ⟨0, by native_decide⟩ ∧
+    replicatorStep 3 rpsPayoff uniformShare (1/10) ⟨1, by native_decide⟩ = uniformShare ⟨1, by native_decide⟩ ∧
+    replicatorStep 3 rpsPayoff uniformShare (1/10) ⟨2, by native_decide⟩ = uniformShare ⟨2, by native_decide⟩ := by
   optimize_proof
 
 theorem nash_is_fixed_point_dt1 :
-    replicatorStep 3 rpsPayoff uniformShare 1 ⟨0, by decide⟩ = uniformShare ⟨0, by decide⟩ ∧
-    replicatorStep 3 rpsPayoff uniformShare 1 ⟨1, by decide⟩ = uniformShare ⟨1, by decide⟩ ∧
-    replicatorStep 3 rpsPayoff uniformShare 1 ⟨2, by decide⟩ = uniformShare ⟨2, by decide⟩ := by
+    replicatorStep 3 rpsPayoff uniformShare 1 ⟨0, by native_decide⟩ = uniformShare ⟨0, by native_decide⟩ ∧
+    replicatorStep 3 rpsPayoff uniformShare 1 ⟨1, by native_decide⟩ = uniformShare ⟨1, by native_decide⟩ ∧
+    replicatorStep 3 rpsPayoff uniformShare 1 ⟨2, by native_decide⟩ = uniformShare ⟨2, by native_decide⟩ := by
   optimize_proof
 
 theorem nash_fixed_point_iter5 :
-    replicatorIter 3 rpsPayoff uniformShare (1/10) 5 ⟨0, by decide⟩ = uniformShare ⟨0, by decide⟩ ∧
-    replicatorIter 3 rpsPayoff uniformShare (1/10) 5 ⟨1, by decide⟩ = uniformShare ⟨1, by decide⟩ ∧
-    replicatorIter 3 rpsPayoff uniformShare (1/10) 5 ⟨2, by decide⟩ = uniformShare ⟨2, by decide⟩ := by
+    replicatorIter 3 rpsPayoff uniformShare (1/10) 5 ⟨0, by native_decide⟩ = uniformShare ⟨0, by native_decide⟩ ∧
+    replicatorIter 3 rpsPayoff uniformShare (1/10) 5 ⟨1, by native_decide⟩ = uniformShare ⟨1, by native_decide⟩ ∧
+    replicatorIter 3 rpsPayoff uniformShare (1/10) 5 ⟨2, by native_decide⟩ = uniformShare ⟨2, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -182,28 +178,28 @@ theorem domMeta_valid : IsMetaShare 3 domMeta := by optimize_proof
 
 /-- Archetype 2 is strictly dominated by both 0 and 1 against every opponent. -/
 theorem archetype2_strictly_dominated :
-    domPayoff ⟨2, by decide⟩ ⟨0, by decide⟩ < domPayoff ⟨0, by decide⟩ ⟨0, by decide⟩ ∧
-    domPayoff ⟨2, by decide⟩ ⟨0, by decide⟩ < domPayoff ⟨1, by decide⟩ ⟨0, by decide⟩ ∧
-    domPayoff ⟨2, by decide⟩ ⟨1, by decide⟩ < domPayoff ⟨0, by decide⟩ ⟨1, by decide⟩ ∧
-    domPayoff ⟨2, by decide⟩ ⟨1, by decide⟩ < domPayoff ⟨1, by decide⟩ ⟨1, by decide⟩ ∧
-    domPayoff ⟨2, by decide⟩ ⟨2, by decide⟩ < domPayoff ⟨0, by decide⟩ ⟨2, by decide⟩ ∧
-    domPayoff ⟨2, by decide⟩ ⟨2, by decide⟩ < domPayoff ⟨1, by decide⟩ ⟨2, by decide⟩ := by
+    domPayoff ⟨2, by native_decide⟩ ⟨0, by native_decide⟩ < domPayoff ⟨0, by native_decide⟩ ⟨0, by native_decide⟩ ∧
+    domPayoff ⟨2, by native_decide⟩ ⟨0, by native_decide⟩ < domPayoff ⟨1, by native_decide⟩ ⟨0, by native_decide⟩ ∧
+    domPayoff ⟨2, by native_decide⟩ ⟨1, by native_decide⟩ < domPayoff ⟨0, by native_decide⟩ ⟨1, by native_decide⟩ ∧
+    domPayoff ⟨2, by native_decide⟩ ⟨1, by native_decide⟩ < domPayoff ⟨1, by native_decide⟩ ⟨1, by native_decide⟩ ∧
+    domPayoff ⟨2, by native_decide⟩ ⟨2, by native_decide⟩ < domPayoff ⟨0, by native_decide⟩ ⟨2, by native_decide⟩ ∧
+    domPayoff ⟨2, by native_decide⟩ ⟨2, by native_decide⟩ < domPayoff ⟨1, by native_decide⟩ ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- The dominated archetype's fitness is below the population average. -/
 theorem dominated_below_avg_fitness :
-    fitness 3 domPayoff domMeta ⟨2, by decide⟩ < avgFitness 3 domPayoff domMeta := by
+    fitness 3 domPayoff domMeta ⟨2, by native_decide⟩ < avgFitness 3 domPayoff domMeta := by
   optimize_proof
 
 /-- The dominated archetype's share decreases after one replicator step. -/
 theorem dominated_share_decreases :
-    replicatorStep 3 domPayoff domMeta (1/10) ⟨2, by decide⟩ < domMeta ⟨2, by decide⟩ := by
+    replicatorStep 3 domPayoff domMeta (1/10) ⟨2, by native_decide⟩ < domMeta ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- After two steps the dominated archetype's share shrinks further. -/
 theorem dominated_share_decreases_iter2 :
-    replicatorIter 3 domPayoff domMeta (1/10) 2 ⟨2, by decide⟩ <
-    replicatorIter 3 domPayoff domMeta (1/10) 1 ⟨2, by decide⟩ := by
+    replicatorIter 3 domPayoff domMeta (1/10) 2 ⟨2, by native_decide⟩ <
+    replicatorIter 3 domPayoff domMeta (1/10) 1 ⟨2, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -217,41 +213,41 @@ theorem dominated_share_decreases_iter2 :
 
 /-- From (50/30/20), Aggro's fitness is positive (it beats prevalent Control). -/
 theorem rps_aggro_fitness_positive :
-    0 < fitness 3 rpsPayoff midMeta ⟨0, by decide⟩ := by
+    0 < fitness 3 rpsPayoff midMeta ⟨0, by native_decide⟩ := by
   optimize_proof
 
 /-- Control's fitness is negative (overwhelmed by Aggro). -/
 theorem rps_control_fitness_negative :
-    fitness 3 rpsPayoff midMeta ⟨1, by decide⟩ < 0 := by
+    fitness 3 rpsPayoff midMeta ⟨1, by native_decide⟩ < 0 := by
   optimize_proof
 
 /-- Combo's fitness is positive (it preys on abundant Aggro). -/
 theorem rps_combo_fitness_positive :
-    0 < fitness 3 rpsPayoff midMeta ⟨2, by decide⟩ := by
+    0 < fitness 3 rpsPayoff midMeta ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- After step 1: Combo increases (feeds on Aggro). -/
 theorem rps_combo_increases_step1 :
-    midMeta ⟨2, by decide⟩ < replicatorStep 3 rpsPayoff midMeta (1/10) ⟨2, by decide⟩ := by
+    midMeta ⟨2, by native_decide⟩ < replicatorStep 3 rpsPayoff midMeta (1/10) ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- After step 1: Control shrinks (too much Aggro predator). -/
 theorem rps_control_decreases_step1 :
-    replicatorStep 3 rpsPayoff midMeta (1/10) ⟨1, by decide⟩ < midMeta ⟨1, by decide⟩ := by
+    replicatorStep 3 rpsPayoff midMeta (1/10) ⟨1, by native_decide⟩ < midMeta ⟨1, by native_decide⟩ := by
   optimize_proof
 
 /-- All shares remain strictly positive after 3 steps (no extinction). -/
 theorem rps_no_extinction_iter3 :
-    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 3 ⟨0, by decide⟩ ∧
-    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 3 ⟨1, by decide⟩ ∧
-    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 3 ⟨2, by decide⟩ := by
+    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 3 ⟨0, by native_decide⟩ ∧
+    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 3 ⟨1, by native_decide⟩ ∧
+    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 3 ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- All shares remain strictly positive after 5 steps. -/
 theorem rps_no_extinction_iter5 :
-    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨0, by decide⟩ ∧
-    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨1, by decide⟩ ∧
-    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨2, by decide⟩ := by
+    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨0, by native_decide⟩ ∧
+    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨1, by native_decide⟩ ∧
+    0 < replicatorIter 3 rpsPayoff midMeta (1/10) 5 ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- Cycling evidence: archetypes move in opposing directions (RPS dynamic).
@@ -259,11 +255,11 @@ theorem rps_no_extinction_iter5 :
     This opposing movement, combined with no extinction, demonstrates cycling. -/
 theorem rps_cycling_opposing_directions :
     -- Aggro grows from step 0 to step 1
-    midMeta ⟨0, by decide⟩ < replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨0, by decide⟩ ∧
+    midMeta ⟨0, by native_decide⟩ < replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨0, by native_decide⟩ ∧
     -- Control shrinks from step 0 to step 1
-    replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨1, by decide⟩ < midMeta ⟨1, by decide⟩ ∧
+    replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨1, by native_decide⟩ < midMeta ⟨1, by native_decide⟩ ∧
     -- Combo grows from step 0 to step 1
-    midMeta ⟨2, by decide⟩ < replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨2, by decide⟩ := by
+    midMeta ⟨2, by native_decide⟩ < replicatorIter 3 rpsPayoff midMeta (1/10) 1 ⟨2, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -285,43 +281,43 @@ def metaPayoff : PayoffMatrix 3
 
 /-- With 80% Aggro, Combo's fitness exceeds the population average. -/
 theorem combo_fitness_above_avg_in_aggro_meta :
-    avgFitness 3 metaPayoff aggroMeta < fitness 3 metaPayoff aggroMeta ⟨2, by decide⟩ := by
+    avgFitness 3 metaPayoff aggroMeta < fitness 3 metaPayoff aggroMeta ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- Aggro's fitness is below average when it dominates the meta. -/
 theorem aggro_fitness_below_avg_when_dominant :
-    fitness 3 metaPayoff aggroMeta ⟨0, by decide⟩ < avgFitness 3 metaPayoff aggroMeta := by
+    fitness 3 metaPayoff aggroMeta ⟨0, by native_decide⟩ < avgFitness 3 metaPayoff aggroMeta := by
   optimize_proof
 
 /-- After 1 replicator step, Combo's share has increased from 10%. -/
 theorem metagame_shift_combo_increases_step1 :
-    aggroMeta ⟨2, by decide⟩ <
-    replicatorStep 3 metaPayoff aggroMeta (1/10) ⟨2, by decide⟩ := by
+    aggroMeta ⟨2, by native_decide⟩ <
+    replicatorStep 3 metaPayoff aggroMeta (1/10) ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- After 1 step, Aggro's share has decreased from 80%. -/
 theorem metagame_shift_aggro_decreases_step1 :
-    replicatorStep 3 metaPayoff aggroMeta (1/10) ⟨0, by decide⟩ <
-    aggroMeta ⟨0, by decide⟩ := by
+    replicatorStep 3 metaPayoff aggroMeta (1/10) ⟨0, by native_decide⟩ <
+    aggroMeta ⟨0, by native_decide⟩ := by
   optimize_proof
 
 /-- After 3 steps, Combo is still rising (greater share than after step 1). -/
 theorem metagame_shift_combo_monotone_3_steps :
-    replicatorIter 3 metaPayoff aggroMeta (1/10) 1 ⟨2, by decide⟩ <
-    replicatorIter 3 metaPayoff aggroMeta (1/10) 3 ⟨2, by decide⟩ := by
+    replicatorIter 3 metaPayoff aggroMeta (1/10) 1 ⟨2, by native_decide⟩ <
+    replicatorIter 3 metaPayoff aggroMeta (1/10) 3 ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- After 3 steps, Aggro has continued to decline. -/
 theorem metagame_shift_aggro_declines_3_steps :
-    replicatorIter 3 metaPayoff aggroMeta (1/10) 3 ⟨0, by decide⟩ <
-    replicatorIter 3 metaPayoff aggroMeta (1/10) 1 ⟨0, by decide⟩ := by
+    replicatorIter 3 metaPayoff aggroMeta (1/10) 3 ⟨0, by native_decide⟩ <
+    replicatorIter 3 metaPayoff aggroMeta (1/10) 1 ⟨0, by native_decide⟩ := by
   optimize_proof
 
 /-- All three archetypes remain viable (positive share) after 5 steps. -/
 theorem metagame_shift_all_positive_5_steps :
-    0 < replicatorIter 3 metaPayoff aggroMeta (1/10) 5 ⟨0, by decide⟩ ∧
-    0 < replicatorIter 3 metaPayoff aggroMeta (1/10) 5 ⟨1, by decide⟩ ∧
-    0 < replicatorIter 3 metaPayoff aggroMeta (1/10) 5 ⟨2, by decide⟩ := by
+    0 < replicatorIter 3 metaPayoff aggroMeta (1/10) 5 ⟨0, by native_decide⟩ ∧
+    0 < replicatorIter 3 metaPayoff aggroMeta (1/10) 5 ⟨1, by native_decide⟩ ∧
+    0 < replicatorIter 3 metaPayoff aggroMeta (1/10) 5 ⟨2, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -384,7 +380,7 @@ theorem lyapunov_invariant_at_nash_iter5 :
 --  We instantiate the replicator dynamics framework with actual competitive
 --  Pokémon TCG matchup data from Trainer Hill (Jan–Feb 2026).
 --
---  To keep decide tractable, we work with a 4-deck subcycle that
+--  To keep native_decide tractable, we work with a 4-deck subcycle that
 --  captures the core metagame cycle:
 --    Dragapult (0), Grimmsnarl (1), MegaAbsol (2), RagingBolt (3)
 --
@@ -454,25 +450,25 @@ theorem realCycleMeta_valid : IsMetaShare 4 realCycleMeta := by optimize_proof
 
 /-- Dragapult's fitness is negative in the current meta. -/
 theorem dragapult_negative_fitness :
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ < 0 := by
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ < 0 := by
   optimize_proof
 
 /-- Dragapult's fitness is below the population average. -/
 theorem dragapult_below_avg_fitness :
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
     avgFitness 4 realCyclePayoff realCycleMeta := by
   optimize_proof
 
 /-- Replicator dynamics predicts Dragapult's share should DECREASE. -/
 theorem dragapult_share_decreases :
-    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by decide⟩ <
-    realCycleMeta ⟨0, by decide⟩ := by
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by native_decide⟩ <
+    realCycleMeta ⟨0, by native_decide⟩ := by
   optimize_proof
 
 /-- Dragapult continues to decline over 2 replicator steps. -/
 theorem dragapult_share_decreases_iter2 :
-    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 2 ⟨0, by decide⟩ <
-    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 1 ⟨0, by decide⟩ := by
+    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 2 ⟨0, by native_decide⟩ <
+    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 1 ⟨0, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -485,25 +481,25 @@ theorem dragapult_share_decreases_iter2 :
 
 /-- Grimmsnarl's fitness is positive in the current meta. -/
 theorem grimmsnarl_positive_fitness :
-    0 < fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ := by
+    0 < fitness 4 realCyclePayoff realCycleMeta ⟨1, by native_decide⟩ := by
   optimize_proof
 
 /-- Grimmsnarl's fitness exceeds the population average. -/
 theorem grimmsnarl_above_avg_fitness :
     avgFitness 4 realCyclePayoff realCycleMeta <
-    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ := by
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by native_decide⟩ := by
   optimize_proof
 
 /-- Replicator dynamics predicts Grimmsnarl's share should INCREASE. -/
 theorem grimmsnarl_share_increases :
-    realCycleMeta ⟨1, by decide⟩ <
-    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by decide⟩ := by
+    realCycleMeta ⟨1, by native_decide⟩ <
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by native_decide⟩ := by
   optimize_proof
 
 /-- Grimmsnarl remains above its initial share after 2 steps. -/
 theorem grimmsnarl_above_initial_iter2 :
-    realCycleMeta ⟨1, by decide⟩ <
-    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 2 ⟨1, by decide⟩ := by
+    realCycleMeta ⟨1, by native_decide⟩ <
+    replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 2 ⟨1, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -515,20 +511,20 @@ theorem grimmsnarl_above_initial_iter2 :
 
 /-- MegaAbsol has the highest fitness of all 4 decks. -/
 theorem mega_absol_highest_fitness :
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
-    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
-    fitness 4 realCyclePayoff realCycleMeta ⟨3, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ := by
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by native_decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by native_decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨3, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by native_decide⟩ := by
   optimize_proof
 
 /-- MegaAbsol grows the fastest under replicator dynamics. -/
 theorem mega_absol_grows_fastest :
-    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨2, by decide⟩ -
-    realCycleMeta ⟨2, by decide⟩ >
-    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by decide⟩ -
-    realCycleMeta ⟨1, by decide⟩ := by
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨2, by native_decide⟩ -
+    realCycleMeta ⟨2, by native_decide⟩ >
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by native_decide⟩ -
+    realCycleMeta ⟨1, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -541,9 +537,9 @@ theorem mega_absol_grows_fastest :
 /-- The real metagame cycle is confirmed in the payoff matrix:
     Grimmsnarl beats Dragapult, MegaAbsol beats Grimmsnarl, RagBolt beats MegaAbsol. -/
 theorem real_cycle_in_payoff :
-    realCyclePayoff ⟨1, by decide⟩ ⟨0, by decide⟩ > 0 ∧   -- Grimm > Drag
-    realCyclePayoff ⟨2, by decide⟩ ⟨1, by decide⟩ > 0 ∧   -- MAbsol > Grimm
-    realCyclePayoff ⟨3, by decide⟩ ⟨2, by decide⟩ > 0 := by -- RagBolt > MAbsol
+    realCyclePayoff ⟨1, by native_decide⟩ ⟨0, by native_decide⟩ > 0 ∧   -- Grimm > Drag
+    realCyclePayoff ⟨2, by native_decide⟩ ⟨1, by native_decide⟩ > 0 ∧   -- MAbsol > Grimm
+    realCyclePayoff ⟨3, by native_decide⟩ ⟨2, by native_decide⟩ > 0 := by -- RagBolt > MAbsol
   optimize_proof
 
 /-- Share conservation holds for real metagame data (dt = 1/100). -/
@@ -559,24 +555,24 @@ theorem real_share_conservation_iter2 :
 /-- All 4 decks remain viable (positive share) after 3 replicator steps.
     No deck goes extinct — the cycle sustains all archetypes. -/
 theorem real_cycle_no_extinction_iter3 :
-    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨0, by decide⟩ ∧
-    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨1, by decide⟩ ∧
-    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨2, by decide⟩ ∧
-    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨3, by decide⟩ := by
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨0, by native_decide⟩ ∧
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨1, by native_decide⟩ ∧
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨2, by native_decide⟩ ∧
+    0 < replicatorIter 4 realCyclePayoff realCycleMeta (1/100) 3 ⟨3, by native_decide⟩ := by
   optimize_proof
 
 /-- Oscillatory dynamics evidence: Dragapult shrinks while MegaAbsol and
     Grimmsnarl grow — opposing movements characteristic of cyclical dynamics. -/
 theorem real_cycle_opposing_movements :
     -- Dragapult decreases
-    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by decide⟩ <
-    realCycleMeta ⟨0, by decide⟩ ∧
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by native_decide⟩ <
+    realCycleMeta ⟨0, by native_decide⟩ ∧
     -- Grimmsnarl increases
-    realCycleMeta ⟨1, by decide⟩ <
-    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by decide⟩ ∧
+    realCycleMeta ⟨1, by native_decide⟩ <
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by native_decide⟩ ∧
     -- MegaAbsol increases
-    realCycleMeta ⟨2, by decide⟩ <
-    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨2, by decide⟩ := by
+    realCycleMeta ⟨2, by native_decide⟩ <
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨2, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -644,37 +640,37 @@ theorem realCeruMeta_valid : IsMetaShare 5 realCeruMeta := by optimize_proof
 
 /-- Ceruledge has negative fitness — it loses to most of the field. -/
 theorem ceruledge_negative_fitness :
-    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ < 0 := by
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by native_decide⟩ < 0 := by
   optimize_proof
 
 /-- Ceruledge's fitness is below the population average — extinction pressure. -/
 theorem ceruledge_below_avg_fitness :
-    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by native_decide⟩ <
     avgFitness 5 realCeruPayoff realCeruMeta := by
   optimize_proof
 
 /-- Ceruledge has the worst fitness of all 5 decks. -/
 theorem ceruledge_worst_fitness :
-    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
-    fitness 5 realCeruPayoff realCeruMeta ⟨0, by decide⟩ ∧
-    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
-    fitness 5 realCeruPayoff realCeruMeta ⟨1, by decide⟩ ∧
-    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
-    fitness 5 realCeruPayoff realCeruMeta ⟨2, by decide⟩ ∧
-    fitness 5 realCeruPayoff realCeruMeta ⟨4, by decide⟩ <
-    fitness 5 realCeruPayoff realCeruMeta ⟨3, by decide⟩ := by
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by native_decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨0, by native_decide⟩ ∧
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by native_decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨1, by native_decide⟩ ∧
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by native_decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨2, by native_decide⟩ ∧
+    fitness 5 realCeruPayoff realCeruMeta ⟨4, by native_decide⟩ <
+    fitness 5 realCeruPayoff realCeruMeta ⟨3, by native_decide⟩ := by
   optimize_proof
 
 /-- Replicator dynamics predicts Ceruledge's share should DECREASE (extinction). -/
 theorem ceruledge_share_decreases :
-    replicatorStep 5 realCeruPayoff realCeruMeta (1/100) ⟨4, by decide⟩ <
-    realCeruMeta ⟨4, by decide⟩ := by
+    replicatorStep 5 realCeruPayoff realCeruMeta (1/100) ⟨4, by native_decide⟩ <
+    realCeruMeta ⟨4, by native_decide⟩ := by
   optimize_proof
 
 /-- Ceruledge continues to shrink monotonically over 2 steps. -/
 theorem ceruledge_share_decreases_iter2 :
-    replicatorIter 5 realCeruPayoff realCeruMeta (1/100) 2 ⟨4, by decide⟩ <
-    replicatorIter 5 realCeruPayoff realCeruMeta (1/100) 1 ⟨4, by decide⟩ := by
+    replicatorIter 5 realCeruPayoff realCeruMeta (1/100) 2 ⟨4, by native_decide⟩ <
+    replicatorIter 5 realCeruPayoff realCeruMeta (1/100) 1 ⟨4, by native_decide⟩ := by
   optimize_proof
 
 /-- Share conservation holds in the 5-deck system. -/
@@ -693,29 +689,29 @@ theorem real_5deck_share_conservation :
 /-- Dragapult is overrepresented: its share exceeds all others combined
     divided by 4 (i.e., it's above the uniform 25% allocation). -/
 theorem dragapult_overrepresented :
-    realCycleMeta ⟨0, by decide⟩ > (1 : Rat) / (4 : Rat) := by
+    realCycleMeta ⟨0, by native_decide⟩ > (1 : Rat) / (4 : Rat) := by
   optimize_proof
 
 /-- Yet Dragapult has the worst fitness of the 4 cycle decks. -/
 theorem dragapult_worst_fitness_in_cycle :
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ ∧
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨3, by decide⟩ := by
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by native_decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by native_decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨3, by native_decide⟩ := by
   optimize_proof
 
 /-- The popularity paradox: Dragapult is the most played (share > 1/4)
     but has the lowest fitness (below every other deck). -/
 theorem popularity_paradox :
-    realCycleMeta ⟨0, by decide⟩ > (1 : Rat) / (4 : Rat) ∧
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨1, by decide⟩ ∧
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨2, by decide⟩ ∧
-    fitness 4 realCyclePayoff realCycleMeta ⟨0, by decide⟩ <
-    fitness 4 realCyclePayoff realCycleMeta ⟨3, by decide⟩ := by
+    realCycleMeta ⟨0, by native_decide⟩ > (1 : Rat) / (4 : Rat) ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨1, by native_decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨2, by native_decide⟩ ∧
+    fitness 4 realCyclePayoff realCycleMeta ⟨0, by native_decide⟩ <
+    fitness 4 realCyclePayoff realCycleMeta ⟨3, by native_decide⟩ := by
   optimize_proof
 
 -- ═══════════════════════════════════════════════════════════════════════
