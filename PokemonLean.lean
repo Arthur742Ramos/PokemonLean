@@ -77,3 +77,8 @@ import PokemonLean.Tournament
 import PokemonLean.StochasticSemantics
 import PokemonLean.Robustness
 import PokemonLean.SharePerturbation
+import PokemonLean.EvolutionaryDynamics
+import PokemonLean.MatchupAnalysis
+import PokemonLean.RealMetagame
+import PokemonLean.TournamentStrategy
+import PokemonLean.TypeEffectiveness
