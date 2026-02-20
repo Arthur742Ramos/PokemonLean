@@ -34,7 +34,7 @@
   xleftmargin=1.5em,
   aboveskip=0.5em,
   belowskip=0.5em,
-  literate={·}{{$\cdot$}}1 {←}{{$\leftarrow$}}1 {→}{{$\rightarrow$}}1 {∀}{{$\forall$}}1 {∃}{{$\exists$}}1 {≤}{{$\leq$}}1 {≥}{{$\geq$}}1 {≠}{{$\neq$}}1 {⟨}{{$\langle$}}1 {⟩}{{$\rangle$}}1 {↔}{{$\leftrightarrow$}}1 {∧}{{$\land$}}1 {∨}{{$\lor$}}1 {¬}{{$\lnot$}}1 {λ}{{$\lambda$}}1 {⊢}{{$\vdash$}}1
+  literate={·}{{$\cdot$}}1 {←}{{$\leftarrow$}}1 {→}{{$\rightarrow$}}1 {∀}{{$\forall$}}1 {∃}{{$\exists$}}1 {≤}{{$\leq$}}1 {≥}{{$\geq$}}1 {≠}{{$\neq$}}1 {⟨}{{$\langle$}}1 {⟩}{{$\rangle$}}1 {↔}{{$\leftrightarrow$}}1 {∧}{{$\land$}}1 {∨}{{$\lor$}}1 {¬}{{$\lnot$}}1 {λ}{{$\lambda$}}1 {⊢}{{$\vdash$}}1 {∈}{{$\in$}}1
 }
 
 \let\origsection\section
@@ -59,9 +59,9 @@ Our formal development spans approximately 30{,}000~lines across 75~Lean files a
 Most of this corpus verifies reusable infrastructure (rules, types, legality, and probability foundations), while approximately 180 theorems directly verify the empirical claims reported in this paper.
 On top of this foundation, we analyze Trainer Hill tournament data from January~29 to February~19, 2026 (50+ player events), covering 14 archetypes and a complete 14\,$\times$\,14 matchup matrix.
 The central result is a verified popularity paradox: Dragapult Dusknoir is the most played deck (15.5\%) but has only 46.7\% expected win rate against the field, while Grimmsnarl Froslass (5.1\% share) has the highest expected field win rate at 52.7\%.
-We further report a fully verified Nash equilibrium (\texttt{real\_nash\_equilibrium\_verified}) with six-deck support: Regidrago (37.8\%), Gholdengo (28.6\%), Gardevoir (12.9\%), Lugia (11.3\%), Roaring Moon (5.8\%), and Raging Bolt (3.5\%).
+We further report a fully verified Nash equilibrium (\texttt{real\_nash\_equilibrium\_verified}) where the row support is Grimssnarl Froslass (37.8\%), Raging Bolt Ogerpon (28.7\%), Mega Absol Box (12.9\%), Charizard Noctowl (11.3\%), Alakazam Dudunsparce (5.8\%), and Gardevoir (3.5\%); the column support replaces Alakazam Dudunsparce with Gholdengo Lunatone.
 Best-response conditions are machine-checked for all 14 pure strategies, the game value is approximately 47.97\%, and Dragapult receives 0\% equilibrium weight despite 15.5\% observed share.
-We also prove replicator dynamics pressure against Dragapult and Ceruledge, and quantify best-of-three amplification effects such as 67.3\%\,$\to$\,74.9\% for Raging Bolt Ogerpon versus Mega Absol Box.
+We also prove replicator-dynamics pressure against Dragapult and Ceruledge on real-data representative subgames (4-deck and 5-deck slices), and quantify best-of-three amplification effects such as 67.3\%\,$\to$\,74.9\% for Raging Bolt Ogerpon versus Mega Absol Box.
 These results demonstrate that machine-checked formal methods can produce empirically grounded and strategically actionable conclusions in modern competitive game ecosystems.
 \end{abstract}
 
@@ -88,7 +88,7 @@ A statement in the paper is either derivable from formally checked definitions a
 We build a proof-carrying metagame analytics pipeline where the verified objects are
 (i) data representation and ingestion,
 (ii) expected-value computations over the field,
-(iii) fully verified Nash-equilibrium computation (including all 14 pure-strategy best-response checks) and replicator dynamics statements, and
+(iii) fully verified Nash-equilibrium computation (including all 14 pure-strategy best-response checks) and replicator-dynamics statements on real-data representative subgames, and
 (iv) tournament-objective transforms (Bo3, Swiss).
 The in-game rules formalization serves as supporting infrastructure guaranteeing legality and enabling future counterfactual analysis.
 
@@ -99,7 +99,7 @@ The resulting matrix contains enough granularity to support rigorous expected-va
 This paper makes four concrete contributions aligned with this thesis.
 First, we formalize the rules and legality substrate that supports trustworthy ingestion and future counterfactual analysis.
 Second, we encode real metagame data as exact values and verify expected-value computations, including the popularity paradox.
-Third, we derive fully verified Nash-equilibrium and replicator-dynamics statements over the observed matrix, including complete best-response equilibrium certification.
+Third, we derive fully verified Nash-equilibrium statements over the full observed matrix and replicator-dynamics statements over real-data representative subgames, including complete best-response equilibrium certification.
 Fourth, we verify tournament-objective transforms from single-game payoffs to best-of-three and Swiss-relevant decision criteria.
 
 A key practical implication follows immediately.
@@ -185,7 +185,7 @@ In practice, observed metagames often drift slowly because human behavior is not
 This motivates interpreting deviations from equilibrium in behavioral-economic terms rather than treating them as model failure.
 
 The contribution here is methodological: we use evolutionary tools not as informal metaphors but as theorem-backed statements over fixed data.
-When we claim that Dragapult has negative relative fitness or that Ceruledge declines under replicator updates, those claims are machine-checked consequences of the encoded matrix and shares.
+When we claim that Dragapult has negative relative fitness or that Ceruledge declines under replicator updates, those claims are machine-checked consequences of encoded real-data subgame matrices and observed share vectors.
 
 \subsection{Community Analytics Versus Proof-Carrying Analytics}
 
@@ -268,13 +268,11 @@ Weakness and resistance are encoded as total functions over enumerated types.
 The Grass$\to$Fire interaction appears in the certified weakness-cycle theorem.
 
 \begin{lstlisting}
+-- File: PokemonLean/TypeEffectiveness.lean
 theorem TRIANGLE :
-    Exists fun A : PType =>
-      Exists fun B : PType =>
-        Exists fun C : PType =>
-          weakness A B = true /\ weakness B C = true /\ weakness C A = true := by
-  exact Exists.intro PType.grass (Exists.intro PType.fire
-    (Exists.intro PType.water (And.intro rfl (And.intro rfl rfl))))
+    ∃ A B C : PType,
+      weakness A B = true ∧ weakness B C = true ∧ weakness C A = true := by
+  exact ⟨PType.grass, PType.fire, PType.water, rfl, rfl, rfl⟩
 \end{lstlisting}
 
 Even elementary facts matter because they serve as trusted building blocks for larger proofs, especially when computing expected damage and trade sequences.
@@ -286,6 +284,7 @@ We model high-impact trainer cards with explicit zone transitions.
 For Professor's Research, we prove that discarding the hand and drawing seven preserves global card count across all zones.
 
 \begin{lstlisting}
+-- File: PokemonLean/CardEffects.lean
 theorem professorsResearchEffect_preserves_cards (p : PlayerState) :
     playerCardCount (professorsResearchEffect p) = playerCardCount p := by
   unfold professorsResearchEffect playerCardCount inPlayCount
@@ -302,8 +301,9 @@ With them, resource-theoretic statements in later sections inherit mechanical gu
 Deck legality is implemented as a computable checker and linked to an inductive specification through a soundness-and-completeness theorem.
 
 \begin{lstlisting}
+-- File: PokemonLean/DeckLegality.lean
 theorem checkDeckLegal_iff (deck : List Card) :
-    checkDeckLegal deck = true <-> DeckLegal deck := by
+    checkDeckLegal deck = true ↔ DeckLegal deck := by
   constructor
   · exact checkDeckLegal_sound deck
   · exact checkDeckLegal_complete deck
@@ -353,9 +353,10 @@ Opening-hand consistency follows hypergeometric structure.
 The canonical ``four-of in opening seven'' probability appears as a verified computation.
 
 \begin{lstlisting}
+-- File: PokemonLean/DeckConsistency.lean
 theorem FOUR_COPIES_RULE :
-    probAtLeastOne 60 4 7 = (38962 : Rat) / (97527 : Rat) /\
-    (39 : Rat) / (100 : Rat) < probAtLeastOne 60 4 7 /\
+    probAtLeastOne 60 4 7 = (38962 : Rat) / (97527 : Rat) ∧
+    (39 : Rat) / (100 : Rat) < probAtLeastOne 60 4 7 ∧
     probAtLeastOne 60 4 7 < (2 : Rat) / (5 : Rat) := by
   decide
 \end{lstlisting}
@@ -370,8 +371,9 @@ One attachment per turn imposes a hard tempo cap.
 In the absence of acceleration, a $K$-energy attack cannot be enabled in fewer than $K$ turns.
 
 \begin{lstlisting}
+-- File: PokemonLean/EnergyEconomy.lean
 theorem ENERGY_BOTTLENECK (K : Nat) :
-    turnsToPowerUp K 0 >= K := by
+    turnsToPowerUp K 0 ≥ K := by
   simp [turnsToPowerUp, attachmentsPerTurn, ceilDiv]
 \end{lstlisting}
 
@@ -517,11 +519,18 @@ For Grimmsnarl Froslass (5.1\% share), we obtain
 which is the maximum among all 14 modeled decks.
 
 \begin{lstlisting}
+-- File: PokemonLean/RealMetagame.lean
 theorem dragapult_popularity_paradox :
-    metaShare DragapultDusknoir > metaShare GrimmsnarlFroslass /\
-    expectedWR DragapultDusknoir observedMeta < 1/2 /\
-    expectedWR GrimmsnarlFroslass observedMeta = maxExpectedWR allDecks observedMeta := by
-  native_decide
+    -- Dragapult has losing (<500) matchups against at least 8 of 14 decks
+    matchupWR .DragapultDusknoir .GholdengoLunatone < 500 ∧
+    matchupWR .DragapultDusknoir .GrimssnarlFroslass < 500 ∧
+    matchupWR .DragapultDusknoir .MegaAbsolBox < 500 ∧
+    matchupWR .DragapultDusknoir .Gardevoir < 500 ∧
+    matchupWR .DragapultDusknoir .GardevoirJellicent < 500 ∧
+    matchupWR .DragapultDusknoir .DragapultCharizard < 500 ∧
+    matchupWR .DragapultDusknoir .RagingBoltOgerpon < 500 ∧
+    matchupWR .DragapultDusknoir .NsZoroark < 500 ∧
+    matchupWR .DragapultDusknoir .KangaskhanBouffalant < 500 := by decide
 \end{lstlisting}
 
 \begin{table*}[!t]
@@ -629,6 +638,7 @@ Under a risk-averse Swiss objective (maximizing probability of reaching X-2 or b
 We therefore treat this as a modeling limitation: the analysis below targets a minimax benchmark for a single match, not a full Swiss-utility optimum.
 
 \begin{lstlisting}
+-- File: PokemonLean/NashEquilibrium.lean
 theorem real_nash_row_best_response_checks :
     ∀ i : Fin 14, rowPurePayoff realMetaGame14 i realNashCol ≤ realNashValue := by
   native_decide
@@ -642,29 +652,34 @@ theorem real_nash_equilibrium_verified :
   native_decide
 \end{lstlisting}
 
-Table~\ref{tab:nash} reports the verified six-deck support profile.
+Table~\ref{tab:nash} reports the verified supports for both players.
 The theorem \texttt{real\_nash\_equilibrium\_verified} is backed by best-response checks quantified over all 14 pure strategies for both players, so the equilibrium claim is now fully machine-checked rather than merely mixed-strategy-valid.
 The game value is \texttt{realNashValue} $= \frac{162188991282520}{338129962783} \approx 479.665$ (47.97\%).
+The nonzero entries of \texttt{realNashRowData} (row player) are at indices \{2,3,4,5,9,11\}, while the nonzero entries of \texttt{realNashColData} (column player) are at indices \{1,2,3,4,5,9\}.
+Indices in Table~\ref{tab:nash} use the zero-based \texttt{Deck.toFin} mapping from \texttt{PokemonLean/RealMetagame.lean}:
+0 DragapultDusknoir, 1 GholdengoLunatone, 2 GrimssnarlFroslass, 3 MegaAbsolBox, 4 Gardevoir, 5 CharizardNoctowl, 6 GardevoirJellicent, 7 CharizardPidgeot, 8 DragapultCharizard, 9 RagingBoltOgerpon, 10 NsZoroark, 11 AlakazamDudunsparce, 12 KangaskhanBouffalant, 13 Ceruledge.
 
 \begin{table}[!t]
 \centering
-\caption{Lean-verified real Nash equilibrium support (\texttt{real\_nash\_equilibrium\_verified}).}
+\caption{Lean-verified real Nash supports for row strategy \texttt{realNashRow} and column strategy \texttt{realNashCol}.}
 \label{tab:nash}
-\begin{tabular}{lc}
+\begin{tabular}{rlcc}
 \toprule
-\textbf{Deck} & \textbf{Nash Weight} \\
+\textbf{Idx} & \textbf{Deck} & \textbf{Row weight (\texttt{realNashRow})} & \textbf{Column weight (\texttt{realNashCol})} \\
 \midrule
-Regidrago & 37.8\% \\
-Gholdengo & 28.6\% \\
-Gardevoir & 12.9\% \\
-Lugia & 11.3\% \\
-Roaring Moon & 5.8\% \\
-Raging Bolt & 3.5\% \\
+1 & GholdengoLunatone & 0.0\% & 3.7\% \\
+2 & GrimssnarlFroslass & 37.8\% & 40.5\% \\
+3 & MegaAbsolBox & 12.9\% & 7.2\% \\
+4 & Gardevoir & 3.5\% & 7.6\% \\
+5 & CharizardNoctowl & 11.3\% & 5.0\% \\
+9 & RagingBoltOgerpon & 28.7\% & 35.9\% \\
+11 & AlakazamDudunsparce & 5.8\% & 0.0\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:nash} shows a realistic six-deck support distribution, not an extreme two-strategy concentration.
+Rows in Table~\ref{tab:nash} list the union of the two six-deck supports; a 0.0\% entry indicates that deck is outside that player's support.
+Table~\ref{tab:nash} shows six nonzero decks for each player, with a one-index support swap (row index 11 versus column index 1).
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
 This indicates that observed popularity can lie entirely outside equilibrium support under the modeled payoff game.
 
@@ -675,8 +690,28 @@ Replicator dynamics formalize directional pressure~\cite{Hofbauer1998,Sandholm20
 \bar{f}(\mathbf{x}) = \sum_j x_j f_j(\mathbf{x}).
 \]
 
-Lean theorems \texttt{metagame\_shift\_combo\_increases\_step1}, \texttt{metagame\_shift\_aggro\_decreases\_step1}, and \texttt{ceruledge\_share\_decreases} provide concrete machine-checked directional updates for the modeled metagame dynamics.
-Applying these results to the observed 2026 snapshot yields three verified qualitative predictions used throughout the paper:
+Lean theorems \texttt{dragapult\_share\_decreases}, \texttt{ceruledge\_share\_decreases}, and \texttt{mega\_absol\_grows\_fastest} (\texttt{PokemonLean/EvolutionaryDynamics.lean}) provide concrete machine-checked directional updates for real-data metagame subgames.
+\begin{lstlisting}
+-- File: PokemonLean/EvolutionaryDynamics.lean
+theorem dragapult_share_decreases :
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨0, by native_decide⟩ <
+    realCycleMeta ⟨0, by native_decide⟩ := by
+  optimize_proof
+
+theorem ceruledge_share_decreases :
+    replicatorStep 5 realCeruPayoff realCeruMeta (1/100) ⟨4, by native_decide⟩ <
+    realCeruMeta ⟨4, by native_decide⟩ := by
+  optimize_proof
+
+theorem mega_absol_grows_fastest :
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨2, by native_decide⟩ -
+    realCycleMeta ⟨2, by native_decide⟩ >
+    replicatorStep 4 realCyclePayoff realCycleMeta (1/100) ⟨1, by native_decide⟩ -
+    realCycleMeta ⟨1, by native_decide⟩ := by
+  optimize_proof
+\end{lstlisting}
+These dynamics theorems are currently proved on representative observed-data slices (\texttt{realCyclePayoff/realCycleMeta} with 4 decks and \texttt{realCeruPayoff/realCeruMeta} with 5 decks), and there is not yet a full 14-deck replicator theorem in the artifact.
+Applying these subgame results to the observed 2026 snapshot yields three verified qualitative predictions used throughout the paper:
 (i) Dragapult has negative relative fitness and should lose share,
 (ii) Ceruledge experiences monotone decline under repeated replicator updates,
 and (iii) highest growth pressure points toward Mega Absol support growth.
@@ -713,15 +748,15 @@ This conversion assumes independent games with a constant per-game win probabili
 We treat this as an approximation because sideboarding and revealed-information effects can induce game-to-game dependence.
 
 \begin{lstlisting}
+-- File: PokemonLean/TournamentStrategy.lean
 def bo3WinProb (p : Rat) : Rat :=
-  3 * p^2 - 2 * p^3
+  p * p * (3 - 2 * p)
 
 def favoredRates : List Rat :=
   [11/20, 12/20, 13/20, 14/20, 15/20, 16/20, 17/20, 18/20, 19/20]
 
 theorem BO3_AMPLIFIES_ADVANTAGE :
-    forall p, List.Mem p favoredRates -> bo3WinProb p > p := by
-  decide
+    ∀ p ∈ favoredRates, bo3WinProb p > p := by decide
 \end{lstlisting}
 
 \begin{table}[!t]
@@ -898,11 +933,11 @@ Machine-checked share-perturbation theorems in \texttt{SharePerturbation.lean} s
 The paradox is structural: it derives from the matchup matrix, not the share vector, so the central finding is not an artifact of a particular metagame snapshot but reflects a persistent property of the underlying strategic landscape.
 
 \begin{lstlisting}
+-- File: PokemonLean/Robustness.lean
 theorem popularity_paradox_robust_worst_case :
-    adjustedWR dragapultTop14WR 1 = 629243 / 1000000 /\
-    adjustedWR grimmsnarlTop14WR 0 = 366061 / 1000000 /\
-    adjustedWR dragapultTop14WR 1 - adjustedWR grimmsnarlTop14WR 0 =
-      131591 / 500000 := by
+    adjustedWR dragapultTop14WR 1 = 629243 / 1000000 ∧
+    adjustedWR grimmsnarlTop14WR 0 = 366061 / 1000000 ∧
+    adjustedWR dragapultTop14WR 1 - adjustedWR grimmsnarlTop14WR 0 = 131591 / 500000 := by
   constructor
   · native_decide
   constructor
@@ -930,7 +965,7 @@ This paper presents a formally verified metagame analysis pipeline for a real co
 Using Lean~4 plus Trainer Hill data, we prove a strong popularity paradox: Dragapult is most played yet sub-50\% in expected field performance, while Grimmsnarl is less represented than the dominant choices and has the highest expected win rate.
 
 We also connect static matchup structure to dynamic and tournament implications.
-The Lean-verified real Nash equilibrium has six-deck support and 0\% Dragapult weight, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure, and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
+The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight; on representative real-data subgames, replicator dynamics predict Dragapult decline and Ceruledge extinction pressure; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
 
 Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
 
