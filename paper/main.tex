@@ -57,7 +57,7 @@
 
 \begin{abstract}
 We present a metagame analysis of the competitive Pok\'emon Trading Card Game, formally verified (modulo the \texttt{native\_decide} trust boundary discussed in Section~IX) using Lean~4 and real tournament data.
-The artifact spans approximately 30{,}000 lines, 80 files, and 2{,}500 theorems---of which roughly 180 directly verify empirical claims---with no \texttt{sorry}, \texttt{admit}, or custom axioms.
+The artifact spans approximately 30{,}000 lines, 81 files, and 2{,}500 theorems---of which roughly 190 directly verify empirical claims---with no \texttt{sorry}, \texttt{admit}, or custom axioms.
 Analyzing Trainer Hill data (January--February 2026, 50+ player events) over 14 archetypes and their full pairwise matchup matrix, we prove a \emph{popularity paradox}: the most played deck (Dragapult, 15.5\% share) has only 46.7\% expected win rate, while Grimmsnarl (5.1\% share) achieves 52.7\%.
 A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight; a symmetrized constant-sum formulation confirms this with seven-deck support.
 Replicator dynamics on the \emph{full 14-deck game} predict Dragapult decline, Grimmsnarl dominance, and Alakazam extinction pressure.
@@ -742,7 +742,6 @@ We therefore treat replicator outputs as directional diagnostics: Dragapult pres
 The directional classification is algebraically step-size-independent: since $x_i' - x_i = x_i \cdot \mathrm{dt} \cdot (f_i - \bar{f})$, the sign depends only on $f_i - \bar{f}$, not on $\mathrm{dt}$.
 We prove this algebraic invariance as a general symbolic lemma (\texttt{replicator\_sign\_independent\_of\_dt} in \texttt{StepSizeGeneral.lean}): for any $x_i, \mathrm{dt} > 0$, the sign of $x_i' - x_i$ depends only on $f_i - \bar{f}$.
 A general rational bridge (\texttt{rat\_replicator\_sign\_independent\_of\_dt} in the same file) extends this result to the \texttt{Lean.Rat} arithmetic used by the concrete replicator, proved symbolically without \texttt{native\_decide}. Concrete verification at $\mathrm{dt} = 1/10$, $1/100$, and $1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
-Concrete verification for $\mathrm{dt} = 1/10$, $1/100$, and $1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
 These directions are falsifiable against subsequent tournament windows and provide a compact bridge from static equilibrium objects to week-to-week metagame interpretation.
 
 \subsection{Preliminary Directional Check}
@@ -829,7 +828,7 @@ A kernel-transparent reimplementation of the fold operations, or future kernel i
 
 \subsection{Module-Level Statistics}
 
-The artifact comprises 80 files and 29,793 lines across seven module groups: Core Rules \& Semantics (10 files, 4,097 lines), Card Effects (8/3,055), Probability (8/2,522), Game Theory (6/3,562), Real Metagame (6/2,013), Infrastructure (7/1,872), and Additional Modules (35/12,672), totaling 2,510 theorems. Most theorem volume is infrastructure; approximately 180 theorems directly verify empirical claims.
+The artifact comprises 81 files and approximately 30,200 lines across seven module groups: Core Rules \& Semantics (10 files, 4,097 lines), Card Effects (8/3,055), Probability (8/2,522), Game Theory (6/3,562), Real Metagame (6/2,013), Infrastructure (7/1,872), and Additional Modules (36/13,100), totaling over 2,500 theorems. Most theorem volume is infrastructure; approximately 190 theorems directly verify empirical claims, including 12 end-to-end causal chain theorems (\texttt{CausalChain.lean}) that span multiple module boundaries.
 
 \subsection{Reproducibility Workflow}
 
@@ -848,6 +847,9 @@ The verification catches classes of errors (silent index transpositions, off-by-
 During development, the best-response certification failed several times due to data-entry errors in the 14$\times$14 matchup matrix (swapped row/column indices, copy-paste duplication of a row).
 Each failure was caught immediately by \texttt{native\_decide} returning \texttt{false} on the best-response inequality, pinpointing the exact cell.
 An equivalent Python script with \texttt{scipy.optimize.linprog} would have silently returned a different equilibrium without flagging the input error, since the LP solver treats any matrix as valid.
+The apparent LOC-to-insight ratio (30K lines for conclusions derivable from a spreadsheet) is misleading: the ``excess'' code is infrastructure that enables compositional reuse.
+Updating the analysis for a new tournament window requires changing only \texttt{RealMetagame.lean} (${\sim}$200 lines); all downstream theorems either re-verify automatically or fail with precise error locations.
+The fixed cost is high but the marginal cost of validated updates is low.
 
 \begin{table}[!t]
 \centering
