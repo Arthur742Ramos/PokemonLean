@@ -59,7 +59,7 @@
 We present a metagame analysis of the competitive Pok\'emon Trading Card Game, formally verified (modulo the \texttt{native\_decide} trust boundary discussed in Section~IX) using Lean~4 and real tournament data.
 The artifact spans approximately 30{,}000 lines, 81 files, and 2{,}500 theorems---of which roughly 190 directly verify empirical claims---with no \texttt{sorry}, \texttt{admit}, or custom axioms.
 Analyzing Trainer Hill data (January--February 2026, 50+ player events) over 14 archetypes and their full pairwise matchup matrix, we prove a \emph{popularity paradox}: the most played deck (Dragapult, 15.5\% share) has only 46.7\% expected win rate, while Grimmsnarl (5.1\% share) achieves 52.7\%.
-A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight; a symmetrized constant-sum formulation confirms this with seven-deck support.
+A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight (uniqueness is not proven; other equilibria may differ); a symmetrized constant-sum formulation confirms this with seven-deck support.
 Replicator dynamics on the \emph{full 14-deck game} predict Dragapult decline, Grimmsnarl dominance, and Alakazam extinction pressure.
 A 10{,}000-iteration sensitivity analysis confirms qualitative stability: core support decks appear in $>$96\% of resampled equilibria.
 The primary contribution is methodological: formal verification transforms qualitative metagame narratives into machine-checkable, reproducible strategic science.
@@ -199,7 +199,7 @@ theorem professorsResearchEffect_preserves_cards (p : PlayerState) :
 The rules formalization serves as a structural integrity check on our data pipeline. The deck legality biconditional (\texttt{checkDeckLegal\_iff}) ensures that only tournament-legal configurations enter the analysis, preventing data-ingestion errors such as including casual or custom-format results. Similarly, the type effectiveness formalization provides machine-checked validation that our archetype classifications respect the game's underlying strategic structure.
 
 The rules layer is not merely supporting infrastructure: as shown in Section~\ref{subsec:typealignment}, it generates falsifiable type-advantage predictions that the empirical matrix largely confirms (13/15 Dark$\to$Psychic alignment, 83\%+ overall), with explicitly characterized exceptions.
-The formalization also future-proofs the framework for counterfactual analysis (e.g., ``what if a card is banned?'') and enables structural derivation of matchup implications from legal state transitions.
+The formalization also future-proofs the framework for counterfactual analysis (e.g., ``what if a card is banned?'') and enables consistency checks between rule-level predictions and empirical matchup data.
 
 \subsection{From Type Rules to Matchup Data}\label{subsec:typealignment}
 
@@ -256,7 +256,8 @@ theorem type_advantage_not_sufficient :
 
 This bridge has direct consequences for the popularity paradox.
 Dragapult's Psychic typing makes it structurally vulnerable to the 13.1\% of the meta occupied by Dark-type attackers.
-The formal connection runs: \emph{rules} (Psychic is weak to Dark) $\to$ \emph{type assignments} (Dragapult defends as Psychic, Grimmsnarl/Absol/Zoroark attack as Dark) $\to$ \emph{empirical confirmation} (Dark attackers hold positive win rates vs Dragapult) $\to$ \emph{weighted drag} (13.1\% of field imposes a population-level disadvantage).
+Four independently verified facts align: (i)~the \emph{rules} specify Psychic is weak to Dark; (ii)~the \emph{type assignments} classify Dragapult as Psychic-defending and Grimmsnarl/Absol/Zoroark as Dark-attacking; (iii)~the \emph{empirical data} confirms Dark attackers hold positive win rates vs Dragapult; and (iv)~the \emph{population weights} show 13.1\% of the field exploits this disadvantage.
+The formal contribution is verifying that these four layers are mutually consistent, not that any one causes the next.
 
 \begin{lstlisting}
 -- ArchetypeAnalysis.lean
@@ -275,16 +276,16 @@ theorem dragapult_type_vulnerability :
 This chain demonstrates correlational consistency: given domain-expert type assignments (modeling assumptions, not formally derived from deck composition), the rule-level type chart predicts the direction of empirical matchup advantage in 83\% of cases.
 For context, random type assignments would yield approximately 50\% alignment by symmetry; the observed 83\% (15/18 matchups) corresponds to $p < 0.001$ under a binomial null, confirming that the alignment is not coincidental.
 
-\paragraph{Algebraic sufficiency.}
-A stronger, end-to-end theorem (\texttt{dark\_weakness\_sufficient\_for\_suboptimality}) proves that the Dark-type weakness \emph{alone} is algebraically sufficient to explain Dragapult's sub-50\% fitness.
+\paragraph{Numerical sufficiency.}
+A stronger, end-to-end theorem (\texttt{dark\_weakness\_sufficient\_for\_suboptimality}) proves that the Dark-type weakness \emph{alone} is numerically sufficient to explain Dragapult's sub-50\% fitness.
 Even granting Dragapult an optimistic 50\% against every non-Dark opponent, the Dark-type losses drag its population-weighted expected value below 50\%:
 \[
   \underbrace{\sum_{j \in \text{Dark}} s_j \cdot w_{\text{Drag},j}}_{\text{verified losses}} + \underbrace{(695 - 131) \times 500}_{\text{best-case non-Dark}} < 500 \times 695.
 \]
-This is a machine-checked derivation from a single game rule (Psychic weak to Dark), through type assignments and empirical matchup data, to the paper's headline strategic conclusion.
-The rules formalization is not disconnected infrastructure; it provides the structural explanation for the popularity paradox.
+This is a machine-checked numerical verification: given the game rule (Psychic weak to Dark), the domain-expert type assignments, and the empirical matchup data, the inequality holds over concrete constants.
+The rules formalization is not disconnected infrastructure; it provides numerical evidence that type disadvantage alone accounts for the popularity paradox.
 
-A companion module (\texttt{CausalChain.lean}) extends this bridge with 12 cross-module integration theorems that span the full infrastructure: type weakness amplified by Bo3 format, weakness-doubles-damage creating tempo advantages via energy economy, hypergeometric consistency feeding into Nash equilibrium, prize structure interacting with KO math and game length, and a summary theorem (\texttt{the\_complete\_story}) that conjoins 11 cross-module facts---from the single game rule \emph{Psychic is weak to Dark} through population shares, matchup losses, expected value, Bo3 amplification, variance reduction, and Swiss tournament exposure---into one machine-checked consistency check.
+A companion module (\texttt{CausalChain.lean}, named for historical reasons) collects 12 cross-module integration theorems that span the full infrastructure: type weakness amplified by Bo3 format, weakness-doubles-damage and tempo via energy economy, hypergeometric consistency alongside Nash equilibrium facts, prize structure with KO math, and a summary theorem (\texttt{the\_complete\_story}) that conjoins 11 cross-module facts---covering the type rule, population shares, matchup losses, expected value, Bo3 amplification, variance reduction, and Swiss tournament exposure---into one machine-checked consistency check.
 These are conjunctions of independently verified facts from different modules, serving as cross-module integration tests rather than compositional derivations where one module's output feeds as input to the next; the algebraic sufficiency inequality above is the one theorem where multiple module outputs are arithmetically \emph{combined} rather than merely conjoined.
 
 %======================================================================
@@ -693,6 +694,7 @@ Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which
 \paragraph{Formally verified evidence}
 Dragapult receives 0\% weight in both the asymmetric and symmetric Nash equilibria and is strictly suboptimal against the Nash column mix (\texttt{dragapult\_strictly\_suboptimal})---meaning it cannot appear in the support of any row-player best response to this column strategy.
 Importantly, uniqueness of this equilibrium is not proven: other Nash equilibria of the same game could in principle assign Dragapult positive weight (e.g., in a different equilibrium with a different column mix).
+Dragapult is not strictly dominated---it achieves the highest win rate of any deck against Charizard Noctowl (64.1\%)---so domination arguments cannot close this gap.
 The verified result establishes that \emph{there exists} a Nash equilibrium excluding Dragapult, not that \emph{all} equilibria do so.
 This distinction limits the prescriptive force of the Nash analysis: we can conclude that Dragapult exclusion is equilibrium-consistent, not that it is equilibrium-necessary.
 
@@ -751,7 +753,7 @@ These directed pressures create pockets where lower-share decks retain strategic
 We therefore treat replicator outputs as directional diagnostics: Dragapult pressure is downward, Grimmsnarl pressure is upward, and Alakazam pressure is extinction-like.
 The directional classification is algebraically step-size-independent: since $x_i' - x_i = x_i \cdot \mathrm{dt} \cdot (f_i - \bar{f})$, the sign depends only on $f_i - \bar{f}$, not on $\mathrm{dt}$.
 We prove this algebraic invariance as a general symbolic lemma (\texttt{replicator\_sign\_independent\_of\_dt} in \texttt{StepSizeGeneral.lean}): for any $x_i, \mathrm{dt} > 0$, the sign of $x_i' - x_i$ depends only on $f_i - \bar{f}$.
-A general rational bridge (\texttt{rat\_replicator\_sign\_independent\_of\_dt} in the same file) extends this result to the \texttt{Lean.Rat} arithmetic used by the concrete replicator, proved symbolically without \texttt{native\_decide}. Concrete verification at $\mathrm{dt} = 1/10$, $1/100$, and $1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
+A general rational bridge (\texttt{rat\_replicator\_sign\_independent\_of\_dt} in the same file) extends this result to the \texttt{Lean.Rat} arithmetic used by the concrete replicator, proved symbolically using \texttt{simp}, \texttt{ring}, and \texttt{omega}---without \texttt{native\_decide}---yielding kernel-level assurance for the sign-invariance claim. Concrete verification at $\mathrm{dt} = 1/10$, $1/100$, and $1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
 These directions are falsifiable against subsequent tournament windows and provide a compact bridge from static equilibrium objects to week-to-week metagame interpretation.
 
 \subsection{Preliminary Directional Check}
@@ -941,12 +943,12 @@ With these limitations explicit, we summarize the main findings and concrete nex
 \section{Conclusion}\label{sec:conclusion}
 %======================================================================
 
-This paper presents a metagame analysis pipeline for a real competitive TCG environment, verified modulo native code generation in Lean~4, demonstrating that formal methods can serve as a practical scientific instrument for competitive game ecosystems.
+This paper presents a metagame analysis pipeline for a real competitive TCG environment, verified modulo the \texttt{native\_decide} trust boundary (Section~\ref{sec:methodology}) in Lean~4, demonstrating that formal methods can serve as a practical scientific instrument for competitive game ecosystems.
 The specific metagame results are illustrative of the methodology, which is the primary contribution.
 Using Lean~4 plus Trainer Hill data, we prove a popularity paradox (Section~\ref{sec:paradox}) and connect it to equilibrium, dynamics, and tournament implications.
 
 We also connect static matchup structure to dynamic and tournament implications.
-The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight; full 14-deck replicator dynamics over the complete matchup matrix predict Dragapult decline, Grimmsnarl dominance, and Alakazam extinction pressure; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
+The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight (uniqueness not proven); full 14-deck replicator dynamics over the complete matchup matrix predict Dragapult decline, Grimmsnarl dominance, and Alakazam extinction pressure; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
 
 Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, enabling forecast calibration by scoring each window's predictions against the next, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
 Our current encoding represents win rates as natural numbers on a 0--1000 scale, discarding the underlying win-loss-tie counts. A richer encoding carrying individual game outcomes would enable in-Lean confidence interval computation and sample-size adequacy checks.
