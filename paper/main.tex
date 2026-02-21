@@ -97,7 +97,7 @@ Within this fixed window, we model the top 14 archetypes and their full pairwise
 The resulting matrix contains enough granularity to support rigorous expected-value computations, equilibrium analysis, and evolutionary dynamics without introducing synthetic assumptions about win rates.
 
 This paper makes four concrete contributions aligned with this goal.
-First, we formalize the rules and legality substrate and establish a machine-checked bridge from type-effectiveness rules to empirical matchup outcomes (Section~\ref{subsec:typealignment}), demonstrating that the rules layer generates falsifiable predictions.
+First, we formalize the rules and legality substrate and establish a machine-checked bridge from type-effectiveness rules to empirical matchup outcomes (Section~\ref{subsec:typealignment}), demonstrating that the rules layer generates falsifiable predictions---noting that archetype type assignments are domain-expert modeling choices, not formally derived from deck composition.
 Second, we encode real metagame data as exact values and verify expected-value computations, including the popularity paradox.
 Third, we derive machine-checked Nash-equilibrium statements over the full observed matrix and full 14-deck replicator dynamics over the complete matchup matrix, including best-response equilibrium certification and evolutionary fitness classification of all archetypes.
 Fourth, we verify tournament-objective transforms from single-game payoffs to best-of-three and Swiss-relevant decision criteria.
@@ -199,13 +199,20 @@ theorem professorsResearchEffect_preserves_cards (p : PlayerState) :
 The rules formalization serves as a structural integrity check on our data pipeline. The deck legality biconditional (\texttt{checkDeckLegal\_iff}) ensures that only tournament-legal configurations enter the analysis, preventing data-ingestion errors such as including casual or custom-format results. Similarly, the type effectiveness formalization provides machine-checked validation that our archetype classifications respect the game's underlying strategic structure.
 
 The rules layer is not merely supporting infrastructure: as shown in Section~\ref{subsec:typealignment}, it generates falsifiable type-advantage predictions that the empirical matrix largely confirms (13/15 Dark$\to$Psychic alignment, 83\%+ overall), with explicitly characterized exceptions.
-The formalization also future-proofs the framework for counterfactual analysis (e.g., ``what if a card is banned?'') and enables mechanical derivation of matchup implications from legal state transitions.
+The formalization also future-proofs the framework for counterfactual analysis (e.g., ``what if a card is banned?'') and enables structural derivation of matchup implications from legal state transitions.
 
 \subsection{From Type Rules to Matchup Data}\label{subsec:typealignment}
 
 Each archetype is assigned primary attack and defense types reflecting its main attacker's typing.
 For example, Grimmsnarl Froslass uses Dark-type attacks, while Dragapult Dusknoir is a Psychic-type defender.
 These assignments are formalized in \texttt{ArchetypeAnalysis.lean} and connect the abstract type effectiveness chart (Section~\ref{sec:formalization}) to the concrete matchup matrix (Section~\ref{sec:data}).
+
+\paragraph{Type assignment methodology.}
+The primary attack/defense type assignments are domain-expert modeling choices, not formally derived from deck composition or card data.
+Each archetype is classified by the type of its main attacker (for offense) and its primary active Pok\'emon (for defense), based on the dominant game-plan of the deck.
+For most archetypes these assignments are unambiguous (e.g., Grimmsnarl's main attacker is Dark-type), but multi-type decks like Dragapult Charizard require judgment about which type dominates the game-plan.
+All assignments are explicitly listed in \texttt{ArchetypeAnalysis.lean} and can be audited; the 83\% alignment rate reported below would change if borderline assignments were revised.
+We treat these assignments as modeling assumptions within the formal boundary, analogous to how the matchup matrix itself is an empirical input parameter.
 
 \begin{lstlisting}
 -- ArchetypeAnalysis.lean
@@ -268,16 +275,17 @@ theorem dragapult_type_vulnerability :
 This chain demonstrates correlational consistency: given domain-expert type assignments (modeling assumptions, not formally derived from deck composition), the rule-level type chart predicts the direction of empirical matchup advantage in 83\% of cases.
 For context, random type assignments would yield approximately 50\% alignment by symmetry; the observed 83\% (15/18 matchups) corresponds to $p < 0.001$ under a binomial null, confirming that the alignment is not coincidental.
 
-\paragraph{Causal sufficiency.}
-A stronger, end-to-end theorem (\texttt{dark\_weakness\_sufficient\_for\_suboptimality}) proves that the Dark-type weakness \emph{alone} is sufficient to explain Dragapult's sub-50\% fitness.
+\paragraph{Algebraic sufficiency.}
+A stronger, end-to-end theorem (\texttt{dark\_weakness\_sufficient\_for\_suboptimality}) proves that the Dark-type weakness \emph{alone} is algebraically sufficient to explain Dragapult's sub-50\% fitness.
 Even granting Dragapult an optimistic 50\% against every non-Dark opponent, the Dark-type losses drag its population-weighted expected value below 50\%:
 \[
   \underbrace{\sum_{j \in \text{Dark}} s_j \cdot w_{\text{Drag},j}}_{\text{verified losses}} + \underbrace{(695 - 131) \times 500}_{\text{best-case non-Dark}} < 500 \times 695.
 \]
-This is a machine-checked causal chain from a single game rule (Psychic weak to Dark), through type assignments and empirical matchup data, to the paper's headline strategic conclusion.
-The rules formalization is not disconnected infrastructure; it provides the mechanistic explanation for the popularity paradox.
+This is a machine-checked derivation from a single game rule (Psychic weak to Dark), through type assignments and empirical matchup data, to the paper's headline strategic conclusion.
+The rules formalization is not disconnected infrastructure; it provides the structural explanation for the popularity paradox.
 
-A companion module (\texttt{CausalChain.lean}) extends this bridge with 12 cross-module theorems that span the full infrastructure: type weakness amplified by Bo3 format, weakness-doubles-damage creating tempo advantages via energy economy, hypergeometric consistency feeding into Nash equilibrium, prize structure interacting with KO math and game length, and a ``grand causal chain'' (\texttt{the\_complete\_story}) that unifies all 11 conjuncts---from the single game rule \emph{Psychic is weak to Dark} through population shares, matchup losses, expected value, Bo3 amplification, variance reduction, and Swiss tournament exposure---into one machine-checked theorem.
+A companion module (\texttt{CausalChain.lean}) extends this bridge with 12 cross-module integration theorems that span the full infrastructure: type weakness amplified by Bo3 format, weakness-doubles-damage creating tempo advantages via energy economy, hypergeometric consistency feeding into Nash equilibrium, prize structure interacting with KO math and game length, and a summary theorem (\texttt{the\_complete\_story}) that conjoins 11 cross-module facts---from the single game rule \emph{Psychic is weak to Dark} through population shares, matchup losses, expected value, Bo3 amplification, variance reduction, and Swiss tournament exposure---into one machine-checked consistency check.
+These are conjunctions of independently verified facts from different modules, serving as cross-module integration tests rather than compositional derivations where one module's output feeds as input to the next; the algebraic sufficiency inequality above is the one theorem where multiple module outputs are arithmetically \emph{combined} rather than merely conjoined.
 
 %======================================================================
 \section{Probability and Resource Theory}\label{sec:probability}
@@ -345,7 +353,7 @@ For smaller matchups (e.g., Ceruledge vs N's Zoroark: about 100 games), interval
 Critically, the popularity paradox is robust to this uncertainty: Dragapult's expected field win rate of 46.7\% has a 95\% interval of approximately [45.5\%, 47.9\%], entirely below 50\%, while Grimmsnarl's 52.7\% has an interval of approximately [51.0\%, 54.4\%], entirely above 50\%.
 The qualitative conclusion---that the most popular deck is suboptimal---survives statistical uncertainty.
 
-We note that the Wilson confidence intervals~\cite{Wilson1927} quantify uncertainty in individual matchup win rates but are not directly propagated through the Nash equilibrium computation.
+These Wilson intervals quantify uncertainty in individual matchup cells but are not propagated through the Nash equilibrium linear program; the sensitivity analysis below addresses equilibrium-level robustness separately.
 To assess equilibrium sensitivity, we performed a 10{,}000-iteration sensitivity analysis, sampling each matchup cell uniformly from its Wilson 95\% confidence interval and recomputing the Nash equilibrium.
 While the exact support set is fragile (recovered in only 2.1\% of iterations), the qualitative conclusions are robust: the core trio of Grimmsnarl (96.5\% inclusion), Mega Absol (97.3\%), and Raging Bolt (98.3\%) appear in nearly every resampled equilibrium, and Dragapult receives zero Nash weight in 77.9\% of iterations.
 Table~\ref{tab:bootstrap} (produced by an external Python script; these results complement but do not inherit the formal guarantees of the Lean artifact) summarizes the sensitivity analysis confidence intervals.
@@ -684,7 +692,9 @@ Dragapult        &  0.0 \\
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
 \paragraph{Formally verified evidence}
 Dragapult receives 0\% weight in both the asymmetric and symmetric Nash equilibria and is strictly suboptimal against the Nash column mix (\texttt{dragapult\_strictly\_suboptimal})---meaning it cannot appear in the support of any row-player best response to this column strategy.
-This does not logically preclude Dragapult from equilibria with different column strategies.
+Importantly, uniqueness of this equilibrium is not proven: other Nash equilibria of the same game could in principle assign Dragapult positive weight (e.g., in a different equilibrium with a different column mix).
+The verified result establishes that \emph{there exists} a Nash equilibrium excluding Dragapult, not that \emph{all} equilibria do so.
+This distinction limits the prescriptive force of the Nash analysis: we can conclude that Dragapult exclusion is equilibrium-consistent, not that it is equilibrium-necessary.
 
 \paragraph{Complementary unverified evidence}
 The Python sensitivity analysis shows Dragapult exclusion in 77.9\% of 10{,}000 resampled matrices, suggesting the result is robust to measurement noise in the matchup data.
@@ -828,7 +838,7 @@ A kernel-transparent reimplementation of the fold operations, or future kernel i
 
 \subsection{Module-Level Statistics}
 
-The artifact comprises 81 files and approximately 30,200 lines across seven module groups: Core Rules \& Semantics (10 files, 4,097 lines), Card Effects (8/3,055), Probability (8/2,522), Game Theory (6/3,562), Real Metagame (6/2,013), Infrastructure (7/1,872), and Additional Modules (36/13,100), totaling over 2,500 theorems. Most theorem volume is infrastructure; approximately 190 theorems directly verify empirical claims, including 12 end-to-end causal chain theorems (\texttt{CausalChain.lean}) that span multiple module boundaries.
+The artifact comprises 81 files and approximately 30,200 lines across seven module groups: Core Rules \& Semantics (10 files, 4,097 lines), Card Effects (8/3,055), Probability (8/2,522), Game Theory (6/3,562), Real Metagame (6/2,013), Infrastructure (7/1,872), and Additional Modules (36/13,100), totaling over 2,500 theorems. Most theorem volume is infrastructure; approximately 190 theorems directly verify empirical claims, including 12 end-to-end cross-module integration theorems (\texttt{CausalChain.lean}) that span multiple module boundaries.
 
 \subsection{Reproducibility Workflow}
 
