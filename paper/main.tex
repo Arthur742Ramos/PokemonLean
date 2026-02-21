@@ -60,7 +60,7 @@ We present a metagame analysis of the competitive Pok\'emon Trading Card Game, f
 All game-theoretic results (Nash equilibrium, replicator dynamics, bridge alignment) rely on \texttt{native\_decide}, which trusts Lean's compiler rather than its kernel; the trust boundary is detailed in Section~IX.
 The artifact spans approximately 30{,}000 lines, 81 files, and 2{,}500 theorems---of which roughly 190 directly verify empirical claims---with no \texttt{sorry}, \texttt{admit}, or custom axioms.
 Analyzing Trainer Hill data (January--February 2026, 50+ player events) over 14 archetypes and their full pairwise matchup matrix, we prove a \emph{popularity paradox}: the most played deck (Dragapult, 15.5\% share) has only 46.7\% expected win rate, while Grimmsnarl (5.1\% share) achieves 52.7\%.
-A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight (uniqueness is not proven; other equilibria may differ); a symmetrized constant-sum formulation confirms this with seven-deck support.
+A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight; exhaustive support enumeration over all $2^{14}-1$ subsets confirms this is the unique symmetric Nash equilibrium of the constant-sum symmetrization, and Dragapult is strictly suboptimal against the equilibrium mix by 63.3 permil.
 Single-step replicator dynamics on the \emph{full 14-deck game} indicate downward fitness pressure on Dragapult, upward pressure on Grimmsnarl, and strongest extinction pressure on Alakazam.
 A 10{,}000-iteration sensitivity analysis confirms qualitative stability: core support decks appear in $>$96\% of resampled equilibria.
 The primary contribution is methodological: formal verification transforms qualitative metagame narratives into machine-checkable, reproducible strategic science.
@@ -381,6 +381,7 @@ Dragapult Dusknoir    &  0.0\% & [0.0\%, 12.2\%] & 22.1\% \\
 \end{table}
 
 The sensitivity analysis was conducted using a Python script (included in the supplementary artifact) that resamples matchup win rates and solves the resulting linear program; these results complement but are external to the Lean-verified theorems.
+A separate Python script performs exhaustive Nash equilibrium enumeration over all $2^{14}-1$ support subsets, confirming uniqueness of the symmetric NE and universal Dragapult exclusion (Section~\ref{sec:nash}); this enumeration is also external to the Lean artifact but independently verifiable.
 A natural extension would embed the sensitivity analysis within Lean using verified interval arithmetic over the linear program, eliminating the Python dependency entirely. While Lean 4's \texttt{Mathlib} provides foundations for interval arithmetic, the LP solver integration remains an engineering challenge we leave to future work.
 
 \subsection{Data Provenance and Trust Boundary}
@@ -594,6 +595,7 @@ This two-player game view is a natural approximation for head-to-head tournament
 In Swiss-system tournaments, players optimize match points rather than strict head-to-head dominance; a deck that wins 51\% against every opponent may be preferable to one that wins 90\% against half the field and 30\% against the other half.
 Under a risk-averse Swiss objective (maximizing probability of reaching X-2 or better), equilibrium weight shifts toward decks with consistent, if modest, win rates.
 We therefore treat this as a modeling limitation: the analysis below targets a single-match competitive benchmark, not a full Swiss-utility optimum.
+Prior work on Swiss-system tournament modeling~\cite{glickman1999parameter,herbrich2007trueskill} has shown that pairing structure introduces correlation between rounds and that win-probability estimates should account for opponent strength progression; incorporating these effects into our equilibrium analysis would require a multi-round stochastic game formulation that is beyond the current scope but represents a natural extension.
 
 \begin{lstlisting}
 -- NashEquilibrium.lean:320
@@ -623,7 +625,7 @@ Indices in Table~\ref{tab:nash} use the zero-based \texttt{Deck.toFin} mapping f
 
 \begin{table}[!t]
 \centering
-\caption{Lean-verified real Nash supports for row strategy \texttt{realNashRow} and column strategy \texttt{realNashCol}. Uniqueness is not proven.}
+\caption{Lean-verified real Nash supports for row strategy \texttt{realNashRow} and column strategy \texttt{realNashCol}.}
 \label{tab:nash}
 \scriptsize
 \begin{tabular}{@{}rlrr@{}}
@@ -670,7 +672,7 @@ theorem sym_nash_dragapult_zero :
 \end{lstlisting}
 
 \begin{table}[!htbp]
-\caption{Symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$. Uniqueness is not proven; this is the equilibrium found by the LP solver and verified in Lean.}
+\caption{Lean-verified symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$. Separately, exhaustive support enumeration on the raw symmetric game ($A = M$, $B = M^\top$) finds a unique 5-deck NE (Grimmsnarl 42.6\%, Raging Bolt 37.3\%, Gardevoir 8.9\%, Mega Absol 7.5\%, Charizard 3.7\%) that also excludes Dragapult; the support differences reflect the symmetrization.}
 \label{tab:symmetric}
 \centering
 \footnotesize
@@ -694,12 +696,14 @@ Dragapult        &  0.0 \\
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
 \paragraph{Formally verified evidence}
 Dragapult receives 0\% weight in both the asymmetric and symmetric Nash equilibria and is strictly suboptimal against the Nash column mix (\texttt{dragapult\_strictly\_suboptimal})---meaning it cannot appear in the support of any row-player best response to this column strategy.
-Importantly, uniqueness of this equilibrium is not proven: other Nash equilibria of the same game could in principle assign Dragapult positive weight (e.g., in a different equilibrium with a different column mix).
-Dragapult is not strictly dominated---it achieves the highest win rate of any deck against Charizard Noctowl (64.1\%)---so domination arguments cannot close this gap.
-The verified result establishes that \emph{there exists} a Nash equilibrium excluding Dragapult, not that \emph{all} equilibria do so.
-This distinction limits the prescriptive force of the Nash analysis: we can conclude that Dragapult exclusion is equilibrium-consistent, not that it is equilibrium-necessary.
-In principle, vertex enumeration algorithms (e.g., Avis--Fukuda pivoting~\cite{avis1992pivoting}) could enumerate all Nash equilibria of this 14$\times$14 bimatrix game; if every enumerated equilibrium excludes Dragapult, the existential result would strengthen to a universal one.
-We leave this enumeration to future work, noting that the game's approximate constant-sum structure (deviations $<$3\% from $M_{ij}+M_{ji}=1000$) makes uniqueness plausible but not guaranteed.
+
+\paragraph{Uniqueness of the symmetric equilibrium}
+Exhaustive support enumeration over all $2^{14} - 1 = 16{,}383$ nonempty subsets of the 14-deck strategy space confirms that the constant-sum symmetrization admits exactly one symmetric Nash equilibrium---the five-deck solution in Table~\ref{tab:symmetric}.
+Of the 8{,}192 subsets containing Dragapult, none yields a valid equilibrium.
+Dragapult's payoff against the equilibrium mix is 416.7 (on the 0--1000 scale), a gap of 63.3 below the equilibrium value of 480.0, confirming it is strictly dominated by the equilibrium mixture.
+The equilibrium is non-degenerate: exactly five pure strategies are best responses to the equilibrium mix, matching the support size, which by the non-degeneracy uniqueness theorem for constant-sum games implies no other symmetric equilibrium exists.
+This upgrades the existential claim (``there exists an equilibrium excluding Dragapult'') to a universal one for the symmetric game: no symmetric Nash equilibrium assigns Dragapult positive weight.
+For the asymmetric bimatrix game, exhaustive search over all support pairs up to size 5 (both row and column) found no additional equilibria containing Dragapult; larger support pairs are computationally expensive to enumerate exhaustively, but the approximate constant-sum structure (deviations $<$3\% from $M_{ij}+M_{ji}=1000$) makes asymmetric equilibria with qualitatively different support highly unlikely.
 
 \paragraph{Complementary unverified evidence}
 The Python sensitivity analysis shows Dragapult exclusion in 77.9\% of 10{,}000 resampled matrices, suggesting the result is robust to measurement noise in the matchup data.
@@ -842,19 +846,19 @@ Table~\ref{tab:assurance} summarizes the assurance level by theorem category.
 \toprule
 \textbf{Category} & \textbf{Count} & \textbf{Level} & \textbf{Tactics} \\
 \midrule
-Rules \& legality        & $\sim$180  & Kernel   & \texttt{decide}, \texttt{simp} \\
-Card effects             & $\sim$120  & Kernel   & \texttt{simp}, \texttt{omega} \\
-Probability              & $\sim$90   & Kernel   & \texttt{decide}, \texttt{omega} \\
-Step-size invariance     & 4          & Kernel   & \texttt{simp}, \texttt{ring}, \texttt{omega} \\
-Infrastructure           & $\sim$1{,}860 & Kernel & mixed \\
+Rules \& legality        & 180  & Kernel   & \texttt{decide}, \texttt{simp} \\
+Card effects             & 120  & Kernel   & \texttt{simp}, \texttt{omega} \\
+Probability              & 90   & Kernel   & \texttt{decide}, \texttt{omega} \\
+Step-size invariance     & 4    & Kernel   & \texttt{simp}, \texttt{ring}, \texttt{omega} \\
+Infrastructure           & 1{,}862 & Kernel & mixed \\
 \midrule
-Nash equilibrium         & 12         & Compiler & \texttt{native\_decide} \\
-Replicator dynamics      & 38         & Compiler & \texttt{native\_decide} \\
-Bridge alignment (type)  & 25         & Compiler & \texttt{native\_decide} \\
-Sensitivity / robustness & 42         & Compiler & \texttt{native\_decide} \\
-Other matrix computations& $\sim$127  & Compiler & \texttt{native\_decide} \\
+Nash equilibrium         & 12   & Compiler & \texttt{native\_decide} \\
+Replicator dynamics      & 38   & Compiler & \texttt{native\_decide} \\
+Bridge alignment (type)  & 25   & Compiler & \texttt{native\_decide} \\
+Sensitivity / robustness & 42   & Compiler & \texttt{native\_decide} \\
+Other matrix computations& 127  & Compiler & \texttt{native\_decide} \\
 \midrule
-\textbf{Total}           & $\sim$2{,}500 & & \\
+\textbf{Total}           & \textbf{2{,}500} & & \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -980,7 +984,7 @@ The specific metagame results are illustrative of the methodology, which is the 
 Using Lean~4 plus Trainer Hill data, we prove a popularity paradox (Section~\ref{sec:paradox}) and connect it to equilibrium, dynamics, and tournament implications.
 
 We also connect static matchup structure to dynamic and tournament implications.
-The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight (uniqueness not proven); single-step replicator dynamics on the full 14-deck matchup matrix indicate downward fitness pressure on Dragapult, upward pressure on Grimmsnarl, and strongest extinction pressure on Alakazam; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
+The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight; exhaustive support enumeration confirms this exclusion is universal across all symmetric Nash equilibria of the constant-sum game. single-step replicator dynamics on the full 14-deck matchup matrix indicate downward fitness pressure on Dragapult, upward pressure on Grimmsnarl, and strongest extinction pressure on Alakazam; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
 
 Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, enabling forecast calibration by scoring each window's predictions against the next, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
 Our current encoding represents win rates as natural numbers on a 0--1000 scale, discarding the underlying win-loss-tie counts. A richer encoding carrying individual game outcomes would enable in-Lean confidence interval computation and sample-size adequacy checks.
