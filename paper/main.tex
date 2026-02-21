@@ -286,7 +286,7 @@ Even granting Dragapult an optimistic 50\% against every non-Dark opponent, the 
 This is a machine-checked numerical verification: given the game rule (Psychic weak to Dark), the domain-expert type assignments, and the empirical matchup data, the inequality holds over concrete constants.
 The rules formalization is not disconnected infrastructure; it provides numerical evidence that type disadvantage alone accounts for the popularity paradox.
 
-A companion module (\texttt{CausalChain.lean}, named for historical reasons) collects 12 cross-module integration theorems that span the full infrastructure: type weakness amplified by Bo3 format, weakness-doubles-damage and tempo via energy economy, hypergeometric consistency alongside Nash equilibrium facts, prize structure with KO math, and a summary theorem (\texttt{the\_complete\_story}) that conjoins 11 cross-module facts---covering the type rule, population shares, matchup losses, expected value, Bo3 amplification, variance reduction, and Swiss tournament exposure---into one machine-checked consistency check.
+A companion module (\texttt{IntegrationTests.lean}) collects 12 cross-module integration theorems that span the full infrastructure: type weakness amplified by Bo3 format, weakness-doubles-damage and tempo via energy economy, hypergeometric consistency alongside Nash equilibrium facts, prize structure with KO math, and a summary theorem (\texttt{the\_complete\_story}) that conjoins 11 cross-module facts---covering the type rule, population shares, matchup losses, expected value, Bo3 amplification, variance reduction, and Swiss tournament exposure---into one machine-checked consistency check.
 These are conjunctions of independently verified facts from different modules, serving as cross-module integration tests rather than compositional derivations where one module's output feeds as input to the next; the algebraic sufficiency inequality above is the one theorem where multiple module outputs are arithmetically \emph{combined} rather than merely conjoined.
 
 %======================================================================
@@ -381,7 +381,7 @@ Dragapult Dusknoir    &  0.0\% & [0.0\%, 12.2\%] & 22.1\% \\
 \end{table}
 
 The sensitivity analysis was conducted using a Python script (included in the supplementary artifact) that resamples matchup win rates and solves the resulting linear program; these results complement but are external to the Lean-verified theorems.
-A separate Python script performs exhaustive Nash equilibrium enumeration over all $2^{14}-1$ support subsets, confirming uniqueness of the symmetric NE and universal Dragapult exclusion (Section~\ref{sec:nash}); this enumeration is also external to the Lean artifact but independently verifiable.
+A separate Python script (using \texttt{scipy.optimize.linprog} v1.14 and \texttt{numpy} v2.1 for support enumeration) performs exhaustive Nash equilibrium enumeration over all $2^{14}-1$ support subsets, confirming uniqueness of the symmetric NE and universal Dragapult exclusion (Section~\ref{sec:nash}); this enumeration is also external to the Lean artifact but independently verifiable.
 A natural extension would embed the sensitivity analysis within Lean using verified interval arithmetic over the linear program, eliminating the Python dependency entirely. While Lean 4's \texttt{Mathlib} provides foundations for interval arithmetic, the LP solver integration remains an engineering challenge we leave to future work.
 
 \subsection{Data Provenance and Trust Boundary}
@@ -676,20 +676,27 @@ theorem sym_nash_dragapult_zero :
 \label{tab:symmetric}
 \centering
 \footnotesize
-\begin{tabular}{@{}lr@{}}
+\begin{tabular}{@{}lrr@{}}
 \hline
-\textbf{Archetype} & \textbf{Wt.\ (\%)} \\
+\textbf{Archetype} & \textbf{Wt.\ (\%)} & \textbf{Gap$^\dagger$} \\
 \hline
-Grimmsnarl       & 34.3 \\
-Raging Bolt      & 29.4 \\
-Charizard        & 10.2 \\
-Mega Absol       & 10.2 \\
-Gholdengo        &  9.2 \\
-Gardevoir        &  4.3 \\
-Alakazam         &  2.5 \\
+Grimmsnarl       & 34.3 & 0.0 \\
+Raging Bolt      & 29.4 & 0.0 \\
+Charizard        & 10.2 & 0.0 \\
+Mega Absol       & 10.2 & 0.0 \\
+Gholdengo        &  9.2 & 0.0 \\
+Gardevoir        &  4.3 & 0.0 \\
+Alakazam         &  2.5 & 0.0 \\
 \hline
-Dragapult        &  0.0 \\
+Gard.\ Jellicent &  0.0 & $-$7.9 \\
+Char.\ Pidgeot   &  0.0 & $-$13.1 \\
+Kangaskhan       &  0.0 & $-$53.2 \\
+\textbf{Dragapult}& \textbf{0.0} & $\mathbf{-63.3}$ \\
+Drag.\ Charizard &  0.0 & $-$67.1 \\
+Ceruledge        &  0.0 & $-$68.1 \\
+N's Zoroark      &  0.0 & $-$71.1 \\
 \hline
+\multicolumn{3}{@{}l}{\scriptsize $^\dagger$Payoff gap vs.\ NE value on raw symmetric game (\textperthousand).}
 \end{tabular}
 \end{table}
 
@@ -876,7 +883,7 @@ A kernel-transparent reimplementation of the fold operations, or future kernel i
 
 \subsection{Module-Level Statistics}
 
-The artifact comprises 81 files and approximately 30,200 lines across seven module groups: Core Rules \& Semantics (10 files, 4,097 lines), Card Effects (8/3,055), Probability (8/2,522), Game Theory (6/3,562), Real Metagame (6/2,013), Infrastructure (7/1,872), and Additional Modules (36/13,100), totaling over 2,500 theorems. Most theorem volume is infrastructure; approximately 190 theorems directly verify empirical claims, including 12 end-to-end cross-module integration theorems (\texttt{CausalChain.lean}) that span multiple module boundaries.
+The artifact comprises 81 files and approximately 30,200 lines across seven module groups: Core Rules \& Semantics (10 files, 4,097 lines), Card Effects (8/3,055), Probability (8/2,522), Game Theory (6/3,562), Real Metagame (6/2,013), Infrastructure (7/1,872), and Additional Modules (36/13,100), totaling over 2,500 theorems. Most theorem volume is infrastructure; approximately 190 theorems directly verify empirical claims, including 12 end-to-end cross-module integration theorems (\texttt{IntegrationTests.lean}) that span multiple module boundaries.
 
 \subsection{Reproducibility Workflow}
 
