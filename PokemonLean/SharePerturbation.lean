@@ -1,4 +1,3 @@
-import Lean.Elab.Tactic
 /-
   PokemonLean/SharePerturbation.lean
 
@@ -11,15 +10,7 @@ namespace PokemonLean.SharePerturbation
 open PokemonLean.NashEquilibrium (Rat)
 open PokemonLean.RealMetagame
 
-/-- `optimize_proof` is a project-local macro that expands to `native_decide`.
-    It delegates decidable goals to compiled native code for faster kernel checking. -/
-elab "optimize_proof" : tactic => do
-  Lean.Elab.Tactic.evalTactic (← `(tactic| native_decide))
-
-/-- `optimize_proof_native` is a project-local macro that expands to `native_decide`.
-    Synonym for `optimize_proof`; used for emphasis in performance-critical proofs. -/
-elab "optimize_proof_native" : tactic => do
-  Lean.Elab.Tactic.evalTactic (← `(tactic| native_decide))
+-- v9: optimize_proof macros removed; all call sites now use native_decide directly.
 
 
 open PokemonLean.RealMetagame.Deck
@@ -67,36 +58,36 @@ def maxTop6MatchupSpread : Rat := 323 / 1000
 def conservativeTierFlipL1Bound : Rat :=
   minTop6TierBoundaryGap / maxTop6MatchupSpread
 
-theorem top14_share_total : top14ShareTotal = 695 := by optimize_proof
+theorem top14_share_total : top14ShareTotal = 695 := by native_decide
 
 theorem paradox_holds_drag_at_10pct :
     expectedWRUnderShift .DragapultDusknoir .DragapultDusknoir 100 < 1 / 2 := by
-  optimize_proof_native
+  native_decide
 
 theorem paradox_holds_drag_at_5pct :
     expectedWRUnderShift .DragapultDusknoir .DragapultDusknoir 50 < 1 / 2 := by
-  optimize_proof_native
+  native_decide
 
 theorem grimmsnarl_stays_best_at_10pct :
     expectedWRUnderShift .GrimssnarlFroslass .GrimssnarlFroslass 100 > 1 / 2 ∧
     (∀ d ∈ top6Decks,
       expectedWRUnderShift .GrimssnarlFroslass d 100 ≤
         expectedWRUnderShift .GrimssnarlFroslass .GrimssnarlFroslass 100) := by
-  optimize_proof_native
+  native_decide
 
 theorem grimmsnarl_stays_best_at_15pct :
     expectedWRUnderShift .GrimssnarlFroslass .GrimssnarlFroslass 155 > 1 / 2 := by
-  optimize_proof_native
+  native_decide
 
 theorem paradox_independent_of_popularity :
     ∀ pct ∈ dragapultPercentGrid,
       expectedWRUnderShift .DragapultDusknoir .DragapultDusknoir (natToRat (10 * pct)) < 1 / 2 := by
-  optimize_proof_native
+  native_decide
 
 theorem share_sensitivity_bound :
     minTop6TierBoundaryGap = 770547 / 69230000 ∧
     conservativeTierFlipL1Bound = 770547 / 22361290 ∧
     conservativeTierFlipL1Bound > 3 / 100 := by
-  optimize_proof
+  native_decide
 
 end PokemonLean.SharePerturbation

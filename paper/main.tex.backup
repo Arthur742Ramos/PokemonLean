@@ -56,7 +56,7 @@
 \maketitle
 
 \begin{abstract}
-We present a metagame analysis of the competitive Pok\'emon Trading Card Game, formally verified (modulo the \texttt{native\_decide} trust boundary discussed in Section~IX) using Lean~4 and real tournament data.
+We present a metagame analysis of the competitive Pok\'emon Trading Card Game, formally verified modulo native code generation, using Lean~4 and real tournament data.
 The artifact spans approximately 30{,}000 lines, 80 files, and 2{,}500 theorems---of which roughly 180 directly verify empirical claims---with no \texttt{sorry}, \texttt{admit}, or custom axioms.
 Analyzing Trainer Hill data (January--February 2026, 50+ player events) over 14 archetypes and their full pairwise matchup matrix, we prove a \emph{popularity paradox}: the most played deck (Dragapult, 15.5\% share) has only 46.7\% expected win rate, while Grimmsnarl (5.1\% share) achieves 52.7\%.
 A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight; a symmetrized constant-sum formulation confirms this with seven-deck support.
@@ -119,6 +119,14 @@ Section~\ref{sec:tournament} discusses tournament strategy.
 Section~\ref{sec:methodology} documents formalization methodology.
 Section~\ref{sec:threats} covers validity threats, and Section~\ref{sec:conclusion} concludes.
 
+\subsection{Motivating Tournament Scenario}
+
+Consider a player preparing for a 10-round open tournament.
+Community sentiment says Dragapult is ``the deck to beat'' because it is popular and appears frequently in streamed matches.
+Our data show why this shortcut fails: popularity is shaped by familiarity, deck cost, and social diffusion, while expected win rate is determined by pairwise matchups weighted by opponent frequencies.
+These quantities are related but not equivalent, and a formal model recasts the decision as a transparent optimization problem with explicit assumptions.
+Section~\ref{sec:paradox} makes this precise.
+
 %======================================================================
 \section{Related Work}\label{sec:related}
 %======================================================================
@@ -160,7 +168,19 @@ This motivates interpreting deviations from equilibrium in behavioral-economic t
 The contribution here is methodological: we use evolutionary tools not as informal metaphors but as theorem-backed statements over fixed data.
 When we claim that Dragapult has negative relative fitness or that Grimmsnarl dominates under replicator updates, those claims are machine-checked consequences of the encoded real-data 14-deck matchup matrix and observed share vector.
 
+\subsection{Community Analytics Versus Proof-Carrying Analytics}
 
+Competitive communities already produce large volumes of metagame commentary.
+Those outputs are valuable for speed, but they typically combine raw percentages, subjective confidence, and hand-waved matchup transitivity.
+This workflow is well suited for rapid iteration and poor at preventing silent arithmetic or modeling mistakes.
+
+Our approach is intentionally stricter: every quantity is an explicit program term, and every strategic claim is either a verified computation or a theorem validated by the Lean kernel.
+The cost is formalization overhead; the benefit is auditability and reproducibility.
+
+This positioning is complementary.
+Community analytics generate hypotheses quickly; formal analytics validate them with machine-checkable guarantees.
+The popularity paradox illustrates the transformation from intuition to theorem that is the central methodological contribution.
+Section~\ref{sec:formalization} now defines the formal rule substrate used by the subsequent analyses.
 
 %======================================================================
 \section{Game Formalization}\label{sec:formalization}
@@ -267,15 +287,7 @@ theorem dragapult_type_vulnerability :
 
 This chain demonstrates correlational consistency: given domain-expert type assignments (modeling assumptions, not formally derived from deck composition), the rule-level type chart predicts the direction of empirical matchup advantage in 83\% of cases.
 For context, random type assignments would yield approximately 50\% alignment by symmetry; the observed 83\% (15/18 matchups) corresponds to $p < 0.001$ under a binomial null, confirming that the alignment is not coincidental.
-
-\paragraph{Causal sufficiency.}
-A stronger, end-to-end theorem (\texttt{dark\_weakness\_sufficient\_for\_suboptimality}) proves that the Dark-type weakness \emph{alone} is sufficient to explain Dragapult's sub-50\% fitness.
-Even granting Dragapult an optimistic 50\% against every non-Dark opponent, the Dark-type losses drag its population-weighted expected value below 50\%:
-\[
-  \underbrace{\sum_{j \in \text{Dark}} s_j \cdot w_{\text{Drag},j}}_{\text{verified losses}} + \underbrace{(695 - 131) \times 500}_{\text{best-case non-Dark}} < 500 \times 695.
-\]
-This is a machine-checked causal chain from a single game rule (Psychic weak to Dark), through type assignments and empirical matchup data, to the paper's headline strategic conclusion.
-The rules formalization is not disconnected infrastructure; it provides the mechanistic explanation for the popularity paradox.
+The rules formalization is not merely ``supporting infrastructure''; it provides falsifiable structural predictions that the empirical data largely confirm, with well-characterized exceptions.
 
 %======================================================================
 \section{Probability and Resource Theory}\label{sec:probability}
@@ -287,15 +299,51 @@ Our Lean development captures both dimensions using exact arithmetic over ration
 \subsection{Hypergeometric Consistency Calculations}
 
 Opening-hand consistency follows hypergeometric structure.
-The canonical ``four-of in opening seven'' probability is approximately 39.9\%, verified as an exact rational in Lean (\texttt{FOUR\_COPIES\_RULE}).
+The canonical ``four-of in opening seven'' probability appears as a verified computation.
+
+\begin{lstlisting}
+-- DeckConsistency.lean:49
+theorem FOUR_COPIES_RULE :
+    probAtLeastOne 60 4 7 = (38962 : Rat) / (97527 : Rat) ∧
+    (39 : Rat) / (100 : Rat) < probAtLeastOne 60 4 7 ∧
+    probAtLeastOne 60 4 7 < (2 : Rat) / (5 : Rat) := by
+  decide
+\end{lstlisting}
+
+Numerically, this is approximately 39.9\%.
 Likewise, with 12 Basics the no-Basic opening probability is approximately 19.1\%, and the all-four-prized event has probability $1/32{,}509$.
 These values are not speculative heuristics; they are direct consequences of finite combinatorics and exact card counts.
 
-\subsection{Energy Economy and Resource Theory}
+\subsection{Energy Economy and Tempo}
 
-Energy attachment limits impose hard tempo caps: a $K$-energy attack requires at least $K$ turns without acceleration (\texttt{ENERGY\_BOTTLENECK}).
-We model cards, turns, and attachments as fungible but constrained resources whose conservation and bottleneck properties are machine-checked, bridging micro-level mechanics to macro-level matchup outcomes.
+One attachment per turn imposes a hard tempo cap.
+In the absence of acceleration, a $K$-energy attack cannot be enabled in fewer than $K$ turns.
 
+\begin{lstlisting}
+-- EnergyEconomy.lean:37
+theorem ENERGY_BOTTLENECK (K : Nat) :
+    turnsToPowerUp K 0 ≥ K := by
+  simp [turnsToPowerUp, attachmentsPerTurn, ceilDiv]
+\end{lstlisting}
+
+This theorem formalizes a central strategic tradeoff.
+Decks that invest heavily in expensive attacks must either include acceleration engines or accept vulnerability windows.
+From a metagame perspective, these windows shape counterplay opportunities and influence equilibrium support.
+
+\subsection{Resource Theory Interpretation}
+
+We treat cards, turns, and attachments as fungible but constrained resources.
+Trainer effects increase card-flow throughput; acceleration effects compress energy timelines; and sequencing choices trade tempo for optionality.
+Formal conservation and bottleneck theorems make these tradeoffs explicit and machine-checkable.
+
+This resource view also bridges micro and macro analysis.
+Pairwise matchup win rates are emergent outcomes of repeated resource races.
+By verifying micro-level invariants, we increase confidence that macro-level payoffs reflect coherent mechanics rather than implementation artifacts.
+
+\subsection{Counterfactual Resource Experiments}
+
+The formal probability layer enables controlled counterfactuals over draw density and acceleration access, expressed as exact combinatorial models rather than Monte Carlo samples.
+These tools are not directly used to modify the empirical matrix in this paper, but they support interpreting why certain archetypes occupy their observed matchup profiles and can predict how list-level adjustments propagate into metagame-level payoff shifts in future longitudinal work.
 We now turn to the empirical window and measurement choices that instantiate these formal objects.
 
 %======================================================================
@@ -346,7 +394,7 @@ The qualitative conclusion---that the most popular deck is suboptimal---survives
 We note that the Wilson confidence intervals~\cite{Wilson1927} quantify uncertainty in individual matchup win rates but are not directly propagated through the Nash equilibrium computation.
 To assess equilibrium sensitivity, we performed a 10{,}000-iteration sensitivity analysis, sampling each matchup cell uniformly from its Wilson 95\% confidence interval and recomputing the Nash equilibrium.
 While the exact support set is fragile (recovered in only 2.1\% of iterations), the qualitative conclusions are robust: the core trio of Grimmsnarl (96.5\% inclusion), Mega Absol (97.3\%), and Raging Bolt (98.3\%) appear in nearly every resampled equilibrium, and Dragapult receives zero Nash weight in 77.9\% of iterations.
-Table~\ref{tab:bootstrap} (produced by an external Python script; these results complement but do not inherit the formal guarantees of the Lean artifact) summarizes the sensitivity analysis confidence intervals.
+Table~\ref{tab:bootstrap} summarizes the sensitivity analysis confidence intervals.
 
 \begin{table}[!t]
 \centering
@@ -439,7 +487,20 @@ For Grimmsnarl Froslass (5.1\% share), we obtain
 \]
 which is the maximum among all 14 modeled decks.
 
-Lean theorem \texttt{dragapult\_popularity\_paradox} verifies that Dragapult has losing matchups ($<$500) against 9 of 13 non-mirror opponents.%
+\begin{lstlisting}
+-- RealMetagame.lean:398
+theorem dragapult_popularity_paradox :
+    -- Dragapult has losing (<500) matchups against 9 of 13 non-mirror decks
+    matchupWR .DragapultDusknoir .GholdengoLunatone < 500 ∧
+    matchupWR .DragapultDusknoir .GrimssnarlFroslass < 500 ∧
+    matchupWR .DragapultDusknoir .MegaAbsolBox < 500 ∧
+    matchupWR .DragapultDusknoir .Gardevoir < 500 ∧
+    matchupWR .DragapultDusknoir .GardevoirJellicent < 500 ∧
+    matchupWR .DragapultDusknoir .DragapultCharizard < 500 ∧
+    matchupWR .DragapultDusknoir .RagingBoltOgerpon < 500 ∧
+    matchupWR .DragapultDusknoir .NsZoroark < 500 ∧
+    matchupWR .DragapultDusknoir .KangaskhanBouffalant < 500 := by decide
+\end{lstlisting}%
 \footnote{The identifier \texttt{GrimssnarlFroslass} in the Lean source contains a typographic inconsistency (single-m, double-s) relative to the official spelling ``Grimmsnarl''; we retain the original identifier for artifact consistency.}
 
 \begin{table*}[!t]
@@ -560,7 +621,17 @@ Large negative contributions come from archetypes that are both reasonably commo
 In this snapshot, Gholdengo (9.9\% share, 43.6\% Drag WR), Gardevoir (4.6\%, 34.3\%), Grimmsnarl (5.1\%, 38.6\%), and Mega Absol (5.0\%, 38.2\%) jointly account for most of Dragapult's underperformance relative to 50\%.
 Dragapult's strongest offsetting lane is Charizard Noctowl (64.1\%), but that lane alone is not enough once weighted against the rest of the field.
 
-The paradox is a distributed effect from several moderately bad, nontrivially prevalent opponents---not a single catastrophic matchup---making it both strategically important and behaviorally persistent.
+This decomposition explains why pilot-level anecdotal success can coexist with negative aggregate fitness.
+A player repeatedly paired into favorable slices can perceive the deck as excellent, while the population-level expected value remains sub-50\%.
+Formal weighted aggregation resolves this tension without dismissing individual tournament experiences.
+
+The same decomposition also clarifies why the paradox is robust.
+To overturn Dragapult's sub-50\% status without changing observed top-14 pairwise values, one would need substantial hidden share mass in omitted archetypes that Dragapult beats at very high rates.
+Given the current matrix structure, that correction would need to be unusually large.
+
+In short, the paradox is not caused by a single catastrophic matchup.
+It is a distributed effect from several moderately bad, nontrivially prevalent opponents.
+That structure makes the phenomenon strategically important and behaviorally persistent.
 
 \subsection{Behavioral-Economic Interpretation}
 
@@ -574,7 +645,6 @@ We do not claim causal identification of these mechanisms in this dataset window
 We model deck choice as a finite two-player bimatrix game induced by the 14\,$\times$\,14 payoff matrix~\cite{NisanRoughgarden2007}.
 Existence of Nash equilibria in finite games is guaranteed by Nash's theorem~\cite{nash1950equilibrium}; von Neumann's minimax theorem applies to the zero-sum special case~\cite{vonneumann1928theorie}.
 Although the empirical matrix is approximately constant-sum (deviations arise from the tie convention), the Nash equilibrium is verified as a bimatrix Nash equilibrium via best-response checks for both players independently, which does not require the zero-sum assumption.
-The verification uses a saddle-point condition---no pure row strategy exceeds the game value, and no pure column strategy falls below it---which is stronger than the standard bimatrix best-response condition and implies Nash equilibrium in both the zero-sum and general bimatrix senses.
 For the observed matrix, Lean now certifies a full six-deck equilibrium rather than a two-deck candidate profile.
 The candidate equilibrium weights were obtained by solving the linear program externally using Python's \texttt{scipy.optimize.linprog} with exact rational conversion; Lean then independently verifies the best-response conditions for all 14 pure strategies, so the discovery tool is untrusted.
 
@@ -611,7 +681,7 @@ Indices in Table~\ref{tab:nash} use the zero-based \texttt{Deck.toFin} mapping f
 
 \begin{table}[!t]
 \centering
-\caption{Lean-verified real Nash supports for row strategy \texttt{realNashRow} and column strategy \texttt{realNashCol}. Uniqueness is not proven.}
+\caption{Lean-verified real Nash supports for row strategy \texttt{realNashRow} and column strategy \texttt{realNashCol}.}
 \label{tab:nash}
 \scriptsize
 \begin{tabular}{@{}rlrr@{}}
@@ -636,7 +706,8 @@ The row and column supports differ because the empirical matchup matrix is not p
 This means the payoff matrix does not satisfy the constant-sum condition $M_{ij} + M_{ji} = 1000$, which would be required for identical row and column equilibrium strategies.
 In a bimatrix game with such approximately-constant-sum but not exactly constant-sum structure, distinct row and column supports are mathematically expected rather than anomalous.
 
-Since the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs), we also verify a symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$ (Table~\ref{tab:symmetric}). The symmetrized equilibrium preserves the core support with game value exactly 500, confirming that qualitative conclusions are robust to the constant-sum approximation.
+In a large-field tournament, deck selection is a symmetric population game: each player independently chooses a deck and faces opponents drawn from the population mix. The natural solution concept is a symmetric Nash equilibrium. Our bimatrix formulation yields distinct row and column strategies because the empirical matrix is not exactly constant-sum ($M_{ij} + M_{ji} \neq 1000$ for some pairs due to tie weighting). To address this, we also solve the symmetrized game $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$, which yields a unique symmetric Nash equilibrium. The symmetrized equilibrium preserves the core support: Grimmsnarl Froslass (34.3\%), Raging Bolt Ogerpon (29.4\%), Charizard Noctowl (10.2\%), Mega Absol Box (10.2\%), Gholdengo Lunatone (9.2\%), Gardevoir (4.3\%), and Alakazam Dudunsparce (2.5\%), confirming that the qualitative conclusions are robust to the constant-sum approximation. The symmetrized game value is exactly 500 (50.0\%), as expected for a constant-sum game.
+Table~\ref{tab:symmetric} reports the symmetric Nash equilibrium weights; the equilibrium is machine-checked by \texttt{sym\_nash\_equilibrium\_verified} in \texttt{SymmetricNash.lean} (Listing~\ref{lst:symnash}).
 
 \begin{lstlisting}[caption={Symmetric Nash verification (SymmetricNash.lean).},label={lst:symnash}]
 -- Game value is exactly 500 (50%)
@@ -658,7 +729,7 @@ theorem sym_nash_dragapult_zero :
 \end{lstlisting}
 
 \begin{table}[!htbp]
-\caption{Symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$. Uniqueness is not proven; this is the equilibrium found by the LP solver and verified in Lean.}
+\caption{Symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$.}
 \label{tab:symmetric}
 \centering
 \footnotesize
@@ -680,13 +751,6 @@ Dragapult        &  0.0 \\
 \end{table}
 
 Crucially, Dragapult Dusknoir (15.5\% observed share) has 0\% Nash weight, which deepens the popularity paradox from Section~\ref{sec:paradox}.
-\paragraph{Formally verified evidence}
-Dragapult receives 0\% weight in both the asymmetric and symmetric Nash equilibria and is strictly suboptimal against the Nash column mix (\texttt{dragapult\_strictly\_suboptimal})---meaning it cannot appear in the support of any row-player best response to this column strategy.
-This does not logically preclude Dragapult from equilibria with different column strategies.
-
-\paragraph{Complementary unverified evidence}
-The Python sensitivity analysis shows Dragapult exclusion in 77.9\% of 10{,}000 resampled matrices, suggesting the result is robust to measurement noise in the matchup data.
-Combined with the verified results above, this provides strong evidence that Dragapult's exclusion is not an artifact of equilibrium selection.
 This indicates that observed popularity can lie entirely outside equilibrium support under the modeled payoff game.
 The Nash equilibrium is computed over the 14-archetype subgame; the remaining 30.5\% of the field (``Other'') is excluded from the strategic interaction model but accounted for in the robustness analysis (Section~\ref{sec:threats}).
 
@@ -704,17 +768,17 @@ Lean theorems in \texttt{EvolutionaryDynamics.lean} and \texttt{FullReplicator.l
 -- Full 14-deck replicator dynamics
 theorem full_replicator_dragapult_decline :
     fitness 14 fullPayoff fullMeta ⟨0, ..⟩ < avgFitness 14 fullPayoff fullMeta := by
-  native_decide
+  optimize_proof
 theorem full_replicator_grimmsnarl_fittest :
     ∀ i, fitness 14 fullPayoff fullMeta i ≤
          fitness 14 fullPayoff fullMeta ⟨5, ..⟩ := by
-  native_decide
+  optimize_proof
 theorem full_replicator_alakazam_worst :
     ∀ i, fitness 14 fullPayoff fullMeta ⟨13, ..⟩ ≤
          fitness 14 fullPayoff fullMeta i := by
-  native_decide
+  optimize_proof
 \end{lstlisting}
-Earlier versions of the artifact used a project-local macro \texttt{optimize\_proof} expanding to \texttt{native\_decide}; the current release uses \texttt{native\_decide} directly at all call sites for transparency.
+The tactic \texttt{optimize\_proof} is a project-local macro expanding to \texttt{native\_decide}; see Section~\ref{sec:methodology} for the trust implications of this choice.
 A discrete replicator step confirms that Grimmsnarl's share increases while Dragapult's decreases (\texttt{grimmsnarl\_share\_increases}, \texttt{dragapult\_share\_decreases}). The full classification identifies 5 growing and 9 shrinking archetypes.
 Applying these full 14-deck results to the observed 2026 snapshot yields three verified qualitative predictions used throughout the paper:
 (i) Dragapult has below-average fitness and should lose share,
@@ -736,14 +800,9 @@ and (iii) Alakazam faces the strongest extinction pressure.
 
 Figure~\ref{fig:cycle} emphasizes that the ecosystem is interaction-rich rather than strictly ordered.
 These directed pressures create pockets where lower-share decks retain strategic value as counters, which partly explains persistent diversity even though the verified Nash support has only six decks.
-We therefore treat replicator outputs as directional diagnostics: Dragapult pressure is downward, Grimmsnarl pressure is upward, and Alakazam pressure is extinction-like.
-The directional classification is algebraically step-size-independent: since $x_i' - x_i = x_i \cdot \mathrm{dt} \cdot (f_i - \bar{f})$, the sign depends only on $f_i - \bar{f}$, not on $\mathrm{dt}$.
-We prove this algebraic invariance as a general symbolic lemma (\texttt{replicator\_sign\_independent\_of\_dt} in \texttt{StepSizeGeneral.lean}): for any $x_i, \mathrm{dt} > 0$, the sign of $x_i' - x_i$ depends only on $f_i - \bar{f}$.
-A general rational bridge (\texttt{rat\_replicator\_sign\_independent\_of\_dt} in the same file) extends this result to the \texttt{Lean.Rat} arithmetic used by the concrete replicator, proved symbolically without \texttt{native\_decide}. Concrete verification at $\mathrm{dt} = 1/10$, $1/100$, and $1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
-Concrete verification for $\mathrm{dt} = 1/10$, $1/100$, and $1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
-These directions are falsifiable against subsequent tournament windows and provide a compact bridge from static equilibrium objects to week-to-week metagame interpretation.
+We therefore treat replicator outputs as directional diagnostics: Dragapult pressure is downward, Grimmsnarl pressure is upward, and Alakazam pressure is extinction-like. These directions are falsifiable against subsequent tournament windows and provide a compact bridge from static equilibrium objects to week-to-week metagame interpretation.
 
-\subsection{Preliminary Directional Check}
+\subsection{Predictive Validation}
 
 As a preliminary predictive check, we compared our full 14-deck replicator predictions against Trainer Hill trend data one day after the analysis window.
 Two of three directional predictions were confirmed: Mega Absol showed upward trending (predicted: growing archetype) and Gardevoir showed upward trending (predicted: rising).
@@ -827,14 +886,36 @@ A kernel-transparent reimplementation of the fold operations, or future kernel i
 
 \subsection{Module-Level Statistics}
 
-The artifact comprises 80 files and 29,793 lines across seven module groups: Core Rules \& Semantics (10 files, 4,097 lines), Card Effects (8/3,055), Probability (8/2,522), Game Theory (6/3,562), Real Metagame (6/2,013), Infrastructure (7/1,872), and Additional Modules (35/12,672), totaling 2,510 theorems. Most theorem volume is infrastructure; approximately 180 theorems directly verify empirical claims.
+\begin{table*}[!t]
+\centering
+\caption{Formalization Module Breakdown.}
+\label{tab:modules}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Module group} & \textbf{Files} & \textbf{Lines} & \textbf{Theorems} \\
+\midrule
+Core Rules \& Semantics & 10 & 4{,}097 & 253 \\
+Card Effects \& Actions & 8 & 3{,}055 & 171 \\
+Probability \& Resources & 8 & 2{,}522 & 176 \\
+Game Theory \& Dynamics & 6 & 3{,}562 & 350 \\
+Real Metagame Analysis & 6 & 2{,}013 & 179 \\
+Infrastructure \& Validation & 7 & 1{,}872 & 97 \\
+Additional Specialized Modules & 35 & 12{,}672 & 1{,}284 \\
+\midrule
+\textbf{Total} & \textbf{80} & \textbf{29{,}793} & \textbf{2{,}510} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Table~\ref{tab:modules} reports module-level code statistics used in this project snapshot.
+Counts are from the current Lean tree and include files, lines, and theorem/lemma/example declarations (obtained via \texttt{wc~-l} and \texttt{grep~-c~'theorem\textbackslash|lemma'} across all \texttt{.lean} files).
+Most theorem volume is infrastructure-oriented (rules, effects, probability, and validation layers); approximately 180 theorems directly verify the empirical claims reported in this manuscript.
 
 \subsection{Reproducibility Workflow}
 
 The build pipeline regenerates theorem states and manuscript artifacts from versioned sources.
 Data tables in the manuscript match constants in \texttt{RealMetagame.lean} and \texttt{MatchupAnalysis.lean}; key strategic claims are mirrored by named theorems.
 This one-to-one mapping sharply reduces the risk of drift between code and prose.
-A cross-file consistency theorem (\texttt{MatrixConsistency.lean}) machine-checks that the array-based matrix representation used for Nash verification matches the function-based representation used for replicator dynamics, eliminating a class of copy-paste errors across module boundaries.
 A Python script can recompute percentages quickly, but it does not enforce theorem-level linkage between assumptions, constants, and manuscript claims.
 The Lean pipeline adds that linkage and fails loudly when any claim drifts from its formal source.
 
@@ -866,12 +947,43 @@ Lean~4 (ours)   & $\sim$30K      & $\sim$10\,min & verified$^*$ \\
 
 \subsection{Human Review and Artifact Audit}
 
-Human review remains essential for model scope. Our audit checks (i) data fidelity to source snapshots, (ii) theorem statement correctness relative to intended claims, and (iii) narrative discipline---no prose claim without formal or computed backing. This lightweight process catches copy-edit drift, stale entries, and implicit assumptions.
+Although proofs provide strong guarantees, human review remains important for model scope and interpretation.
+Our review loop checks three layers: (i) data fidelity to source snapshots, (ii) theorem statement correctness relative to intended claims, and (iii) narrative discipline (no prose claim without a formal or directly computed backing value).
+
+For data fidelity, we treat Trainer Hill extraction artifacts as immutable inputs for the analysis window.
+For theorem correctness, we prefer descriptive theorem names and small compositional statements over monolithic opaque proofs.
+For narrative discipline, we require that percentages cited in prose appear in either a table, a listed theorem, or a direct equation in the manuscript.
+
+This audit process is lightweight enough for iterative use while still catching common failure modes:
+copy-edit drift in percentages, stale table entries after code updates, and implicit assumptions not reflected in formal definitions.
+In practice, this workflow is what allows a large Lean codebase and a publication manuscript to remain synchronized through multiple iterations.
 
 \subsection{Case Study: Verifying a Headline Claim End-to-End}
 
-To illustrate traceability, consider ``Dragapult is 15.5\% of the meta but only 46.7\% expected.'' This decomposes into six auditable steps: extract shares, normalize, compute weighted expectation, express as exact rational, prove the inequality, and reuse constants in tables. If any upstream value changes, downstream theorems fail, making drift explicit---fundamentally stronger than spreadsheet pipelines where hidden references silently desynchronize.
+To illustrate traceability, consider the statement:
+``Dragapult is 15.5\% of the meta but only 46.7\% expected against the field.''
+In our workflow, this statement is decomposed into auditable steps:
+\begin{enumerate}
+\item Extract share constants from the fixed Trainer Hill snapshot.
+\item Normalize top-14 shares for expected-value computation.
+\item Compute weighted expectation from the encoded 14\,$\times$\,14 matrix.
+\item Express the result as an exact rational in Lean.
+\item Prove the inequality relative to 50\% in theorem form.
+\item Reuse the same constants in manuscript tables and prose.
+\end{enumerate}
 
+Each step is versioned and reproducible.
+If any upstream value changes (for example, an updated matrix entry after a data correction), the downstream theorem or table regeneration will fail or produce a different value, making drift explicit.
+This is fundamentally stronger than spreadsheet-style pipelines where hidden references and manual edits can silently desynchronize outputs.
+
+The same pattern is used for all other headline claims in this paper:
+Grimmsnarl's top expected value, the machine-checked six-deck Nash equilibrium (including zero Dragapult support), Raging Bolt's 67.3\% counter edge, and Bo3 amplification values.
+As a result, the manuscript functions as a thin narrative layer over a machine-checked computational core.
+
+\subsection{Continuous Metagame Monitoring}
+
+The infrastructure naturally supports continuous operation: new tournament snapshots can be ingested, Lean constants rebuilt, and theorem checks re-run, with unchanged claims remaining certified and changed claims failing loudly.
+Because modules are factored by responsibility, updates can target only affected components, keeping turnaround practical for weekly competitive cycles.
 We next delimit the empirical and modeling bounds of these results in Section~\ref{sec:threats}.
 
 %======================================================================
@@ -897,12 +1009,27 @@ We provide machine-checked worst-case bounds.
 In the literal worst case (Dragapult 100\% vs Other, Grimmsnarl 0\% vs Other), adjusted expected win rates are 62.9\% and 36.6\%.
 Dragapult requires at least 57.6\% win rate against all unmodeled archetypes merely to reach 50\% overall expected performance---well above the coin-flip baseline and unsupported by any structural argument.
 Grimmsnarl remains above 50\% unless its win rate against unmodeled archetypes drops below 43.9\%, a scenario inconsistent with its favorable type coverage.
+Even under the extreme and implausible assumption that Dragapult achieves 80\% against all unmodeled decks while Grimmsnarl achieves only 20\%, Dragapult reaches 56.8\% and Grimmsnarl drops to 42.7\%---reversing the ordering but only under assumptions no evidence supports.
+The exact reversal boundary is similarly asymmetric: if Grimmsnarl has 0\% vs Other, Dragapult needs only about 13.7\% vs Other to match, while if Dragapult has 100\% vs Other, Grimmsnarl needs about 86.3\% to match.
 The paradox is robust.
 
 We also verify robustness to meta share perturbation.
 The popularity paradox arises from Dragapult's matchup spread---it loses to 9 of 13 non-mirror opponents---rather than from any particular share distribution.
 Machine-checked share-perturbation theorems in \texttt{SharePerturbation.lean} show that even if Dragapult's share drops from 15.5\% to 5\%, its expected field win rate remains below 50\%; conversely, if Grimmsnarl's share rises from 5.1\% to 15.5\% (absorbing Dragapult's current share), its expected field win rate remains above 50\%.
 The paradox is structural: it derives from the matchup matrix, not the share vector, so the central finding is not an artifact of a particular metagame snapshot but reflects a persistent property of the underlying strategic landscape.
+
+\begin{lstlisting}
+-- Robustness.lean:54
+theorem popularity_paradox_robust_worst_case :
+    adjustedWR dragapultTop14WR 1 = 629243 / 1000000 ∧
+    adjustedWR grimmsnarlTop14WR 0 = 366061 / 1000000 ∧
+    adjustedWR dragapultTop14WR 1 - adjustedWR grimmsnarlTop14WR 0 = 131591 / 500000 := by
+  constructor
+  · decide
+  constructor
+  · decide
+  · decide
+\end{lstlisting}
 
 \textbf{Archetype granularity.}
 Each archetype is treated as a point strategy.
@@ -918,8 +1045,6 @@ Our ``suboptimal'' terminology is therefore always relative to the stated payoff
 \textbf{Player-skill confounding.}
 Matchup win rates aggregate across all skill levels.
 If popular archetypes attract less experienced pilots (e.g., because popularity correlates with accessibility), their observed win rates may be suppressed by player-quality effects rather than deck-strength effects.
-We quantify this threat via machine-checked sensitivity bounds (\texttt{SkillSensitivity.lean}): Dragapult would need a uniform skill-bias correction of at least 3.4 percentage points across all matchups to reach 50\% expected win rate, and 6.1 percentage points to match Grimmsnarl's fitness---implying that a confound large enough to reverse the paradox would require Dragapult pilots to be dramatically weaker than the field average across every matchup simultaneously.
-Based on the authors' competitive experience and available tournament analytics, within-event skill differentials between top-quartile and bottom-quartile finishers in large TCG events are unlikely to exceed 5 percentage points uniformly across all matchups; the 3.4\,pp threshold thus requires near-maximal population-wide skill deficits among Dragapult pilots. The 6.1\,pp Grimmsnarl-matching threshold exceeds any plausible uniform confound.
 Our analysis treats matchup data as reflecting deck properties alone; disentangling deck strength from pilot strength would require player-level covariates not available in the Trainer Hill dataset.
 With these limitations explicit, we summarize the main findings and concrete next steps in Section~\ref{sec:conclusion}.
 
@@ -939,7 +1064,30 @@ Our current encoding represents win rates as natural numbers on a 0--1000 scale,
 
 \subsection{Broader Implications for Competitive Game Science}
 
-This case study suggests a general template: formalize core mechanics, encode empirical payoffs as exact values, express strategic claims as theorems, and tie them to tournament objectives. The pipeline is portable to any domain with discrete strategies and measurable outcomes. Proof-assisted workflows do not replace domain expertise; they structure it, making conclusions machine-auditable rather than rhetorical. Formal artifacts can serve as verified baselines for testing teams, and our results show that proof assistants are practical for empirical strategic science when domains provide structured, finite data.
+This case study suggests a general template for competitive-game research.
+First, formalize core mechanics and legality.
+Second, encode empirical payoff data as exact values.
+Third, express strategic claims as theorem-checkable statements.
+Fourth, tie those claims to tournament-relevant objectives instead of abstract utility alone.
+The resulting pipeline is portable across many environments with discrete strategy choices and measurable outcomes.
+
+The portability argument matters because many competitive ecosystems face the same methodological failure mode:
+high-quality data exist, but conclusions are often produced by ad hoc tooling that mixes assumptions and results without explicit traceability.
+A proof-assisted workflow does not replace domain expertise; it structures it.
+Experts still decide which assumptions are reasonable, but once assumptions are fixed, conclusions become machine-auditable rather than rhetorical.
+
+A second implication concerns collaboration between researchers and practitioners.
+Formal artifacts can be integrated into testing-team workflows as ``verified baselines'' against which local innovations are evaluated.
+For example, a team can begin from a certified weighted matchup model, then test whether a candidate list change moves specific matchup entries enough to alter tier or equilibrium-relevant conclusions.
+This is far more informative than relying on isolated scrim records without a stable analytical backbone.
+
+Finally, this work contributes to a broader view of theorem proving in applied settings.
+Proof assistants are often associated with pure mathematics or compiler correctness.
+Our results show they are also practical for empirical strategic science when the domain provides structured, finite data and well-defined objective functions.
+In that regime, formal methods can simultaneously improve reproducibility, interpretability, and decision quality.
+
+Beyond this specific metagame snapshot, the broader contribution is methodological.
+Formal verification can serve as a practical scientific instrument for competitive game ecosystems: it turns qualitative metagame claims into executable definitions, theorem statements, and reproducible evidence.
 
 \section*{Data Availability}
 Data were extracted from Trainer Hill (trainerhill.com) on February~19, 2026, for events with $\geq$50 players (January~29--February~19, 2026).

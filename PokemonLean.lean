@@ -83,3 +83,9 @@ import PokemonLean.RealMetagame
 import PokemonLean.TournamentStrategy
 import PokemonLean.TypeEffectiveness
 import PokemonLean.FullReplicator
+import PokemonLean.ArchetypeAnalysis
+import PokemonLean.SkillSensitivity
+import PokemonLean.StepSizeInvariance
+import PokemonLean.StepSizeGeneral
+import PokemonLean.MatrixConsistency
+import PokemonLean.DragapultDominated
