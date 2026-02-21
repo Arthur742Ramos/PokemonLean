@@ -134,6 +134,9 @@ J.~F. Nash, ``Equilibrium points in $n$-person games,'' \emph{Proceedings of the
 \bibitem{vonneumann1928theorie}
 J.~von Neumann, ``{Zur Theorie der Gesellschaftsspiele},'' \emph{Mathematische Annalen}, vol. 100, no.~1, pp. 295--320, 1928.
 
+\bibitem{avis1992pivoting}
+D.~Avis and K.~Fukuda, ``A pivoting algorithm for convex hulls and vertex enumeration of arrangements and polyhedra,'' \emph{Discrete \& Computational Geometry}, vol.~8, no.~3, pp. 295--313, 1992.
+
 \bibitem{Hofbauer1998}
 J.~Hofbauer and K.~Sigmund, \emph{Evolutionary Games and Population Dynamics}.\hskip 1em plus 0.5em minus 0.4em\relax Cambridge University Press, 1998.
 

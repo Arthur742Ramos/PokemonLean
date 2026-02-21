@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 22:59
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  20 FEB 2026 23:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -536,15 +536,15 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 
 Package pgfplots notification 'compat/show suggested version=true': document has been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
 
-LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 59.
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 60.
 (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 64.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 65.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 64.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 65.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1{/Users/arthur/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/arthur/Library/TinyTeX/texmf-dist/fonts/enc/dvips/base/8r.enc}
@@ -552,138 +552,138 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 ]
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <8> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 178.
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 179.
  [2]
-Underfull \hbox (badness 3138) in paragraph at lines 198--200
+Underfull \hbox (badness 3138) in paragraph at lines 199--201
 []\OT1/ptm/b/n/10 Rules--empirical in-te-gra-tion. \OT1/ptm/m/n/10 The rules for-mal-iza-tion
  []
 
 
-Underfull \hbox (badness 2253) in paragraph at lines 211--216
+Underfull \hbox (badness 2253) in paragraph at lines 212--217
  \OT1/ptm/m/it/10 a) Type as-sign-ment method-ol-ogy.: [][] \OT1/ptm/m/n/10 The pri-mary at-
  []
 
 
-Underfull \hbox (badness 2012) in paragraph at lines 243--246
+Underfull \hbox (badness 2012) in paragraph at lines 244--247
 []\OT1/ptm/m/n/10 Grimmsnarl achieves a per-fect 5-for-5 record against
  []
 
 
-Underfull \vbox (badness 1460) has occurred while \output is active []
+Underfull \vbox (badness 2846) has occurred while \output is active []
 
  [3]
-Underfull \hbox (badness 10000) in paragraph at lines 280--282
+Underfull \hbox (badness 10000) in paragraph at lines 281--283
  \OT1/ptm/m/it/10 b) Nu-mer-i-cal suf-fi-ciency.: [][]
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 280--282
+Underfull \hbox (badness 10000) in paragraph at lines 281--283
 \OT1/ptm/m/n/10 A stronger, end-to-end the-o-rem
  []
 
 
-Overfull \hbox (6.65991pt too wide) in paragraph at lines 280--282
+Overfull \hbox (6.65991pt too wide) in paragraph at lines 281--283
 \OT1/ptm/m/n/10 (\OT1/pcr/m/n/10 dark_weakness_sufficient_for_suboptimality\OT1/ptm/m/n/10 )
  []
 
 
-Underfull \hbox (badness 2503) in paragraph at lines 280--282
+Underfull \hbox (badness 2503) in paragraph at lines 281--283
 \OT1/ptm/m/n/10 suf-fi-cient to ex-plain Dra-ga-pult's sub-50% fit-ness. Even
  []
 
 
-Underfull \hbox (badness 1424) in paragraph at lines 318--320
+Underfull \hbox (badness 1424) in paragraph at lines 319--321
 []\OT1/ptm/m/n/10 All em-pir-i-cal val-ues come from Trainer Hill [2] for
  []
 
 
-Underfull \hbox (badness 5563) in paragraph at lines 328--330
+Underfull \hbox (badness 5563) in paragraph at lines 329--331
 \OT1/ptm/m/n/10 Alakazam Dudun-sparce (2.8%), Kan-gaskhan Bouf-falant
  []
 
 
-Overfull \hbox (5.73637pt too wide) detected at line 350
+Overfull \hbox (5.73637pt too wide) detected at line 351
 [] \OT1/cmr/m/n/10 = []\OML/cmm/m/it/10 ;  [] \OMS/cmsy/m/n/10 ^^F [][]\OML/cmm/m/it/10 :
  []
 
 [4]
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/it' instead on input line 364.
+(Font)              using `OT1/ptm/m/it' instead on input line 365.
 
 
-Underfull \hbox (badness 2790) in paragraph at lines 419--420
+Underfull \hbox (badness 2790) in paragraph at lines 420--421
 []|\OT1/ptm/m/n/8 B-tier vs C-tier pop-u-lar
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 421--421
+Underfull \hbox (badness 10000) in paragraph at lines 422--422
 []|\OT1/ptm/m/n/8 Dragapult vs Charizard
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 421--422
+Underfull \hbox (badness 10000) in paragraph at lines 422--423
 []|\OT1/ptm/m/n/8 Popularity sus-tained by
  []
 
 
-Underfull \hbox (badness 6893) in paragraph at lines 423--424
+Underfull \hbox (badness 6893) in paragraph at lines 424--425
 []|\OT1/ptm/m/n/8 Completes the ob-served
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 453--455
+Underfull \hbox (badness 10000) in paragraph at lines 454--456
 []\OT1/ptm/m/n/10 Lean the-o-rem \OT1/pcr/m/n/10 dragapult_popularity_paradox
  []
 
 
-Package pgfplots Warning: scatter/classes: can't find class for ''!? Please make sure you have specified 'scatter src=explicit symbolic'. Ignoring class '' (this message will not come again). on input line 549.
+Package pgfplots Warning: scatter/classes: can't find class for ''!? Please make sure you have specified 'scatter src=explicit symbolic'. Ignoring class '' (this message will not come again). on input line 550.
 
  [warning /pgfplots/warning/scatter classes no such class]
 [5] [6]
-LaTeX Font Info:    Trying to load font information for OMS+ptm on input line 619.
+LaTeX Font Info:    Trying to load font information for OMS+ptm on input line 620.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 619.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 620.
 
-Underfull \hbox (badness 10000) in paragraph at lines 614--622
+Underfull \hbox (badness 10000) in paragraph at lines 615--623
 \OT1/ptm/m/n/10 The the-o-rem \OT1/pcr/m/n/10 real_nash_equilibrium_verified
  []
 
 
-Underfull \hbox (badness 4467) in paragraph at lines 614--622
+Underfull \hbox (badness 4467) in paragraph at lines 615--623
 \OT1/ptm/m/n/10 is machine-checked rather than merely mixed-strategy-
  []
 
 
-Underfull \hbox (badness 2556) in paragraph at lines 614--622
+Underfull \hbox (badness 2556) in paragraph at lines 615--623
 \OT1/ptm/m/n/10 valid. The row player's guar-an-teed ex-pected pay-off is
  []
 
 
-Underfull \hbox (badness 2119) in paragraph at lines 614--622
+Underfull \hbox (badness 2119) in paragraph at lines 615--623
 \OT1/ptm/m/n/10 en-tries of \OT1/pcr/m/n/10 realNashColData \OT1/ptm/m/n/10 (col-umn player) are at
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 614--622
+Underfull \hbox (badness 10000) in paragraph at lines 615--623
 \OT1/pcr/m/n/10 Deck.toFin \OT1/ptm/m/n/10 map-ping from \OT1/pcr/m/n/10 RealMetagame.lean\OT1/ptm/m/n/10 :
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 614--622
+Underfull \hbox (badness 10000) in paragraph at lines 615--623
 \OT1/ptm/m/n/10 0 Dra-ga-pult-Dus-knoir, 1 Ghold-en-goL-u-na-tone, 2
  []
 
 
-Underfull \hbox (badness 7722) in paragraph at lines 614--622
+Underfull \hbox (badness 7722) in paragraph at lines 615--623
 \OT1/ptm/m/n/10 Grimss-narl-Froslass, 3 MegaAb-sol-Box, 4 Garde-voir, 5
  []
 
 
-Underfull \hbox (badness 2653) in paragraph at lines 614--622
+Underfull \hbox (badness 2653) in paragraph at lines 615--623
 \OT1/ptm/m/n/10 11 Alakaza-m-Dudun-sparce, 12 Kan-gaskhan-Bouf-falant, 13
  []
 
@@ -691,79 +691,97 @@ Underfull \hbox (badness 2653) in paragraph at lines 614--622
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [7]
-Underfull \hbox (badness 1377) in paragraph at lines 712--715
+Underfull \hbox (badness 1377) in paragraph at lines 715--718
 \OT1/ptm/m/n/10 Our Lean im-ple-men-ta-tion uses discrete-time Eu-ler steps
  []
 
 
-Underfull \hbox (badness 5446) in paragraph at lines 716--717
+Underfull \hbox (badness 5446) in paragraph at lines 719--720
 []\OT1/ptm/m/n/10 Lean the-o-rems in \OT1/pcr/m/n/10 EvolutionaryDynamics.lean
  []
 
 
-Underfull \hbox (badness 7869) in paragraph at lines 731--737
+Underfull \hbox (badness 7869) in paragraph at lines 734--740
 \OT1/ptm/m/n/10 Earlier ver-sions of the ar-ti-fact used a project-local
  []
 
 
-Underfull \hbox (badness 3590) in paragraph at lines 731--737
+Underfull \hbox (badness 3590) in paragraph at lines 734--740
 \OT1/ptm/m/n/10 the cur-rent re-lease uses \OT1/pcr/m/n/10 native_decide \OT1/ptm/m/n/10 di-rectly at
  []
 
 
-Underfull \hbox (badness 7451) in paragraph at lines 731--737
+Underfull \hbox (badness 7451) in paragraph at lines 734--740
 \OT1/ptm/m/n/10 all call sites for trans-parency. A dis-crete repli-ca-tor
  []
 
 
-Underfull \hbox (badness 3668) in paragraph at lines 731--737
+Underfull \hbox (badness 3668) in paragraph at lines 734--740
 \OT1/ptm/m/n/10 step con-firms that Grimm-snarl's share in-creases while
  []
 
 
-Underfull \hbox (badness 2409) in paragraph at lines 751--758
+Underfull \hbox (badness 2409) in paragraph at lines 754--761
 \OT1/ptm/m/n/10 lemma (\OT1/pcr/m/n/10 replicator_sign_independent_of_dt \OT1/ptm/m/n/10 in
  []
 
 
-Underfull \hbox (badness 4060) in paragraph at lines 751--758
+Underfull \hbox (badness 4060) in paragraph at lines 754--761
 \OT1/ptm/m/n/10 Con-crete ver-i-fi-ca-tion at $[] \OT1/cmr/m/n/10 = 1\OML/cmm/m/it/10 =\OT1/cmr/m/n/10 10$\OT1/ptm/m/n/10 , $\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 =\OT1/cmr/m/n/10 100$\OT1/ptm/m/n/10 , and $\OT1/cmr/m/n/10 1$
  []
 
 [8]
-Underfull \hbox (badness 1394) in paragraph at lines 776--780
+Underfull \hbox (badness 1394) in paragraph at lines 779--783
 \OT1/ptm/m/n/10 model does not cap-ture. Lean ver-i-fies that Bo3 am-pli-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 817--823
+Underfull \hbox (badness 10000) in paragraph at lines 820--826
 \OT1/pcr/m/n/10 decide\OT1/ptm/m/n/10 ), (2) arith-metic nor-mal-iza-tion (\OT1/pcr/m/n/10 omega\OT1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 5036) in paragraph at lines 817--823
+Underfull \hbox (badness 5036) in paragraph at lines 820--826
 \OT1/pcr/m/n/10 nlinarith\OT1/ptm/m/n/10 ), (3) def-i-ni-tional un-fold-ing and rewrit-ing
  []
 
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <10> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 824.
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 827.
 
-Underfull \hbox (badness 1490) in paragraph at lines 829--833
+Underfull \hbox (badness 1490) in paragraph at lines 832--833
 []\OT1/ptm/m/n/10 We in-ves-ti-gated re-plac-ing \OT1/pcr/m/n/10 native_decide \OT1/ptm/m/n/10 with the
  []
 
+
+LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
+(Font)              using `OT1/ptm/m/it' instead on input line 838.
+
+
+LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
+(Font)              using `OT1/ptm/m/it' instead on input line 838.
+
 [9]
-Underfull \hbox (badness 7558) in paragraph at lines 847--853
+Underfull \hbox (badness 3679) in paragraph at lines 862--865
+[]\OT1/ptm/m/n/10 However, \OT1/pcr/m/n/10 decide \OT1/ptm/m/n/10 is \OT1/ptm/m/it/10 struc-turally pre-cluded \OT1/ptm/m/n/10 for the
+ []
+
+
+Underfull \hbox (badness 6842) in paragraph at lines 862--865
+\OT1/ptm/m/n/10 compiler-level the-o-rems: our ma-trix com-pu-ta-tions use
+ []
+
+
+Underfull \hbox (badness 7558) in paragraph at lines 879--885
 []\OT1/ptm/m/n/10 The build pipeline re-gen-er-ates the-o-rem states and
  []
 
 
-Underfull \hbox (badness 1371) in paragraph at lines 847--853
+Underfull \hbox (badness 1371) in paragraph at lines 879--885
 \OT1/ptm/m/n/10 file con-sis-tency the-o-rem (\OT1/pcr/m/n/10 MatrixConsistency.lean\OT1/ptm/m/n/10 )
  []
 
 [10]
-Underfull \hbox (badness 4634) in paragraph at lines 918--922
+Underfull \hbox (badness 4634) in paragraph at lines 950--954
 \OT1/ptm/m/n/10 perturbation the-o-rems in \OT1/pcr/m/n/10 SharePerturbation.lean
  []
 
@@ -786,15 +804,15 @@ L3 programming layer <2026-01-19>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 26367 strings out of 469471
- 663682 string characters out of 5467771
- 1477398 words of memory out of 5000000
- 54598 multiletter control sequences out of 15000+600000
+ 26369 strings out of 469471
+ 663715 string characters out of 5467771
+ 1483398 words of memory out of 5000000
+ 54600 multiletter control sequences out of 15000+600000
  679227 words of font info for 145 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
  99i,19n,108p,842b,2268s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (13 pages, 329908 bytes).
+Output written on main.pdf (13 pages, 332499 bytes).
 PDF statistics:
  167 PDF objects out of 1000 (max. 8388607)
  104 compressed objects within 2 object streams

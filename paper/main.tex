@@ -56,11 +56,12 @@
 \maketitle
 
 \begin{abstract}
-We present a metagame analysis of the competitive Pok\'emon Trading Card Game, formally verified (modulo the \texttt{native\_decide} trust boundary discussed in Section~IX) using Lean~4 and real tournament data.
+We present a metagame analysis of the competitive Pok\'emon Trading Card Game, formally verified using Lean~4 and real tournament data.
+All game-theoretic results (Nash equilibrium, replicator dynamics, bridge alignment) rely on \texttt{native\_decide}, which trusts Lean's compiler rather than its kernel; the trust boundary is detailed in Section~IX.
 The artifact spans approximately 30{,}000 lines, 81 files, and 2{,}500 theorems---of which roughly 190 directly verify empirical claims---with no \texttt{sorry}, \texttt{admit}, or custom axioms.
 Analyzing Trainer Hill data (January--February 2026, 50+ player events) over 14 archetypes and their full pairwise matchup matrix, we prove a \emph{popularity paradox}: the most played deck (Dragapult, 15.5\% share) has only 46.7\% expected win rate, while Grimmsnarl (5.1\% share) achieves 52.7\%.
 A machine-checked Nash equilibrium with six-deck support assigns Dragapult 0\% weight (uniqueness is not proven; other equilibria may differ); a symmetrized constant-sum formulation confirms this with seven-deck support.
-Replicator dynamics on the \emph{full 14-deck game} predict Dragapult decline, Grimmsnarl dominance, and Alakazam extinction pressure.
+Single-step replicator dynamics on the \emph{full 14-deck game} indicate downward fitness pressure on Dragapult, upward pressure on Grimmsnarl, and strongest extinction pressure on Alakazam.
 A 10{,}000-iteration sensitivity analysis confirms qualitative stability: core support decks appear in $>$96\% of resampled equilibria.
 The primary contribution is methodological: formal verification transforms qualitative metagame narratives into machine-checkable, reproducible strategic science.
 \end{abstract}
@@ -697,6 +698,8 @@ Importantly, uniqueness of this equilibrium is not proven: other Nash equilibria
 Dragapult is not strictly dominated---it achieves the highest win rate of any deck against Charizard Noctowl (64.1\%)---so domination arguments cannot close this gap.
 The verified result establishes that \emph{there exists} a Nash equilibrium excluding Dragapult, not that \emph{all} equilibria do so.
 This distinction limits the prescriptive force of the Nash analysis: we can conclude that Dragapult exclusion is equilibrium-consistent, not that it is equilibrium-necessary.
+In principle, vertex enumeration algorithms (e.g., Avis--Fukuda pivoting~\cite{avis1992pivoting}) could enumerate all Nash equilibria of this 14$\times$14 bimatrix game; if every enumerated equilibrium excludes Dragapult, the existential result would strengthen to a universal one.
+We leave this enumeration to future work, noting that the game's approximate constant-sum structure (deviations $<$3\% from $M_{ij}+M_{ji}=1000$) makes uniqueness plausible but not guaranteed.
 
 \paragraph{Complementary unverified evidence}
 The Python sensitivity analysis shows Dragapult exclusion in 77.9\% of 10{,}000 resampled matrices, suggesting the result is robust to measurement noise in the matchup data.
@@ -827,7 +830,36 @@ All computational proofs use \texttt{native\_decide}, which compiles decidabilit
 Of the approximately 2{,}500 theorems in the artifact, roughly 244 use \texttt{native\_decide} directly (including all Nash equilibrium, replicator dynamics, and bridge alignment theorems); the remainder close via \texttt{decide}, \texttt{simp}, \texttt{omega}, or structural tactics.
 
 We investigated replacing \texttt{native\_decide} with the kernel-checked \texttt{decide} tactic, which would eliminate this trust assumption entirely.
-However, \texttt{decide} is \emph{structurally precluded}: our matrix computations use \texttt{Fin.foldl}, which is opaque to the Lean 4 kernel reducer and causes \texttt{decide} to fail immediately rather than time out.
+
+Table~\ref{tab:assurance} summarizes the assurance level by theorem category.
+
+\begin{table}[!t]
+\centering
+\caption{Assurance levels by theorem category. \emph{Kernel} = fully checked by Lean's trusted kernel; \emph{Compiler} = trusts native code generation via \texttt{native\_decide}.}
+\label{tab:assurance}
+\footnotesize
+\begin{tabular}{@{}lccl@{}}
+\toprule
+\textbf{Category} & \textbf{Count} & \textbf{Level} & \textbf{Tactics} \\
+\midrule
+Rules \& legality        & $\sim$180  & Kernel   & \texttt{decide}, \texttt{simp} \\
+Card effects             & $\sim$120  & Kernel   & \texttt{simp}, \texttt{omega} \\
+Probability              & $\sim$90   & Kernel   & \texttt{decide}, \texttt{omega} \\
+Step-size invariance     & 4          & Kernel   & \texttt{simp}, \texttt{ring}, \texttt{omega} \\
+Infrastructure           & $\sim$1{,}860 & Kernel & mixed \\
+\midrule
+Nash equilibrium         & 12         & Compiler & \texttt{native\_decide} \\
+Replicator dynamics      & 38         & Compiler & \texttt{native\_decide} \\
+Bridge alignment (type)  & 25         & Compiler & \texttt{native\_decide} \\
+Sensitivity / robustness & 42         & Compiler & \texttt{native\_decide} \\
+Other matrix computations& $\sim$127  & Compiler & \texttt{native\_decide} \\
+\midrule
+\textbf{Total}           & $\sim$2{,}500 & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+However, \texttt{decide} is \emph{structurally precluded} for the compiler-level theorems: our matrix computations use \texttt{Fin.foldl}, which is opaque to the Lean 4 kernel reducer and causes \texttt{decide} to fail immediately rather than time out.
 We also attempted reformulating \texttt{sumFin} using structural recursion over \texttt{Fin}, but the resulting term still requires \texttt{Fin.foldl}-equivalent operations internally, and no variant we tested passed kernel reduction.
 This is a known limitation of the current Lean 4 kernel, not specific to our proofs.
 
@@ -948,7 +980,7 @@ The specific metagame results are illustrative of the methodology, which is the 
 Using Lean~4 plus Trainer Hill data, we prove a popularity paradox (Section~\ref{sec:paradox}) and connect it to equilibrium, dynamics, and tournament implications.
 
 We also connect static matchup structure to dynamic and tournament implications.
-The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight (uniqueness not proven); full 14-deck replicator dynamics over the complete matchup matrix predict Dragapult decline, Grimmsnarl dominance, and Alakazam extinction pressure; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
+The Lean-verified real Nash equilibrium has six-deck support per player and 0\% Dragapult weight (uniqueness not proven); single-step replicator dynamics on the full 14-deck matchup matrix indicate downward fitness pressure on Dragapult, upward pressure on Grimmsnarl, and strongest extinction pressure on Alakazam; and best-of-three math amplifies already-large matchup edges (67.3\%\,$\to$\,74.9\%).
 
 Immediate next steps are concrete: (i) extend the dataset to rolling weekly windows with uncertainty intervals, enabling forecast calibration by scoring each window's predictions against the next, (ii) model the 30.5\% ``Other'' segment explicitly instead of excluding it from matrix analysis, and (iii) add hierarchical sub-archetype clustering to capture list-level variance and pilot heterogeneity.
 Our current encoding represents win rates as natural numbers on a 0--1000 scale, discarding the underlying win-loss-tie counts. A richer encoding carrying individual game outcomes would enable in-Lean confidence interval computation and sample-size adequacy checks.
