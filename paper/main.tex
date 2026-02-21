@@ -277,6 +277,8 @@ Even granting Dragapult an optimistic 50\% against every non-Dark opponent, the 
 This is a machine-checked causal chain from a single game rule (Psychic weak to Dark), through type assignments and empirical matchup data, to the paper's headline strategic conclusion.
 The rules formalization is not disconnected infrastructure; it provides the mechanistic explanation for the popularity paradox.
 
+A companion module (\texttt{CausalChain.lean}) extends this bridge with 12 cross-module theorems that span the full infrastructure: type weakness amplified by Bo3 format, weakness-doubles-damage creating tempo advantages via energy economy, hypergeometric consistency feeding into Nash equilibrium, prize structure interacting with KO math and game length, and a ``grand causal chain'' (\texttt{the\_complete\_story}) that unifies all 11 conjuncts---from the single game rule \emph{Psychic is weak to Dark} through population shares, matchup losses, expected value, Bo3 amplification, variance reduction, and Swiss tournament exposure---into one machine-checked theorem.
+
 %======================================================================
 \section{Probability and Resource Theory}\label{sec:probability}
 %======================================================================
