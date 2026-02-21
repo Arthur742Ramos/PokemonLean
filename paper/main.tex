@@ -187,6 +187,7 @@ theorem TRIANGLE :
 High-impact trainer cards are modeled with explicit zone transitions.
 For Professor's Research, we prove that discarding the hand and drawing seven preserves global card count, preventing subtle bookkeeping bugs from distorting probability estimates:
 
+\needspace{8\baselineskip}
 \begin{lstlisting}
 -- CardEffects.lean:149
 theorem professorsResearchEffect_preserves_cards (p : PlayerState) :
@@ -208,7 +209,7 @@ Each archetype is assigned primary attack and defense types reflecting its main 
 For example, Grimmsnarl Froslass uses Dark-type attacks, while Dragapult Dusknoir is a Psychic-type defender.
 These assignments are formalized in \texttt{ArchetypeAnalysis.lean} and connect the abstract type effectiveness chart (Section~\ref{sec:formalization}) to the concrete matchup matrix (Section~\ref{sec:data}).
 
-\paragraph{Type assignment methodology.}
+\paragraph{Type assignment methodology}
 The primary attack/defense type assignments are domain-expert modeling choices, not formally derived from deck composition or card data.
 Each archetype is classified by the type of its main attacker (for offense) and its primary active Pok\'emon (for defense), based on the dominant game-plan of the deck.
 For most archetypes these assignments are unambiguous (e.g., Grimmsnarl's main attacker is Dark-type), but multi-type decks like Dragapult Charizard require judgment about which type dominates the game-plan.
@@ -260,6 +261,7 @@ Dragapult's Psychic typing makes it structurally vulnerable to the 13.1\% of the
 Four independently verified facts align: (i)~the \emph{rules} specify Psychic is weak to Dark; (ii)~the \emph{type assignments} classify Dragapult as Psychic-defending and Grimmsnarl/Absol/Zoroark as Dark-attacking; (iii)~the \emph{empirical data} confirms Dark attackers hold positive win rates vs Dragapult; and (iv)~the \emph{population weights} show 13.1\% of the field exploits this disadvantage.
 The formal contribution is verifying that these four layers are mutually consistent, not that any one causes the next.
 
+\needspace{12\baselineskip}
 \begin{lstlisting}
 -- ArchetypeAnalysis.lean
 theorem dragapult_type_vulnerability :
@@ -277,7 +279,7 @@ theorem dragapult_type_vulnerability :
 This chain demonstrates correlational consistency: given domain-expert type assignments (modeling assumptions, not formally derived from deck composition), the rule-level type chart predicts the direction of empirical matchup advantage in 83\% of cases.
 For context, random type assignments would yield approximately 50\% alignment by symmetry; the observed 83\% (15/18 matchups) corresponds to $p < 0.001$ under a binomial null, confirming that the alignment is not coincidental.
 
-\paragraph{Numerical sufficiency.}
+\paragraph{Numerical sufficiency}
 A stronger, end-to-end theorem (\texttt{dark\_weakness\_sufficient\_for\_suboptimality}) proves that the Dark-type weakness \emph{alone} is numerically sufficient to explain Dragapult's sub-50\% fitness.
 Even granting Dragapult an optimistic 50\% against every non-Dark opponent, the Dark-type losses drag its population-weighted expected value below 50\%:
 \[
@@ -616,7 +618,10 @@ theorem real_nash_equilibrium_verified :
 
 Table~\ref{tab:nash} reports the verified supports for both players.
 The theorem \texttt{real\_nash\_equilibrium\_verified} is backed by best-response checks quantified over all 14 pure strategies for both players, so the equilibrium claim is machine-checked rather than merely mixed-strategy-valid.
-The row player's guaranteed expected payoff is \texttt{realNashValue} $= \frac{162188991282520}{338129962783} \approx 479.665$ (47.97\%).
+The row player's guaranteed expected payoff is:
+\[
+\texttt{realNashValue} = \frac{162188991282520}{338129962783} \approx 479.7 \text{\,\textperthousand}\; (48.0\%).
+\]
 Win rates are encoded on a 0--1000 scale, so a value of 479.67 corresponds to a 47.97\% win probability.
 The sub-50\% game value reflects the tie convention: ties distribute fewer win-equivalents than decisive outcomes, reducing the average payoff below the 50\% baseline of a perfectly constant-sum game.
 The nonzero entries of \texttt{realNashRowData} (row player) are at indices \{2,3,4,5,9,11\}, while the nonzero entries of \texttt{realNashColData} (column player) are at indices \{1,2,3,4,5,9\}.
@@ -672,7 +677,7 @@ theorem sym_nash_dragapult_zero :
 \end{lstlisting}
 
 \begin{table}[!htbp]
-\caption{Lean-verified symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$. Separately, exhaustive support enumeration on the raw symmetric game ($A = M$, $B = M^\top$) finds a unique 5-deck NE (Grimmsnarl 42.6\%, Raging Bolt 37.3\%, Gardevoir 8.9\%, Mega Absol 7.5\%, Charizard 3.7\%) that also excludes Dragapult; the support differences reflect the symmetrization.}
+\caption{Lean-verified symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$. Exhaustive enumeration on the raw symmetric game confirms a unique 5-deck NE that also excludes Dragapult; support differences reflect the symmetrization.}
 \label{tab:symmetric}
 \centering
 \footnotesize

@@ -22,10 +22,9 @@
 \newlabel{sec:formalization}{{III}{2}{}{section.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}From Type Rules to Matchup Data}{3}{}\protected@file@percent }
 \newlabel{subsec:typealignment}{{\mbox  {III-A}}{3}{}{subsection.3.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-A}0a}Type assignment methodology.}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-A}0a}Type assignment methodology}{3}{}\protected@file@percent }
 \citation{trainerhill2026}
-\citation{Wilson1927}
-\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-A}0b}Numerical sufficiency.}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-A}0b}Numerical sufficiency}{4}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {IV}Probability and Resource Theory}{4}{}\protected@file@percent }
 \newlabel{sec:probability}{{IV}{4}{}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Hypergeometric Consistency Calculations}{4}{}\protected@file@percent }
@@ -34,9 +33,10 @@
 \newlabel{sec:data}{{V}{4}{}{section.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Data Source and Inclusion Criteria}{4}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Modeled Archetypes and Shares}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Sample Sizes and Reliability}{4}{}\protected@file@percent }
+\citation{Wilson1927}
 \@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Sensitivity analysis: Nash weight 95\% sensitivity ranges (10{,}000 iterations, not frequentist confidence intervals). \emph  {Inclusion} is the fraction of resampled equilibria in which the deck receives nonzero weight.}}{5}{}\protected@file@percent }
 \newlabel{tab:bootstrap}{{I}{5}{}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Sample Sizes and Reliability}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Uncertainty Quantification}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Data Provenance and Trust Boundary}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {VI}The Popularity Paradox}{5}{}\protected@file@percent }
@@ -58,33 +58,33 @@
 \citation{glickman1999parameter,herbrich2007trueskill}
 \@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Expected win rate on the modeled top-14 subset (69.5\% of field; ``Other'' excluded). Tiers are assigned by expected field win rate: S~($\geq $52\%), A~(50--52\%), B~(48--50\%), C~($<$48\%).}}{7}{}\protected@file@percent }
 \newlabel{tab:expected}{{IV}{7}{}{table.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Lean-verified real Nash supports for row strategy \texttt  {realNashRow} and column strategy \texttt  {realNashCol}.}}{7}{}\protected@file@percent }
-\newlabel{tab:nash}{{V}{7}{}{table.5}{}}
 \citation{Hofbauer1998,Sandholm2010}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Lean-verified real Nash supports for row strategy \texttt  {realNashRow} and column strategy \texttt  {realNashCol}.}}{8}{}\protected@file@percent }
+\newlabel{tab:nash}{{V}{8}{}{table.5}{}}
 \newlabel{lst:symnash}{{1}{8}{}{lstlisting.1}{}}
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Symmetric Nash verification (SymmetricNash.lean).}{8}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Lean-verified symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$. Separately, exhaustive support enumeration on the raw symmetric game ($A = M$, $B = M^\top $) finds a unique 5-deck NE (Grimmsnarl 42.6\%, Raging Bolt 37.3\%, Gardevoir 8.9\%, Mega Absol 7.5\%, Charizard 3.7\%) that also excludes Dragapult; the support differences reflect the symmetrization.}}{8}{}\protected@file@percent }
-\newlabel{tab:symmetric}{{VI}{8}{}{table.6}{}}
 \@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {VII-}0a}Formally verified evidence}{8}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {VII-}0b}Uniqueness of the symmetric equilibrium}{8}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Lean-verified symmetric Nash equilibrium on the constant-sum symmetrization $S_{ij} = (M_{ij} + 1000 - M_{ji})/2$. Exhaustive enumeration on the raw symmetric game confirms a unique 5-deck NE that also excludes Dragapult; support differences reflect the symmetrization.}}{8}{}\protected@file@percent }
+\newlabel{tab:symmetric}{{VI}{8}{}{table.6}{}}
 \@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {VII-}0c}Complementary unverified evidence}{8}{}\protected@file@percent }
-\citation{mathlib2020,Buzzard2020}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Directed metagame interaction motif with edge labels matching Table~\ref {tab:crosstier}.}}{9}{}\protected@file@percent }
 \newlabel{fig:cycle}{{2}{9}{}{figure.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Preliminary Directional Check}{9}{}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Bo1 to Bo3 Amplification for Key Matchups.}}{9}{}\protected@file@percent }
 \newlabel{tab:bo3}{{VII}{9}{}{table.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Preliminary Directional Check}{9}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {VIII}Tournament Strategy}{9}{}\protected@file@percent }
 \newlabel{sec:tournament}{{VIII}{9}{}{section.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-A}}Best-of-Three and Swiss Considerations}{9}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {IX}Formalization Methodology}{9}{}\protected@file@percent }
-\newlabel{sec:methodology}{{IX}{9}{}{section.9}{}}
+\citation{mathlib2020,Buzzard2020}
 \citation{moura2021lean}
-\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Assurance levels by theorem category. \emph  {Kernel} = fully checked by Lean's trusted kernel; \emph  {Compiler} = trusts native code generation via \texttt  {native\_decide}.}}{10}{}\protected@file@percent }
-\newlabel{tab:assurance}{{VIII}{10}{}{table.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Formalization Methodology}{10}{}\protected@file@percent }
+\newlabel{sec:methodology}{{IX}{10}{}{section.9}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-A}}Zero-Axiom, Zero-Sorry Standard}{10}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-B}}Proof Engineering Pattern}{10}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-C}}Trust Boundary: \texttt  {native\_decide}}{10}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Assurance levels by theorem category. \emph  {Kernel} = fully checked by Lean's trusted kernel; \emph  {Compiler} = trusts native code generation via \texttt  {native\_decide}.}}{10}{}\protected@file@percent }
+\newlabel{tab:assurance}{{VIII}{10}{}{table.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-D}}Module-Level Statistics}{10}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-E}}Reproducibility Workflow}{10}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-F}}Cost-Benefit: Formal Verification vs.\ Alternatives}{10}{}\protected@file@percent }
@@ -116,13 +116,13 @@
 \bibcite{dockhorn2019hearthstone}{17}
 \bibcite{kowalski2020summon}{18}
 \bibcite{gonthier2008four}{19}
-\bibcite{Avigad2007}{20}
-\bibcite{mathlib2020}{21}
-\bibcite{hales2017kepler}{22}
 \@writefile{toc}{\contentsline {section}{\numberline {XI}Conclusion}{12}{}\protected@file@percent }
 \newlabel{sec:conclusion}{{XI}{12}{}{section.11}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-A}}Broader Implications for Competitive Game Science}{12}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{References}{12}{}\protected@file@percent }
+\bibcite{Avigad2007}{20}
+\bibcite{mathlib2020}{21}
+\bibcite{hales2017kepler}{22}
 \bibcite{li2023card}{23}
 \bibcite{smith1973logic}{24}
 \bibcite{taylor1978evolutionary}{25}
