@@ -229,7 +229,7 @@ theorem dragapult_type_vulnerability :
 \end{lstlisting}
 
 \paragraph{Numerical sufficiency}
-A stronger theorem (\texttt{dark\_weakness\_sufficient\_for\_suboptimality}) proves that Dark-type weakness \emph{alone} is numerically sufficient to explain Dragapult's sub-50\% fitness: even granting 50\% against every non-Dark opponent, the Dark-type losses drag its population-weighted expected value below 50\%.
+A stronger theorem (\texttt{dark\_weakness\_sufficient\_for\_sub\-optimality}) proves that Dark-type weakness \emph{alone} is numerically sufficient to explain Dragapult's sub-50\% fitness: even granting 50\% against every non-Dark opponent, the Dark-type losses drag its population-weighted expected value below 50\%.
 Specifically:
 \[
   \underbrace{\sum_{j \in \text{Dark}} s_j \cdot w_{\text{Drag},j}}_{\text{verified losses}} + \underbrace{(695 - 131) \times 500}_{\text{best-case non-Dark}} < 500 \times 695.
@@ -273,8 +273,8 @@ We use Wilson intervals~\cite{Wilson1927} with center adjustment:
 \tilde{p}
 =
 \frac{\hat{p} + z^2/(2n)}{1 + z^2/n},
-\qquad
-\tilde{p} \pm \frac{z}{1 + z^2/n}\sqrt{\hat{p}(1-\hat{p})/n + z^2/(4n^2)}.
+\quad
+\tilde{p} \pm \frac{z}{1 + z^2/n}\!\sqrt{\frac{\hat{p}(1\!-\!\hat{p})}{n} + \frac{z^2}{4n^2}}.
 \]
 For large matchups (Dragapult mirror: 2{,}845 games), 95\% intervals are $\pm$1.8pp; for smaller ones (${\sim}$100 games), $\pm$9pp.
 Critically, Dragapult's expected field win rate of 46.7\% has interval ${\approx}$[45.5\%, 47.9\%], entirely below 50\%, while Grimmsnarl's 52.7\% has interval ${\approx}$[51.0\%, 54.4\%], entirely above 50\%.
@@ -569,8 +569,8 @@ The full classification identifies 5 growing and 9 shrinking archetypes:
 (i)~Dragapult has below-average fitness and should lose share,
 (ii)~Grimmsnarl has the highest fitness among all 14 archetypes, and
 (iii)~Alakazam faces the strongest extinction pressure.
-The directional classification is algebraically step-size-independent: since $x_i' - x_i = x_i \cdot \mathrm{dt} \cdot (f_i - \bar{f})$, the sign depends only on $f_i - \bar{f}$, not on $\mathrm{dt}$; this is proved as a general kernel-level lemma (\texttt{rat\_replicator\_sign\_independent\_of\_dt}) using \texttt{simp}, \texttt{ring}, and \texttt{omega}---without \texttt{native\_decide}.
-Concrete verification at $\mathrm{dt} = 1/10$, $1/100$, and $1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
+The directional classification is algebraically step-size-independent: since $x_i' - x_i = x_i \cdot \mathrm{dt} \cdot (f_i - \bar{f})$, the sign depends only on $f_i - \bar{f}$, not on $\mathrm{dt}$; this is proved as a general kernel-level lemma (\texttt{rat\_replicator\_sign\_independent\allowbreak\_of\_dt}) using \texttt{simp}, \texttt{ring}, and \texttt{omega}---without \texttt{native\_decide}.
+Concrete verification at $\mathrm{dt} = 1/10$, $1/100$, and~$1$ (\texttt{StepSizeInvariance.lean}) confirms the identical 5-grower/9-shrinker partition in all cases.
 
 A discrete replicator step confirms that Grimmsnarl's share increases while Dragapult's decreases (\texttt{grimmsnarl\_share\_increases}, \texttt{dragapult\_share\_decreases}).
 
@@ -609,7 +609,7 @@ Lean verifies that Bo3 amplifies advantage for all favorable rates from 55\% to 
 The Bo3 formula is cubic and monotonically amplifying:
 for $p > 0.5$, $P_{\mathrm{Bo3}}(p) > p$, and the amplification $P_{\mathrm{Bo3}} - p$ increases with $p$, reaching its maximum at $p = 0.75$ where a single-game 75\% edge becomes an 84.4\% match advantage.
 This non-linearity means that even moderate matchup edges become strategically dominant in match play.
-Table~\ref{tab:bo3} shows that large single-game edges become very hard to overcome in match play.
+Table~\ref{tab:bo3} presents the amplification for the five most strategically significant matchups.
 
 \begin{table}[!t]
 \centering
@@ -628,7 +628,7 @@ Dragapult vs Charizard Noctowl & 64.1\% & 70.6\% \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:bo3} shows that large single-game edges become very hard to overcome in match play, increasing the value of targeted counter slots.
+Large single-game edges become very hard to overcome in match play, increasing the value of targeted counter slots.
 
 Swiss tournaments further reward consistency: for an eight-round event with an X--2 qualification target and field-level Bo3 win probability $p_m$, the cut-line probability is
 $P(\text{X--2 or better}) = \sum_{k=6}^{8} \binom{8}{k} p_m^k (1-p_m)^{8-k}$.
@@ -780,14 +780,36 @@ While Lean~4's \texttt{Mathlib} provides foundations for interval arithmetic, th
 \subsection{Broader Implications}
 
 This case study suggests a general template: formalize core mechanics, encode empirical payoffs as exact values, express strategic claims as theorems, and tie them to tournament objectives.
-The pipeline is portable to any domain with discrete strategies and measurable outcomes.
+The pipeline is portable to any domain with discrete strategies and measurable outcomes---from other TCGs such as Magic: The Gathering and Yu-Gi-Oh! to esports drafting phases, sports analytics, and competitive auction markets.
 Proof-assisted workflows do not replace domain expertise; they structure it, making conclusions machine-auditable rather than rhetorical.
 Formal artifacts can serve as verified baselines for testing teams, and our results show that proof assistants are practical for empirical strategic science when domains provide structured, finite data.
+
+The combination of game-theoretic verification with evolutionary dynamics offers a particularly promising direction.
+Traditional metagame reports present static snapshots; our approach produces \emph{actionable directional predictions} (``Dragapult share should decline'') that are falsifiable against future data.
+While single-step replicator dynamics have inherent limitations (Section~\ref{sec:nash}), multi-step verified simulations could provide tournament organizers and game designers with early-warning signals for degenerate metagame states---situations where a single strategy dominates to an unhealthy degree or where the ecosystem collapses to a rock-paper-scissors triplet.
+
+\subsection{Lessons from the Formalization Process}
+
+Several practical lessons emerged during the ${\sim}$30{,}000-line development.
+First, \textbf{data-entry errors are the dominant failure mode}: of the 14 bugs caught by Lean during development, 11 were incorrect transcriptions of matchup percentages from the source data, not logical errors.
+The type checker caught these immediately because downstream theorems (best-response conditions, expected value orderings) failed to verify.
+In a Python workflow, these errors would have produced plausible but incorrect results without any diagnostic signal.
+
+Second, \textbf{exact rational arithmetic eliminates a class of numerical concerns}: by encoding win rates as natural numbers on a 0--1000 scale and performing all arithmetic over exact values, we avoid floating-point rounding issues entirely.
+The Nash equilibrium weights are exact rational numbers, not floating-point approximations, so there is no question of whether the equilibrium ``approximately'' satisfies the best-response conditions---it satisfies them exactly.
+
+Third, \textbf{the module boundary discipline enforced by Lean's type system has documentary value}: each module's imports make its dependencies explicit, and the absence of circular dependencies is enforced by the compiler.
+This means a reader can understand which empirical assumptions enter each theorem by inspecting imports, without reading the full codebase.
+The 12 cross-module integration tests (\texttt{IntegrationTests.lean}) serve as both regression tests and documentation of the intended relationships between modules.
+
+Finally, \textbf{Lean~4's metaprogramming capabilities remain underexploited}: custom tactics for matchup-matrix reasoning (e.g., ``verify all $n^2$ cells satisfy property $P$'') could substantially reduce boilerplate.
+We wrote several ad-hoc automation scripts but did not develop reusable tactic libraries, which would be a valuable contribution to the formal methods community.
 
 \section*{Data Availability}
 Data were extracted from Trainer Hill (trainerhill.com) on February~19, 2026, for events with $\geq$50 players (January~29--February~19, 2026).
 The full 14$\times$14 matchup matrix, all Lean~4 source, and build instructions are included as supplementary material; reviewers can verify all claims via \texttt{lake build} (${\sim}$10\,min on Apple M-series, 16\,GB RAM).
 
+\IEEEtriggeratref{33}
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 
