@@ -1,0 +1,42 @@
+Review of "From Rules to Nash Equilibria: Formally Verified Game-Theoretic Analysis of a Competitive Trading Card Game"
+
+**Summary**
+This paper presents a novel framework for analyzing trading card game (TCG) metagames using the Lean 4 theorem prover. By formalizing the game rules, ingesting real tournament data (Pokémon TCG, Jan-Feb 2026), and mechanically verifying game-theoretic properties, the authors demonstrate a "popularity paradox" where the most played deck has a negative expected win rate. The work includes a fully verified Nash equilibrium calculation and an analysis of tournament structure effects (Best-of-3). The formalization comprises ~30,000 lines of code and over 2,500 theorems without use of `sorry` or axioms.
+
+**Evaluation**
+This is an exceptional paper that bridges the gap between formal methods and empirical game analytics. The methodology is rigorous, the presentation is clear, and the results are non-trivial and actionable. The use of a proof assistant to verify empirical claims about a stochastic metagame is a significant methodological advance over the ad-hoc scripts typically used in this domain.
+
+**Strengths**
+1.  **Methodological Novelty**: Applying theorem proving to metagame analysis is a fresh approach for IEEE ToG. It elevates "community wisdom" to proven theorems.
+2.  **Rigor**: The "zero-sorry" policy and the explicit handling of data ingestion and legality constraints provide high confidence in the results.
+3.  **Robustness Analysis**: Section VIII.A (Robustness Analysis) is particularly strong, addressing the "Other" category exclusion with formally verified worst-case bounds. This preempts the most obvious criticism of the data analysis.
+4.  **Clarity**: The paper effectively communicates complex formal concepts to a general game research audience. The decomposition of Dragapult's win rate (Section V.A) is very helpful.
+
+**Weaknesses**
+1.  **Temporal Scope**: The analysis covers a short window (3 weeks). While the authors discuss this as a "snapshot," the long-term viability of the pipeline depends on its ability to handle shifting formats.
+2.  **Swiss Pairing Model**: As noted in Section VI, the equilibrium analysis assumes a zero-sum head-to-head model, which simplifies the actual incentives of a Swiss tournament (where X-2 is the goal). The paper acknowledges this but does not fully model it.
+
+**Recommendation**
+**Rate: Strong Accept**
+
+I recommend a Strong Accept. The paper makes a compelling case for "proof-carrying analytics" and executes the vision with impressive technical depth. It fits perfectly within the scope of IEEE ToG, combining game theory, AI/formal methods, and empirical analysis.
+
+**Specific Comments & Issues**
+
+**Major Issues**
+None.
+
+**Minor Issues / Suggestions**
+1.  **Section VI (Nash Equilibrium)**: The equilibrium supports (Table III) show a slight asymmetry (Row vs Column) even though the game is described as symmetric. In a symmetric zero-sum game, we expect $(x, x)$ to be an equilibrium, though others might exist. The paper notes the column support "replaces Alakazam Dudunsparce with Gholdengo Lunatone". A brief sentence explaining *why* the computed equilibrium is asymmetric (or if it's one of multiple equilibria in a symmetric game) would be helpful for clarity.
+2.  **Figure 1 (Scatter Plot)**: The caption mentions "top-14 normalized". It would be clearer to explicitly state in the caption that "Exp WR" is calculated against the renormalized 14-deck field, not the raw field.
+3.  **Line 655**: The game value is given as ~47.97%. In a symmetric game, the value should be 50% (0 in zero-sum terms) if both players have access to the same strategies. The deviation from 50% implies either the game is not perfectly symmetric (e.g., first-player advantage modeled?) or there's a convention difference. If the payoff matrix accounts for "going first/second" bias and is averaged, it should be symmetric. If it relies on real data where "Row Player" is a specific role (e.g., "Pilot"), this needs clarification. *Correction*: If the matrix is purely Win Rates observed from data, $M_{ij}$ might not equal $1 - M_{ji}$ exactly due to draws or data aggregation method, or if $i$ vs $j$ data is pooled. Please clarify if $M_{ij} + M_{ji} = 1$ is enforced in the model. If not, the game is not strictly zero-sum symmetric.
+4.  **Reference [100]**: "representative of formal TCG work" is a bit informal for a citation note.
+5.  **Line 13**: `\usepackage{needspace}` is used but `\needspace` is defined in the preamble. Ensure standard IEEE templates support this or if it's a local addition. (Not a reviewing issue, but a production one).
+
+**Typos / Formatting**
+*   Line 300: `checkDeckLegal_iff` - standard naming, but ensures it matches the text.
+*   Line 441: The Wilson interval formula is dense; verify the layout in the final proof.
+*   Line 532: Table II caption "top-14 subset" - consistent with text.
+
+**Double-Blind Compliance**
+The authors have withheld their names and the repository link is anonymized (or promised to be). No issues found.

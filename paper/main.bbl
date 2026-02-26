@@ -146,4 +146,7 @@ J.~Hofbauer and K.~Sigmund, \emph{Evolutionary Games and Population Dynamics}.\h
 \bibitem{Sandholm2010}
 W.~H. Sandholm, \emph{Population Games and Evolutionary Dynamics}.\hskip 1em plus 0.5em minus 0.4em\relax MIT Press, 2010.
 
+\bibitem{ramos2026pokemondata}
+A.~F. Ramos and T.~Soria, ``Formally verified {Pok\'emon} {TCG} metagame analysis: Tournament data, matchup matrices, and {Lean}~4 proof artifact,'' IEEE DataPort, 2026, \url{https://dx.doi.org/10.21227/vty8-p429}.
+
 \end{thebibliography}

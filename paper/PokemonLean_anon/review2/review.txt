@@ -1,0 +1,50 @@
+Review of "From Rules to Nash Equilibria: Formally Verified Game-Theoretic Analysis of a Competitive Trading Card Game"
+
+**Recommendation: Strong Accept**
+
+**1. Technical Correctness**
+The paper presents a rigorous application of formal methods to game-theoretic analysis. The methodology is sound:
+- The authors correctly identify the difference between local tactics (in-game rules) and global strategy (metagame deck selection).
+- The use of Lean 4 to certify the Nash Equilibrium (NE) is technically impressive. The explicit use of `native_decide` for heavy computational proofs is a standard and acceptable practice in the Lean community for this type of problem.
+- The statistical treatment using Wilson score intervals (Section V.D) is appropriate for binomial proportion confidence intervals.
+- The robustness analysis (Section VII) regarding the unmodeled 30.5% of the field is mathematically sound and crucial for the validity of the results. The "worst-case" bounds provide a high degree of confidence in the "popularity paradox" finding.
+
+One minor technical caveat is properly acknowledged by the authors: the replicator dynamics are only verified for 4-deck and 5-deck subgames, not the full 14-deck system (Lines 706-707). This limitation is stated clearly and does not undermine the primary static equilibrium results.
+
+**2. Presentation Quality and Narrative Arc**
+The paper is exceptionally well-written.
+- The narrative arc—moving from the specific "popularity paradox" to the general methodology of "proof-carrying analytics"—is compelling.
+- The distinction between community intuition ("Dragapult is the deck to beat") and formal reality is effective.
+- Code snippets (e.g., Lines 200, 323, 623) are well-selected; they demonstrate the formalization without overwhelming the reader with syntax.
+- The visual description of the "paradox scatter" (Figure 1) and the directed interaction motif (Figure 2) effectively summarize complex data.
+
+**3. Novelty and Significance for IEEE ToG**
+This work represents a significant methodological advance.
+- **Novelty:** While game-theoretic analysis of TCGs exists, doing so inside a proof assistant is novel. Treating a metagame snapshot as a formal object with certified properties (as opposed to just running a Python script) creates a new standard for reproducibility.
+- **Significance:** The concept of "Proof-Carrying Analytics" (Section VIII) is highly relevant to the ToG community, suggesting a future where game balance patches or tournament reports could be accompanied by machine-checkable proofs of their claims.
+
+**4. Weaknesses and Logical Gaps**
+- **The "Other" Category:** Modeling only 69.5% of the field is the primary weakness. While the authors provide robustness bounds, a 30% gap is large. However, given the combinatorial explosion of modeling every rogue deck, this abstraction is necessary and well-handled via the bounding analysis.
+- **Swiss Round Modeling:** The paper acknowledges that the NE model assumes a single-match objective, whereas tournaments use Swiss structures. The authors discuss this (Section VI), but a formal model of the Swiss structure itself would have strengthened the "Tournament Strategy" section.
+
+**5. Double-Blind Compliance**
+The paper appears compliant.
+- Author names are withheld.
+- The "Data Availability" section references a repository but does not link to a de-anonymizing URL.
+- The specific dates (Jan-Feb 2026) imply this is a "future" or "simulated" dataset context, or the paper is written in a hypothetical near-future. *Self-correction: The prompt date is Feb 2026. The paper uses "real" data from Jan-Feb 2026. This is consistent.*
+
+**6. Specific Line-Level Issues**
+- **Line 58:** "30,000 lines... 75 files". This is a large claim. Ensure the supplementary material actually matches this if provided.
+- **Line 326 (Code):** The theorem `FOUR_COPIES_RULE` uses rational division `(38962 : Rat) / (97527 : Rat)`. It might be clearer to potential readers to state the decimal approximation in the comment (approx 0.3995) immediately, though the text below does so.
+- **Line 414:** "10,000-iteration bootstrap analysis". Clarify if this bootstrap was also performed within Lean or (more likely) in an external script. Line 848 implies Python is used for some things, but Line 414 suggests checking NE sensitivity. If the bootstrap loop is external, strictly speaking, those specific confidence intervals are not "formally verified" in the same sense as the point estimate.
+- **Line 669:** "perfectly antisymmetric". The term is usually "skew-symmetric" for zero-sum, but "antisymmetric" is acceptable in this context.
+- **Line 826 (Table IV):** The sum of lines is ~29k, which matches the abstract. Good consistency.
+
+**7. Rating**
+**Strong Accept.** This paper is a standout example of applying rigorous formal methods to a domain typically dominated by heuristics. It fits perfectly within the scope of IEEE ToG.
+
+**Issues List**
+1.  (Minor) **Line 706:** Explicitly clarify that the "replicator dynamics" claims in the abstract (Line 63) apply *only* to the subgames, to avoid misleading the reader into thinking the full 14-deck dynamics were verified.
+2.  (Minor) **Line 413-415:** Clarify the provenance of the bootstrap analysis. Is this Python or Lean? If Python, the "formally verified" claim should be scoped to exclude the specific CI values in Table I.
+3.  (Trivial) **Line 37:** The listing of Unicode characters in the `lstset` is dense; ensure it renders correctly in the final PDF.
+4.  (Trivial) **References:** Ensure citation [1] (Lean 4) and [11] (Trainer Hill) are properly formatted in the final bibliography.

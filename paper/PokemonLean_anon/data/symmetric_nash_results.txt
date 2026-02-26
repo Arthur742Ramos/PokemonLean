@@ -1,0 +1,77 @@
+========================================================================
+SYMMETRIC NASH EQUILIBRIUM ANALYSIS
+========================================================================
+
+1) CONSTANT-SUM DEVIATION IN ORIGINAL MATRIX
+--------------------------------------------------
+Max deviation from M_ij + M_ji = 1000: 73.0
+Number of off-diagonal pairs with deviation > 0: 91 / 91
+Top 5 deviations:
+  Charizard Pidgeot         vs Dragapult Charizard      : M_ij + M_ji = 927 (dev = 73)
+  Gholdengo Lunatone        vs Gardevoir                : M_ij + M_ji = 934 (dev = 66)
+  Gholdengo Lunatone        vs Gardevoir Jellicent      : M_ij + M_ji = 937 (dev = 63)
+  Gardevoir                 vs Dragapult Charizard      : M_ij + M_ji = 937 (dev = 63)
+  Grimmsnarl Froslass       vs Gardevoir Jellicent      : M_ij + M_ji = 938 (dev = 62)
+
+2) SYMMETRIZED MATRIX VERIFICATION
+--------------------------------------------------
+S_ij + S_ji = 1000 for all i,j: True
+Diagonal values: [np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0), np.float64(500.0)]
+
+3) SYMMETRIC NASH EQUILIBRIUM (from symmetrized matrix)
+--------------------------------------------------
+Game value: 500.000000 (50.0000%)
+
+Symmetric Nash weights (nonzero):
+   1  Gholdengo Lunatone           9.15%
+   2  Grimmsnarl Froslass         34.32%
+   3  Mega Absol Box              10.21%
+   4  Gardevoir                    4.29%
+   5  Charizard Noctowl           10.16%
+   9  Raging Bolt Ogerpon         29.41%
+  11  Alakazam Dudunsparce         2.46%
+
+4) BIMATRIX NASH (from original non-symmetric matrix)
+--------------------------------------------------
+Bimatrix game value: 479.664653 (47.9665%)
+
+Row player support:
+   2  Grimmsnarl Froslass         37.83%
+   3  Mega Absol Box              12.92%
+   4  Gardevoir                    3.48%
+   5  Charizard Noctowl           11.29%
+   9  Raging Bolt Ogerpon         28.66%
+  11  Alakazam Dudunsparce         5.83%
+
+Column player support:
+   1  Gholdengo Lunatone           3.72%
+   2  Grimmsnarl Froslass         40.52%
+   3  Mega Absol Box               7.22%
+   4  Gardevoir                    7.62%
+   5  Charizard Noctowl            5.01%
+   9  Raging Bolt Ogerpon         35.91%
+
+5) COMPARISON: SYMMETRIC vs BIMATRIX
+--------------------------------------------------
+Symmetric support size: 7
+Bimatrix row support size: 6
+Bimatrix col support size: 6
+Symmetric support decks: Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, Gardevoir, Charizard Noctowl, Raging Bolt Ogerpon, Alakazam Dudunsparce
+Bimatrix union support:  Alakazam Dudunsparce, Charizard Noctowl, Gardevoir, Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, Raging Bolt Ogerpon
+Core decks in both: Alakazam Dudunsparce, Charizard Noctowl, Gardevoir, Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, Raging Bolt Ogerpon
+
+In symmetric only: none
+In bimatrix only:  none
+
+Dragapult symmetric weight: 0.0000%
+Dragapult bimatrix row weight: 0.0000%
+Dragapult bimatrix col weight: 0.0000%
+
+========================================================================
+CONCLUSION
+========================================================================
+The symmetrized constant-sum game has game value 50.0000%.
+The symmetric Nash support is: Gholdengo Lunatone, Grimmsnarl Froslass, Mega Absol Box, Gardevoir, Charizard Noctowl, Raging Bolt Ogerpon, Alakazam Dudunsparce.
+This matches the bimatrix Nash support.
+Dragapult receives 0% weight in both equilibria.
+The qualitative conclusions are robust to the constant-sum approximation.
