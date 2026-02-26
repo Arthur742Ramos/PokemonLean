@@ -394,11 +394,11 @@ Ceruledge & 2.3\% & 44.8\% & C \\
 \begin{tikzpicture}
 \begin{axis}[
   width=\columnwidth,
-  height=0.75\columnwidth,
+  height=0.7\columnwidth,
   xlabel={Meta share (\%)},
   ylabel={Expected win rate (\%)},
   xmin=1.5, xmax=18,
-  ymin=43, ymax=54.5,
+  ymin=43.5, ymax=54,
   grid=major,
   grid style={dashed, gray!30},
   every axis label/.style={font=\small},
@@ -411,15 +411,14 @@ Ceruledge & 2.3\% & 44.8\% & C \\
   },
   scatter, only marks,
   scatter src=explicit symbolic,
-  legend style={font=\scriptsize, at={(0.55,0.02)}, anchor=south,
-                draw=gray!50, fill=white, fill opacity=0.9,
-                legend columns=4, column sep=4pt},
+  legend style={font=\scriptsize, at={(0.02,0.98)}, anchor=north west,
+                draw=gray!50, fill=white, fill opacity=0.8},
   legend entries={Tier S, Tier A, Tier B, Tier C},
   clip=false,
 ]
 \addplot[dashed, black, thick, forget plot]
   coordinates {(1.5,50) (17,50)};
-\node[font=\scriptsize, anchor=south west] at (axis cs:15.5,50.15) {50\% eq.};
+\node[font=\scriptsize, anchor=south west] at (axis cs:14.5,50.15) {50\% eq.};
 \addplot[scatter, only marks, scatter src=explicit symbolic]
   coordinates { (5.1,52.7) [S] };
 \addplot[scatter, only marks, scatter src=explicit symbolic]
@@ -432,17 +431,14 @@ Ceruledge & 2.3\% & 44.8\% & C \\
     (4.2,47.8) [C] (3.5,46.8) [C] (3.3,47.9) [C]
     (3.0,46.9) [C] (2.8,44.7) [C] (2.3,44.8) [C]
   };
-% --- Labels: spread to avoid overlaps ---
-\node[font=\scriptsize, anchor=west]       at (axis cs:15.7,46.7)  {Drag};
-\node[font=\scriptsize, anchor=south]      at (axis cs:5.1,53.0)   {Grimm};
-\node[font=\scriptsize, anchor=east]       at (axis cs:4.7,51.7)   {Absol};
-\node[font=\scriptsize, anchor=east]       at (axis cs:9.6,47.8)   {Ghold};
-\node[font=\scriptsize, anchor=south]      at (axis cs:4.6,50.2)   {Gard};
-\node[font=\scriptsize, anchor=north]      at (axis cs:4.3,45.3)   {CharN};
-\node[font=\scriptsize, anchor=north]      at (axis cs:2.8,44.3)   {Alak};
-\node[font=\scriptsize, anchor=south]      at (axis cs:2.5,49.5)   {Kang};
-\node[font=\scriptsize, anchor=north east] at (axis cs:4.0,47.6)   {GardJ};
-\node[font=\scriptsize, anchor=west]       at (axis cs:3.8,46.8)   {DragC};
+\node[font=\scriptsize, anchor=west]  at (axis cs:15.7,46.7)  {Drag};
+\node[font=\scriptsize, anchor=south] at (axis cs:5.1,53.0)   {Grimm};
+\node[font=\scriptsize, anchor=west]  at (axis cs:5.2,51.7)   {Absol};
+\node[font=\scriptsize, anchor=east]  at (axis cs:9.6,47.8)   {Ghold};
+\node[font=\scriptsize, anchor=south east]  at (axis cs:4.4,50.1)   {Gard};
+\node[font=\scriptsize, anchor=north west] at (axis cs:4.5,45.5)   {CharN};
+\node[font=\scriptsize, anchor=north]  at (axis cs:2.8,44.3)   {Alak};
+\node[font=\scriptsize, anchor=south west]  at (axis cs:2.6,49.4)   {Kang};
 \end{axis}
 \end{tikzpicture}
 \caption{Popularity paradox: share versus expected win rate (top-14 normalized). Dragapult is high-share/low-fitness; Grimmsnarl is low-share/high-fitness.}

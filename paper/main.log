@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  26 FEB 2026 00:11
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  26 FEB 2026 00:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -608,103 +608,103 @@ Underfull \hbox (badness 10000) in paragraph at lines 345--346
  []
 
 
-Package pgfplots Warning: scatter/classes: can't find class for ''!? Please make sure you have specified 'scatter src=explicit symbolic'. Ignoring class '' (this message will not come again). on input line 442.
+Package pgfplots Warning: scatter/classes: can't find class for ''!? Please make sure you have specified 'scatter src=explicit symbolic'. Ignoring class '' (this message will not come again). on input line 446.
 
  [warning /pgfplots/warning/scatter classes no such class]
 [4]
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 478.
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 482.
  (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
 
 LaTeX Font Warning: Font shape `TS1/ptm/m/sc' undefined
 (Font)              using `TS1/ptm/m/n' instead
-(Font)              for symbol `textperthousand' on input line 513.
+(Font)              for symbol `textperthousand' on input line 517.
 
 
-Underfull \hbox (badness 6236) in paragraph at lines 568--574
+Underfull \hbox (badness 6236) in paragraph at lines 572--578
 []\OT1/ptm/m/n/10 The full clas-si-fi-ca-tion iden-ti-fies 5 grow-ing and 9
  []
 
 
-Underfull \hbox (badness 6526) in paragraph at lines 568--574
+Underfull \hbox (badness 6526) in paragraph at lines 572--578
 \OT1/ptm/m/n/10 shrink-ing archetypes: (i) Dra-ga-pult has below-average
  []
 
 
-Underfull \hbox (badness 1810) in paragraph at lines 568--574
+Underfull \hbox (badness 1810) in paragraph at lines 572--578
 \OT1/ptm/m/n/10 fit-ness and should lose share, (ii) Grimm-snarl has the
  []
 
 
-Underfull \hbox (badness 3088) in paragraph at lines 568--574
+Underfull \hbox (badness 3088) in paragraph at lines 572--578
 \OT1/ptm/m/n/10 faces the strongest ex-tinc-tion pres-sure. The di-rec-tional
  []
 
 
-Underfull \hbox (badness 2245) in paragraph at lines 568--574
+Underfull \hbox (badness 2245) in paragraph at lines 572--578
 \OT1/ptm/m/n/10 clas-si-fi-ca-tion is al-ge-braically step-size-independent: since
  []
 
 
-Underfull \hbox (badness 3078) in paragraph at lines 568--574
+Underfull \hbox (badness 3078) in paragraph at lines 572--578
 \OT1/ptm/m/n/10 level lemma (\OT1/pcr/m/n/10 rat_replicator_sign_independent
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 568--574
+Underfull \hbox (badness 10000) in paragraph at lines 572--578
 \OT1/pcr/m/n/10 _of_dt\OT1/ptm/m/n/10 ) us-ing \OT1/pcr/m/n/10 simp\OT1/ptm/m/n/10 , \OT1/pcr/m/n/10 ring\OT1/ptm/m/n/10 , and \OT1/pcr/m/n/10 omega\OT1/ptm/m/n/10 ---without
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 575--576
+Underfull \hbox (badness 10000) in paragraph at lines 579--580
 []\OT1/ptm/m/n/10 A dis-crete repli-ca-tor step con-firms that
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 575--576
+Underfull \hbox (badness 10000) in paragraph at lines 579--580
 \OT1/ptm/m/n/10 Grimm-snarl's share in-creases while Dra-ga-pult's
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 575--576
+Underfull \hbox (badness 10000) in paragraph at lines 579--580
 \OT1/ptm/m/n/10 de-creases (\OT1/pcr/m/n/10 grimmsnarl_share_increases\OT1/ptm/m/n/10 ,
  []
 
 [5] [6]
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <10> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 650.
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 654.
 
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/it' instead on input line 658.
+(Font)              using `OT1/ptm/m/it' instead on input line 662.
 
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/it' instead on input line 658.
+(Font)              using `OT1/ptm/m/it' instead on input line 662.
 
 
-Underfull \hbox (badness 1490) in paragraph at lines 682--687
+Underfull \hbox (badness 1490) in paragraph at lines 686--691
 []\OT1/ptm/m/n/10 We in-ves-ti-gated re-plac-ing \OT1/pcr/m/n/10 native_decide \OT1/ptm/m/n/10 with the
  []
 
 
-Underfull \hbox (badness 1371) in paragraph at lines 690--696
+Underfull \hbox (badness 1371) in paragraph at lines 694--700
 \OT1/ptm/m/n/10 file con-sis-tency the-o-rem (\OT1/pcr/m/n/10 MatrixConsistency.lean\OT1/ptm/m/n/10 )
  []
 
 [7]
-Underfull \hbox (badness 3514) in paragraph at lines 754--759
+Underfull \hbox (badness 3514) in paragraph at lines 758--763
 []\OT1/ptm/b/n/10 Player-skill con-found-ing. \OT1/ptm/m/n/10 Matchup win rates ag-gre-
  []
 
 
-Underfull \hbox (badness 3482) in paragraph at lines 754--759
+Underfull \hbox (badness 3482) in paragraph at lines 758--763
 \OT1/ptm/m/n/10 gate across all skill lev-els. If pop-u-lar archetypes at-
  []
 
 
-Underfull \hbox (badness 3291) in paragraph at lines 754--759
+Underfull \hbox (badness 3291) in paragraph at lines 758--763
 \OT1/ptm/m/n/10 tract less ex-pe-ri-enced pi-lots, their ob-served win rates
  []
 
@@ -729,15 +729,15 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 26351 strings out of 469471
- 663389 string characters out of 5467771
+ 26369 strings out of 469471
+ 663779 string characters out of 5467771
  1398396 words of memory out of 5000000
- 54583 multiletter control sequences out of 15000+600000
+ 54601 multiletter control sequences out of 15000+600000
  679653 words of font info for 146 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 99i,19n,108p,725b,2268s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,19n,108p,725b,2270s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (10 pages, 336620 bytes).
+Output written on main.pdf (10 pages, 336893 bytes).
 PDF statistics:
  172 PDF objects out of 1000 (max. 8388607)
  106 compressed objects within 2 object streams
