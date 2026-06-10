@@ -1,0 +1,336 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black}
+
+\newcommand{\rev}[1]{\textcolor{blue!70!black}{#1}}
+\newcommand{\cmt}[1]{\par\smallskip\noindent\textit{#1}\par\smallskip}
+\newcommand{\resp}{\par\noindent\textbf{Response.}\ }
+
+\title{Response to Reviewers\\\large Manuscript ToG-2026-0064:\\``From Rules to Nash Equilibria: Formally Verified Game-Theoretic\\Analysis of a Competitive Trading Card Game''}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+We thank the Editor-in-Chief, the Associate Editor, and the three reviewers for
+their careful and constructive reading. The reviewers found the work novel,
+technically impressive, and a valuable application of formal verification to game
+analysis; their main concern was that several conclusions were stated more
+strongly than the modeling assumptions justify, together with requests for
+greater accessibility, robustness reporting, and clarity about verification
+boundaries. We have revised the manuscript thoroughly to address every point.
+
+\paragraph{How to read the revision.} All substantive additions and changes are
+typeset in \rev{blue} in the revised manuscript (a macro \verb|\highlightchangesfalse|
+produces a clean camera-ready version). Section references below point to the
+revised PDF.
+
+\paragraph{Summary of the most important changes.}
+\begin{enumerate}[leftmargin=1.4em]
+\item \textbf{Correctness fix to the symmetric-equilibrium numbers.} While
+  responding to Reviewer~3 we discovered that the symmetric-Nash gap figures
+  reported in the previous version (Dragapult ``$416.7$\textperthousand, gap
+  $63.3$,'' ``five best responses'') were inherited from an early, superseded
+  enumeration of a \emph{different} game model and did not match the Lean
+  artifact that the paper actually verifies (\texttt{SymmetricNash.lean}). The
+  verified symmetric equilibrium has value exactly $500$, \emph{seven}-deck
+  support, and places Dragapult at $459.6$\textperthousand---a strict gap of
+  $\mathbf{40.4}$\textperthousand. We recomputed every affected number with exact
+  rational arithmetic, cross-checked it against the Lean theorems, and corrected
+  the abstract, Table~VII (and its caption), and Section~VII. We are grateful
+  that the review process surfaced this; the corrected figures are now fully
+  consistent with the machine-checked artifact.
+\item \textbf{Dragapult's exclusion is now shown to be equilibrium-independent}
+  (Reviewer~3, Major~\#1--2): a complementary-slackness argument establishes that
+  a strict best-response gap against \emph{one} optimal strategy excludes a deck
+  from the support of \emph{every} equilibrium---symmetric \emph{or} asymmetric.
+\item \textbf{New accessibility material} (Reviewer~2): a Lean/formal-verification
+  primer (Sec.~III-A), a notation table (Table~I), a verification-pipeline diagram
+  (Fig.~1), and uniform captions on all code listings.
+\item \textbf{Foregrounded qualifications} (Reviewer~1): ``suboptimal'' is now
+  explicitly model-relative in the abstract, Sec.~X, and the conclusion, and the
+  paper is framed as a methodological case study.
+\item \textbf{Title reframed as a case study} (Reviewer~1, AE): the title now reads
+  ``\ldots A Lean~4 Case Study in Game-Theoretic Analysis\ldots'' instead of
+  ``Formally Verified\ldots,'' aligning the headline framing with the more measured,
+  case-study presentation requested throughout.
+\item \textbf{Artifact counts reconciled exactly with the source} (Reviewer~2). We
+  re-audited the published artifact and corrected every count to its exact,
+  grep-reproducible value: \textbf{87 files}, \textbf{$\sim$31{,}900 lines},
+  \textbf{2{,}627 theorems}, of which \textbf{145} use \texttt{native\_decide} and
+  \textbf{2{,}482} are kernel-checked (Table~IX rebuilt with the true per-category
+  split; previous version's category counts were stale). One displayed
+  expected-win-rate value (Ceruledge) was corrected from $44.8\%$ to its exact
+  $45.4\%$. These were the only numeric discrepancies we found on a full recheck.
+\item \textbf{The equilibrium-independent exclusion is now machine-backed and
+  global} (Reviewer~3). We added a Lean theorem
+  (\texttt{symmetric\_nash\_dragapult\_strict\_gap}) certifying Dragapult's strict
+  sub-value payoff, and a linear program (\texttt{dragapult\_universal\_exclusion.py})
+  that maximizes Dragapult's payoff over the \emph{entire} optimal-strategy set
+  ($459.6 < 500$), upgrading the earlier size-bounded search to a global
+  certificate. We also replaced a stale supplementary results file that reported
+  the superseded ($A{=}M,B{=}M^\top$) model with a corrected enumeration
+  (\texttt{enumerate\_symmetric\_nash.py}) consistent with the paper.
+\end{enumerate}
+
+\hrulefill
+
+\section*{Associate Editor}
+\cmt{``some conclusions are overstated relative to the underlying modeling
+assumptions \ldots\ the interpretation of equilibrium results and claims regarding
+strategy optimality require more careful qualification \ldots\ dependence on
+subjective modeling choices, the limited empirical scope, and the need for clearer
+discussion of verification boundaries, robustness, and supporting artifacts \ldots\
+improved accessibility.''}
+\resp We have acted on each item: (i) equilibrium claims are re-qualified and the
+key exclusion result is now proven equilibrium-independent (Sec.~VII);
+(ii) ``optimality/suboptimality'' is consistently scoped to the single-match
+payoff model (abstract, Sec.~X, conclusion); (iii) the dependence on subjective
+type assignments is tested and bounded (Sec.~III-C); (iv) empirical scope is
+reframed as a case study (Sec.~X, conclusion); (v) the verification boundary is
+classified explicitly as an engineering bottleneck rather than a fundamental
+limit (Sec.~IX-A); (vi) robustness is reported via explicit perturbation
+($\varepsilon$) bounds (Sec.~X); (vii) accessibility is improved with a primer,
+notation table, and pipeline diagram. Details follow per reviewer.
+
+\hrulefill
+
+\section*{Reviewer 1}
+
+\cmt{(1) The paper leans heavily on ``formally verified''/``machine-checked'' in a
+way that may overstate assurance, given the reliance on \texttt{native\_decide}.}
+\resp We added a measured framing throughout, beginning with the \textbf{title},
+which now reads ``\ldots A Lean~4 Case Study\ldots'' rather than ``Formally
+Verified\ldots.'' The abstract retains the explicit
+trust-boundary sentence and now adds the equilibrium-independence qualifier; the
+assurance gradient is summarized in Table~IX (kernel- vs.\ compiler-checked, with
+exact counts: $2{,}482$ kernel-checked vs.\ $145$ \texttt{native\_decide}), and
+Sec.~IX-A states plainly that \texttt{native\_decide} produces no kernel-checked
+proof term. We also classify a fully kernel-checked version as a tractable
+engineering task (see Reviewer~3, Minor~\#3).
+
+\cmt{(2) The bridge from rules to empirical conclusions depends on subjective type
+assignments; this should be tested more carefully.}
+\resp Sec.~III-C now separates load-bearing from borderline assignments and adds a
+\emph{quantitative} sensitivity test. Only genuine multi-type decks are borderline;
+the single assignment the popularity paradox depends on---Dragapult Dusknoir as a
+Psychic defender, weak to the unambiguously Dark counters Grimmsnarl, Mega~Absol,
+and N's~Zoroark---is \emph{not} borderline. Enumerating every defensible
+reassignment of the borderline decks places the aggregate alignment rate in the
+range $[70.6\%,\,87.5\%]$ (point estimate $83.3\%$), all far above the $50\%$
+random baseline, while the headline result is invariant across all of them. We now
+report this range explicitly and label the alignment figure as a descriptive,
+sensitivity-bearing statistic rather than a verified claim.
+
+\cmt{(3) The equilibrium narration is too confident; the exact support is fragile,
+and conclusions should distinguish the point estimate from what is stable under
+perturbation.}
+\resp We now make this distinction central. Sec.~VII and the new ``Equilibrium
+robustness'' paragraph (Sec.~X) separate (a) the \emph{perturbation-stable}
+exclusion of Dragapult, which tolerates an entrywise perturbation of
+$\approx 20$\textperthousand, from (b) the \emph{point-estimate-specific} support
+composition, whose marginal members flip under $\approx 5$\textperthousand. Our
+headline conclusion rests only on (a).
+
+\cmt{(4) ``Suboptimal'' needs cautious handling; the bimatrix/Swiss/consistency/
+familiarity caveat should be brought to the foreground, especially the abstract
+and conclusion.}
+\resp Done. The abstract now states that ``suboptimal'' is relative to a
+single-match payoff model omitting Swiss and consistency incentives; the
+conclusion repeats this; and Sec.~X (``Strategic objective mismatch'') spells out
+that a player may rationally choose an in-model-suboptimal deck for Swiss
+consistency, familiarity/misplay-risk, event stability, or card access.
+
+\cmt{(5) The empirical scope is narrow (three-week window, top-14, third-party
+pipeline); present the work as a methodological case study.}
+\resp We adopt this framing explicitly. The abstract calls the contribution ``a
+reproducible case study''; Sec.~X closes by reading the contribution as a
+methodological case study for one well-instrumented format and window rather than
+a universal metagame claim; data-provenance biases remain itemized in Sec.~V-C.
+
+\hrulefill
+
+\section*{Reviewer 2 (Minor Revision)}
+
+\subsection*{Accessibility and artifact}
+\cmt{The manuscript assumes substantial prior knowledge of formal verification;
+the LEAN source was not included in the submission package.}
+\resp We added a dedicated primer (Sec.~III-A) introducing proof assistants,
+Lean~4, decision procedures, and exact arithmetic for the general AI/PCG audience,
+and a pipeline diagram (Fig.~1). On the artifact: the complete anonymized Lean
+source (\textbf{87 files, ${\sim}31{,}900$ lines, $2{,}627$ theorems}, no
+\texttt{sorry}/\texttt{admit}/axiom---confirmed by \texttt{\#print axioms} on the
+headline theorems, which depend only on \texttt{propext}/\texttt{Quot.sound} and
+the \texttt{native\_decide} axiom \texttt{Lean.ofReduceBool}), the $14\times14$
+matrix, and the Python scripts are provided as supplementary material and re-verify
+end-to-end via a single \texttt{lake build}. We re-audited every count against the
+source so the manuscript and artifact now agree exactly, removed a superseded
+results file and the raw-model enumeration scripts it came from, and added two
+reproduction scripts (\texttt{enumerate\_symmetric\_nash.py},
+\texttt{dragapult\_universal\_exclusion.py}). The strengthened Data Availability
+statement maps each numerical claim to a named theorem so any result can be located
+and re-run. The archive is attached to this resubmission.
+
+\subsection*{Clarifications}
+\cmt{1. (V-A) Rationale for weighting a tie as $T/3$.}
+\resp Added (Sec.~V-A): the coefficient mirrors the Pok\'emon Championship Series
+match-point system (win $=3$, tie $=1$, loss $=0$), so a tie is worth exactly
+one-third of a win in the format's \emph{own} reward structure---encoded in the
+artifact as \texttt{scoreWin}=3, \texttt{scoreDraw}=1, \texttt{scoreLoss}=0. This
+is more faithful than the common $T/2$ convention. We also note the
+symmetric-equilibrium support is invariant to this coefficient (Sec.~X).
+
+\cmt{2. (IX-B, XI-A) What does the high ``fixed cost'' of porting entail?}
+\resp Sec.~IX-B now itemizes it: (i) encoding the strategic-layer rule semantics
+(type chart, legality, prize/turn structure)---the bulk of the code and the only
+part needing real domain modeling; (ii) defining the archetype enumeration and
+matrix ingestion; (iii) reusing the game-theory harness unchanged, since it is
+parameterized over an abstract \texttt{FiniteGame}. Steps (ii)--(iii) are days of
+work given a matrix; step (i) dominates and scales with rule complexity. A fresh
+archetype set within the same game is the ${\sim}200$-line marginal case.
+
+\cmt{3. (VIII) How does the Swiss objective specifically influence the analysis?}
+\resp Sec.~VIII now explains that our Nash/replicator results optimize a
+single-match criterion, whereas Swiss qualification optimizes a \emph{threshold}
+functional $P(\text{X--2})$ over eight rounds. Because the threshold is sensitive
+to outcome \emph{variance}, not only the mean, it re-weights the single-match
+equilibrium toward consistent decks for strong contenders near the cut-line,
+which can rationalize a portion of the observed ``suboptimal'' play. We mark a
+full Swiss-utility equilibrium as future work.
+
+\cmt{4. (II) Wilson intervals and perturbations make the method a hybrid,
+complementary to Monte Carlo, rather than orthogonal.}
+\resp We agree and rephrased Sec.~II accordingly: the approach is now characterized
+as a \emph{hybrid} that applies formal verification \emph{on top of} statistical
+estimation---Wilson intervals for per-cell uncertainty and a $10{,}000$-iteration
+Monte~Carlo resampling for equilibrium robustness---with Lean certifying exact
+claims over each sampled or point-estimate matrix. Fig.~1 visualizes this
+interface.
+
+\subsection*{Suggestions}
+\cmt{1. Inconsistent listing captions.}
+\resp All code listings now carry captions (Listings~1--8).
+\cmt{2. A notation table would help.}
+\resp Added (Table~I), covering $s_j$, $w_{i,j}$, $\mathbb{E}[\mathrm{WR}_i]$, $M$,
+$S_{ij}$, the game value $v$, replicator $x_i,f_i,\bar f$, the Wilson $\tilde p$,
+$P_{\mathrm{Bo3}}$, the Swiss cut-line, and the permil scale.
+\cmt{3. A brief intro to LEAN/formal verification.}
+\resp Added as Sec.~III-A (see above).
+\cmt{4. A pipeline diagram clarifying the Python\,$\leftrightarrow$\,LEAN interface
+and compile-time vs.\ runtime.}
+\resp Added as Fig.~1: an untrusted Python discovery layer only \emph{proposes}
+candidates; Lean \emph{certifies} every claim at compile time over exact
+rationals; a separate runtime stage executes demonstration traces.
+
+\hrulefill
+
+\section*{Reviewer 3 (Major Revision)}
+
+\cmt{Major \#1. Uniqueness via symmetric equilibria is a conceptual leap:
+asymmetric equilibria $(A,B)$ are interchangeable and equally rational, so
+uniqueness is an artifact of restricting to symmetric profiles, not a consequence
+of individual rationality.}
+\resp We agree with the theory and have rewritten Sec.~VII to make the stronger,
+\emph{equilibrium-independent} argument. We now explicitly acknowledge
+interchangeability and that symmetry is a modeling choice. We then show that
+Dragapult's exclusion does \emph{not} rely on the symmetry restriction: in a
+constant-sum game, complementary slackness forces the support of \emph{every}
+optimal strategy to lie inside the best-response set of \emph{every} optimal
+opponent strategy. Since the symmetric strategy is optimal for both players and
+Dragapult earns $40.4$\textperthousand{} \emph{strictly} below the value against
+it, Dragapult is a best response to no optimal strategy and therefore appears in
+\emph{no} equilibrium---symmetric or asymmetric. This strict gap is now itself
+machine-checked (\texttt{symmetric\_nash\_dragapult\_strict\_gap}), and we
+corroborate the universal claim with a \emph{global} linear program
+(\texttt{dragapult\_universal\_exclusion.py}) that maximizes Dragapult's payoff over
+the \emph{entire} optimal-strategy set and returns $459.6<500$---a stronger
+certificate than the earlier size-bounded support search. We now state that the
+symmetry restriction only selects a single \emph{canonical} profile to report,
+whereas the \emph{exclusion} is a strict best-response fact holding across the
+entire equilibrium set; we also delimit the scope precisely (the universal claim is
+exact for the constant-sum symmetrization, with the approximately-constant-sum raw
+game corroborating via its directly verified zero-weight equilibria).
+
+\cmt{Major \#2. Chance timing/evolutionary interpretation: under an asymmetric
+equilibrium the population would split into two sub-populations; the manuscript
+implicitly shifts from classical to bounded/evolutionary rationality and should
+decouple the two and state the epistemic boundary of the single-population
+replicator.}
+\resp Added a dedicated paragraph, ``Classical versus evolutionary rationality''
+(Sec.~VII-A). We distinguish the classical one-shot equilibrium question from the
+evolutionary imitation dynamics, note that an asymmetric profile $(A,B)$ would
+physically split the population into two behavioral sub-populations, and state
+that the single-population replicator is valid for \emph{macro} share dynamics
+only under a specific epistemic regime: an approximately homogeneous population,
+largely unstructured matchmaking, and open centralized information flow
+(net-decking). We emphasize this is an assumption, not a theorem, and that the
+Dragapult-exclusion result lives at the static-equilibrium level and does not
+depend on the evolutionary reading.
+
+\cmt{Major \#3. Quantal response/noise: the proof rests on a knife-edge,
+noise-free matrix; under payoff perturbations asymmetric equilibria evaporate
+while the symmetric profile is a robust focal point. Discuss how the symmetric
+equilibrium withstands micro-level payoff uncertainty (Sec.~VI-A).}
+\resp Added a paragraph to Sec.~VI-A. We make two points. First, the load-bearing
+claim is \emph{not} knife-edge: Dragapult's $40.4$\textperthousand{} gap tolerates
+$\approx 20$\textperthousand{} of entrywise perturbation, several times the
+$\pm 1.8$--$9$\textperthousand{} Wilson sampling error. Second, noise is precisely
+why we anchor on the symmetric profile: asymmetric equilibria of a
+near-constant-sum game are highly sensitive to matrix drift, whereas the symmetric
+(maximin) strategy is the self-correcting focal point that stochastic,
+quantal-response play converges toward; the sensitivity analysis ($>96\%$ core
+inclusion) is its empirical signature.
+
+\cmt{Minor \#1. The \texttt{GrimssnarlFroslass} identifier typo; state explicitly
+that it is a benign string-matching artifact.}
+\resp The footnote now states explicitly that the identifier is a purely cosmetic
+string-matching artifact used consistently throughout, with no effect on any
+definition, theorem, or result, retained verbatim for traceability.
+
+\cmt{Minor \#2. State the exact $\varepsilon$ bound under which the symmetric Nash
+support set remains invariant.}
+\resp Added (Sec.~X, ``Equilibrium robustness''). A uniform entrywise perturbation
+of size $\varepsilon$ moves any payoff-vs-mix and the value by at most
+$\varepsilon$, so a deck with best-response gap $g$ cannot enter the support while
+$\varepsilon < g/2$. The smallest exclusion gap among non-support decks is
+$10.3$\textperthousand, so an excluded deck can enter only once
+$\varepsilon \gtrsim 5$\textperthousand; we now also note the opposite direction (a
+thin incumbent such as Alakazam, at $2.5\%$ weight, can exit under a comparable
+perturbation), so the single $\varepsilon$ guaranteeing the \emph{entire} support
+is ${\approx}5$\textperthousand. Dragapult's exclusion, with gap
+$40.4$\textperthousand, is by contrast invariant for $\varepsilon \lesssim 20$\textperthousand{}
+(a four-fold larger margin). For the tie coefficient specifically the bound is
+exact: because each matchup and its mirror share one record, the tie terms cancel
+in $M_{ij}-M_{ji}$, so the symmetrization is algebraically independent of the tie
+weight; we verified $\max_{ij}|S_{ij}^{T/3}-S_{ij}^{T/2}|<1$\textperthousand{} and
+that re-enumeration under $T/2$ reproduces the identical seven-deck support.
+
+\cmt{Minor \#3. State whether a kernel-checked alternative to \texttt{native\_decide}
+is fundamentally impossible or merely an engineering bottleneck.}
+\resp Sec.~IX-A now classifies it explicitly as an \emph{engineering bottleneck,
+not a fundamental impossibility}: the obstruction is the kernel's inefficient
+reduction of \texttt{Fin.foldl}, and a kernel-transparent reimplementation (e.g.,
+structurally recursive predicates or inductive relations instead of opaque folds)
+is possible in principle at the cost of substantial proof-engineering effort and
+longer kernel-reduction times.
+
+\hrulefill
+
+\section*{IEEE AI-content policy}
+Per the Editor's note, we added a ``Disclosure of Generative AI Use'' statement:
+generative AI assistance was used during revision for copy-editing/reorganization
+and for cross-checking numerical computations; all formal results are
+machine-checked in Lean~4 and were independently verified by the authors, who take
+full responsibility for the content.
+
+\bigskip
+We believe these revisions resolve the reviewers' concerns while preserving the
+artifact's rigor, and we thank the reviewers again for feedback that materially
+strengthened both the paper and its correctness.
+
+\end{document}
