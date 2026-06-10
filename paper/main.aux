@@ -4,84 +4,111 @@
 \citation{shannon1950chess,schaefer1978complexity,fraenkel1981chess}
 \citation{bowling2015heads,brown2018superhuman,brown2019pluribus}
 \citation{silver2018general,vinyals2019alphastar}
-\citation{cowling2012information,ward2009monte,santos2017monte,zhang2017deck}
-\citation{bjorke2017deckbuilding,dockhorn2019hearthstone,kowalski2020summon}
 \@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{1}{}\protected@file@percent }
 \newlabel{sec:related}{{II}{1}{}{section.2}{}}
+\citation{cowling2012information,ward2009monte,santos2017monte,zhang2017deck}
+\citation{bjorke2017deckbuilding,dockhorn2019hearthstone,kowalski2020summon}
 \citation{moura2021lean}
 \citation{gonthier2008four,Avigad2007,mathlib2020,hales2017kepler}
 \citation{li2023card}
 \citation{smith1973logic,taylor1978evolutionary,weibull1997evolutionary}
+\citation{moura2021lean}
 \citation{ptcg_rules,playpokemon2024rules}
 \@writefile{toc}{\contentsline {section}{\numberline {III}Game Formalization}{2}{}\protected@file@percent }
 \newlabel{sec:formalization}{{III}{2}{}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}From Type Rules to Matchup Data}{2}{}\protected@file@percent }
-\newlabel{subsec:typealignment}{{\mbox  {III-A}}{2}{}{subsection.3.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-A}0a}Type assignment methodology}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Primer: Lean~4 and Formal Verification}{2}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textcolor {blue!70!black}{Verification pipeline. A \textcolor {red!55!black}{Python} layer (\emph  {untrusted}) only \emph  {proposes} candidate equilibria and resampled matrices; \textcolor {blue!55!black}{Lean} \emph  {certifies} every claim at compile time via \texttt  {native\_decide} over exact rationals, and a separate runtime stage executes demonstration traces. Data enter once as exact constants, so the discovery tool can never inject an unverified number.}}}{2}{}\protected@file@percent }
+\newlabel{fig:pipeline}{{1}{2}{}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Rules, Legality, and Invariants}{2}{}\protected@file@percent }
+\newlabel{lst:triangle}{{1}{2}{}{lstlisting.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Type-effectiveness triangle: weakness is non-transitive.}{2}{}\protected@file@percent }
+\newlabel{lst:cardcons}{{2}{3}{}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}Card-conservation proof for Professor's Research.}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}From Type Rules to Matchup Data}{3}{}\protected@file@percent }
+\newlabel{subsec:typealignment}{{\mbox  {III-C}}{3}{}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-C}0a}Type assignment methodology}{3}{}\protected@file@percent }
+\newlabel{lst:typeadv}{{3}{3}{}{lstlisting.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}Rule-level type-advantage predicate.}{3}{}\protected@file@percent }
+\newlabel{lst:grimm}{{4}{3}{}{lstlisting.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}Dark attackers beat Psychic defenders: bridge alignment.}{3}{}\protected@file@percent }
 \citation{trainerhill2026}
 \citation{Wilson1927}
-\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-A}0b}Numerical sufficiency}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {IV}Probability and Resource Theory}{3}{}\protected@file@percent }
-\newlabel{sec:probability}{{IV}{3}{}{section.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Tournament Data and Methodology}{3}{}\protected@file@percent }
-\newlabel{sec:data}{{V}{3}{}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Data Source and Archetypes}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Uncertainty and Sensitivity}{3}{}\protected@file@percent }
+\newlabel{lst:dragvuln}{{5}{4}{}{lstlisting.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}Dragapult's Psychic typing is exploited by 13.1\% of the field.}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {III-C}0b}Numerical sufficiency}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Probability and Resource Theory}{4}{}\protected@file@percent }
+\newlabel{sec:probability}{{IV}{4}{}{section.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Tournament Data and Methodology}{4}{}\protected@file@percent }
+\newlabel{sec:data}{{V}{4}{}{section.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces \textcolor {blue!70!black}{Notation used throughout the paper.}}}{4}{}\protected@file@percent }
+\newlabel{tab:notation}{{I}{4}{}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Data Source and Archetypes}{4}{}\protected@file@percent }
 \citation{Tversky1974,Kahneman1979,Banerjee1992,Bikhchandani1992,mckelvey1995quantal,nagel1995unraveling}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Sensitivity analysis: Nash weight 95\% sensitivity ranges (10{,}000 iterations). \emph  {Inclusion} is the fraction of resampled equilibria with nonzero weight.}}{5}{}\protected@file@percent }
+\newlabel{tab:bootstrap}{{II}{5}{}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Uncertainty and Sensitivity}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Data Provenance}{5}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Popularity paradox: share versus expected win rate (top-14 normalized). Dragapult is high-share/low-fitness; Grimmsnarl is low-share/high-fitness.}}{5}{}\protected@file@percent }
+\newlabel{fig:paradoxscatter}{{2}{5}{}{figure.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}The Popularity Paradox}{5}{}\protected@file@percent }
+\newlabel{sec:paradox}{{VI}{5}{}{section.6}{}}
+\citation{mckelvey1995quantal}
 \citation{NisanRoughgarden2007}
 \citation{nash1950equilibrium}
 \citation{vonneumann1928theorie}
 \citation{glickman1999parameter,herbrich2007trueskill}
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Sensitivity analysis: Nash weight 95\% sensitivity ranges (10{,}000 iterations). \emph  {Inclusion} is the fraction of resampled equilibria with nonzero weight.}}{4}{}\protected@file@percent }
-\newlabel{tab:bootstrap}{{I}{4}{}{table.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Data Provenance}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {VI}The Popularity Paradox}{4}{}\protected@file@percent }
-\newlabel{sec:paradox}{{VI}{4}{}{section.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Popularity paradox: share versus expected win rate (top-14 normalized). Dragapult is high-share/low-fitness; Grimmsnarl is low-share/high-fitness.}}{4}{}\protected@file@percent }
-\newlabel{fig:paradoxscatter}{{1}{4}{}{figure.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Behavioral-Economic Interpretation}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {VII}Nash Equilibrium and Metagame Dynamics}{4}{}\protected@file@percent }
-\newlabel{sec:nash}{{VII}{4}{}{section.7}{}}
+\citation{NisanRoughgarden2007}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Top-6 subset of the archetype matchup matrix (win rates \%).}}{6}{}\protected@file@percent }
+\newlabel{tab:matchup}{{III}{6}{}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Notable cross-tier matchups (Trainer Hill, Jan--Feb 2026).}}{6}{}\protected@file@percent }
+\newlabel{tab:crosstier}{{IV}{6}{}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Behavioral-Economic Interpretation}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Nash Equilibrium and Metagame Dynamics}{6}{}\protected@file@percent }
+\newlabel{sec:nash}{{VII}{6}{}{section.7}{}}
+\newlabel{lst:realnash}{{6}{6}{}{lstlisting.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}Machine-checked Nash equilibrium of the raw $14\times 14$ game.}{6}{}\protected@file@percent }
+\newlabel{lst:symnash}{{7}{6}{}{lstlisting.7}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}Machine-checked symmetric Nash equilibrium of the constant-sum symmetrization.}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {VII-}0a}Uniqueness of the symmetric equilibrium}{6}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Expected win rate on the modeled top-14 subset (69.5\% of field). Tiers: S~($\geq $52\%), A~(50--52\%), B~(48--50\%), C~($<$48\%).}}{7}{}\protected@file@percent }
+\newlabel{tab:expected}{{V}{7}{}{table.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Lean-verified Nash supports for row and column strategies.}}{7}{}\protected@file@percent }
+\newlabel{tab:nash}{{VI}{7}{}{table.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Symmetric Nash equilibrium on the constant-sum symmetrization. Exhaustive enumeration confirms uniqueness among symmetric profiles; \textcolor {blue!70!black}{Dragapult is excluded with a strict gap of $-$40.4\textperthousand {} against the equilibrium mix (game value $500$).}}}{7}{}\protected@file@percent }
+\newlabel{tab:symmetric}{{VII}{7}{}{table.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {VII-}0b}\textcolor {blue!70!black}{Why Dragapult's exclusion is equilibrium-independent}}{7}{}\protected@file@percent }
 \citation{Hofbauer1998,Sandholm2010}
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Top-6 subset of the archetype matchup matrix (win rates \%).}}{5}{}\protected@file@percent }
-\newlabel{tab:matchup}{{II}{5}{}{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Notable cross-tier matchups (Trainer Hill, Jan--Feb 2026).}}{5}{}\protected@file@percent }
-\newlabel{tab:crosstier}{{III}{5}{}{table.3}{}}
-\newlabel{lst:symnash}{{1}{5}{}{lstlisting.1}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Symmetric Nash verification.}{5}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {VII-}0a}Uniqueness of the symmetric equilibrium}{5}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Directed metagame interaction motif.}}{5}{}\protected@file@percent }
-\newlabel{fig:cycle}{{2}{5}{}{figure.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Replicator Dynamics}{5}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Expected win rate on the modeled top-14 subset (69.5\% of field). Tiers: S~($\geq $52\%), A~(50--52\%), B~(48--50\%), C~($<$48\%).}}{6}{}\protected@file@percent }
-\newlabel{tab:expected}{{IV}{6}{}{table.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Lean-verified Nash supports for row and column strategies.}}{6}{}\protected@file@percent }
-\newlabel{tab:nash}{{V}{6}{}{table.5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Symmetric Nash equilibrium on the constant-sum symmetrization. Exhaustive enumeration confirms uniqueness; Dragapult is excluded with gap $-$63.3\textperthousand .}}{6}{}\protected@file@percent }
-\newlabel{tab:symmetric}{{VI}{6}{}{table.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Preliminary Directional Check}{6}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Bo1 to Bo3 Amplification for Key Matchups.}}{6}{}\protected@file@percent }
-\newlabel{tab:bo3}{{VII}{6}{}{table.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {VIII}Tournament Strategy}{6}{}\protected@file@percent }
-\newlabel{sec:tournament}{{VIII}{6}{}{section.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Directed metagame interaction motif.}}{8}{}\protected@file@percent }
+\newlabel{fig:cycle}{{3}{8}{}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Replicator Dynamics}{8}{}\protected@file@percent }
+\newlabel{lst:replicator}{{8}{8}{}{lstlisting.8}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}Full 14-deck replicator: Dragapult declines, Grimmsnarl fittest.}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\mbox  {VII-A}0a}\textcolor {blue!70!black}{Classical versus evolutionary rationality}}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Preliminary Directional Check}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Tournament Strategy}{8}{}\protected@file@percent }
+\newlabel{sec:tournament}{{VIII}{8}{}{section.8}{}}
+\citation{romero2022swiss}
 \citation{moura2021lean}
-\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Assurance levels by theorem category. \emph  {Kernel} = fully checked by Lean's trusted kernel; \emph  {Compiler} = trusts native code generation.}}{7}{}\protected@file@percent }
-\newlabel{tab:assurance}{{VIII}{7}{}{table.8}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {IX}Formalization Methodology}{7}{}\protected@file@percent }
-\newlabel{sec:methodology}{{IX}{7}{}{section.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-A}}Trust Boundary: \texttt  {native\_decide}}{7}{}\protected@file@percent }
-\newlabel{subsec:trust}{{\mbox  {IX-A}}{7}{}{subsection.9.1}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces Methodology comparison for metagame analytics.}}{7}{}\protected@file@percent }
-\newlabel{tab:baseline}{{IX}{7}{}{table.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-B}}Reproducibility and Cost-Benefit}{7}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-C}}Case Study: Verifying a Headline Claim}{7}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-D}}Human Review and Artifact Audit}{8}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {X}Threats to Validity}{8}{}\protected@file@percent }
-\newlabel{sec:threats}{{X}{8}{}{section.10}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {XI}Conclusion}{8}{}\protected@file@percent }
-\newlabel{sec:conclusion}{{XI}{8}{}{section.11}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-A}}Broader Implications}{8}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Bo1 to Bo3 Amplification for Key Matchups.}}{9}{}\protected@file@percent }
+\newlabel{tab:bo3}{{VIII}{9}{}{table.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Formalization Methodology}{9}{}\protected@file@percent }
+\newlabel{sec:methodology}{{IX}{9}{}{section.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces \textcolor {blue!70!black}{Assurance levels by theorem category, with exact counts from the artifact ($2{,}627$ theorems total). \emph  {Kernel} = fully re-checked by Lean's trusted kernel; \emph  {Compiler} = trusts native code generation (\texttt  {native\_decide}). Counts are reproducible by grepping the published sources.}}}{9}{}\protected@file@percent }
+\newlabel{tab:assurance}{{IX}{9}{}{table.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-A}}Trust Boundary: \texttt  {native\_decide}}{9}{}\protected@file@percent }
+\newlabel{subsec:trust}{{\mbox  {IX-A}}{9}{}{subsection.9.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-B}}Reproducibility and Cost-Benefit}{9}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {X}{\ignorespaces Methodology comparison for metagame analytics.}}{10}{}\protected@file@percent }
+\newlabel{tab:baseline}{{X}{10}{}{table.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-C}}Case Study: Verifying a Headline Claim}{10}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IX-D}}Human Review and Artifact Audit}{10}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {X}Threats to Validity}{10}{}\protected@file@percent }
+\newlabel{sec:threats}{{X}{10}{}{section.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {XI}Conclusion}{11}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{XI}{11}{}{section.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-A}}Broader Implications}{11}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-B}}Lessons from the Formalization Process}{11}{}\protected@file@percent }
 \citation{ramos2026pokemondata}
 \bibstyle{IEEEtran}
 \bibdata{references}
@@ -108,12 +135,11 @@
 \bibcite{mathlib2020}{21}
 \bibcite{hales2017kepler}{22}
 \bibcite{li2023card}{23}
+\@writefile{toc}{\contentsline {section}{References}{12}{}\protected@file@percent }
 \bibcite{smith1973logic}{24}
 \bibcite{taylor1978evolutionary}{25}
 \bibcite{weibull1997evolutionary}{26}
 \bibcite{ptcg_rules}{27}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-B}}Lessons from the Formalization Process}{9}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{9}{}\protected@file@percent }
 \bibcite{playpokemon2024rules}{28}
 \bibcite{Wilson1927}{29}
 \bibcite{Tversky1974}{30}
@@ -129,5 +155,6 @@
 \bibcite{herbrich2007trueskill}{40}
 \bibcite{Hofbauer1998}{41}
 \bibcite{Sandholm2010}{42}
-\bibcite{ramos2026pokemondata}{43}
-\gdef \@abspage@last{10}
+\bibcite{romero2022swiss}{43}
+\bibcite{ramos2026pokemondata}{44}
+\gdef \@abspage@last{13}

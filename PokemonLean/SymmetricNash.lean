@@ -102,4 +102,20 @@ theorem symmetric_nash_dragapult_zero :
     symNashStrategy ⟨0, by omega⟩ = 0 := by
   native_decide
 
+/-- Dragapult's payoff against the symmetric Nash mix is exactly 345823769/752471,
+    i.e. 459.584‰ — strictly below the game value of 500. -/
+theorem symmetric_nash_dragapult_payoff :
+    rowPurePayoff symMetaGame ⟨0, by native_decide⟩ symNashStrategy
+      = (345823769 : Rat) / (752471 : Rat) := by
+  native_decide
+
+/-- Dragapult is *strictly* suboptimal against the symmetric Nash mix:
+    its pure-strategy payoff is strictly less than the equilibrium value 500.
+    Because the symmetric strategy is optimal for both players in the constant-sum
+    symmetrization, complementary slackness then excludes Dragapult from the support
+    of *every* Nash equilibrium — symmetric or asymmetric. -/
+theorem symmetric_nash_dragapult_strict_gap :
+    rowPurePayoff symMetaGame ⟨0, by native_decide⟩ symNashStrategy < 500 := by
+  native_decide
+
 end PokemonLean.SymmetricNash

@@ -1,12 +1,14 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.1.23)  26 FEB 2026 00:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.10)  10 JUN 2026 20:08
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**main.tex
-(./main.tex
+**./main.tex
+(main.tex
 LaTeX2e <2025-11-01>
-L3 programming layer <2026-01-19>
-(/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/ieeetran/IEEEtran.cls
+L3 programming layer <2025-12-24>
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/ieeetran\IEEEtran.cl
+s
 Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
 -- See the "IEEEtran_HOWTO" manual for usage information.
 -- http://www.michaelshell.org/tex/ieeetran/
@@ -17,15 +19,17 @@ Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
 \@IEEEtrantmpcountB=\count276
 \@IEEEtrantmpcountC=\count277
 \@IEEEtrantmptoksA=\toks17
-LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 503.
-(/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1ptm.fd
+LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 5
+03.
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 -- Using 8.5in x 11in (letter) paper.
 -- Using PDF output.
 \@IEEEnormalsizeunitybaselineskip=\dimen151
 -- This is a 10 point document.
-LaTeX Encoding Info:    Redeclaring text command \textunderscore (encoding ?) on input line 937.
+LaTeX Encoding Info:    Redeclaring text command \textunderscore (encoding ?) o
+n input line 937.
 \CLASSINFOnormalsizebaselineskip=\dimen152
 \CLASSINFOnormalsizeunitybaselineskip=\dimen153
 \IEEEnormaljot=\dimen154
@@ -33,42 +37,52 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <5> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <7> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <8> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <9> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <10> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <11> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <11> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <12> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <17> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <17> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <20> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <20> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <24> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+
 \IEEEquantizedlength=\dimen155
 \IEEEquantizedlengthdiff=\dimen156
 \IEEEquantizedtextheightdiff=\dimen157
@@ -103,21 +117,24 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
 \IEEEPARstartletwidth=\dimen171
 \c@IEEEbiography=\count289
 \@IEEEtranrubishbin=\box54
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
 Package: amsmath 2025/07/09 v2.17z AMS math features
 \@mathmargin=\skip52
 
 For additional information on amsmath, use the `?' option.
-(/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.sty
 Package: amstext 2024/11/17 v2.01 AMS text
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks18
 \ex@=\dimen172
-)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty
+)) (C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.st
+y
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 \pmbraise@=\dimen173
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty
+) (C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.sty
 Package: amsopn 2022/04/08 v2.04 operator names
 )
 \inf@bad=\count290
@@ -167,16 +184,21 @@ LaTeX Info: Redefining \Relbar on input line 970.
 \mathdisplay@stack=\toks22
 LaTeX Info: Redefining \[ on input line 2950.
 LaTeX Info: Redefining \] on input line 2951.
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amssymb.sty
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amsfonts.st
+y
 Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
 \symAMSa=\mathgroup4
 \symAMSb=\mathgroup5
 LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
-)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty
+))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/booktabs\booktabs.st
+y
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 \heavyrulewidth=\dimen181
 \lightrulewidth=\dimen182
@@ -195,7 +217,7 @@ Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 \@thisruleclass=\count304
 \@lastruleclass=\count305
 \@thisrulewidth=\dimen193
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/tools/array.sty
+) (C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/tools\array.sty
 Package: array 2025/09/25 v2.6n Tabular extension package (FMi)
 \col@sep=\dimen194
 \ar@mcellbox=\box57
@@ -204,28 +226,38 @@ Package: array 2025/09/25 v2.6n Tabular extension package (FMi)
 \extratabsurround=\skip55
 \backup@length=\skip56
 \ar@cellbox=\box58
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/multirow/multirow.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/multirow\multirow.st
+y
 Package: multirow 2024/11/12 v2.9 Span multiple rows of a table
 \multirow@colwidth=\skip57
 \multirow@cntb=\count306
 \multirow@dima=\skip58
 \bigstrutjot=\dimen196
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/cite/cite.sty
+) (C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/cite\cite.sty
 LaTeX Info: Redefining \cite on input line 302.
 LaTeX Info: Redefining \nocite on input line 332.
 Package: cite 2015/02/27  v 5.5
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/url/url.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty
 \Urlmuskip=\muskip18
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
 Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics-cfg/color.cfg
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\color.c
+fg
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package xcolor Info: Driver file: pdftex.def on input line 274.
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.
+def
 File: pdftex.def 2025/09/29 v1.2d Graphics/color driver for pdftex
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics\mathcolor.l
+tx)
 Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
 Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1353.
 Package xcolor Info: Model `RGB' extended on input line 1365.
@@ -235,7 +267,10 @@ Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
 Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
 Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/listings/listings.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.st
+y
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
 \KV@toks@=\toks24
 )
@@ -251,14 +286,19 @@ Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
 \lst@newlines=\count311
 \lst@lineno=\count312
 \lst@maxwidth=\dimen256
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/listings/lstpatch.sty
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstpatch.st
+y
 File: lstpatch.sty 2025/11/14 1.11b (Carsten Heinz)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/listings/lstmisc.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
 \c@lstnumber=\count313
 \lst@skipnumbers=\count314
 \lst@framebox=\box60
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/listings/listings.cfg
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.cf
+g
 File: listings.cfg 2025/11/14 1.11b listings configuration
 ))
 Package: listings 2025/11/14 1.11b (Carsten Heinz)
@@ -269,40 +309,75 @@ Package: listings 2025/11/14 1.11b (Carsten Heinz)
     but found:
         2025/11/14 1.11b (Carsten Heinz)
     so I'm assuming it got fixed.
-(/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/preprint/balance.sty
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/preprint\balance.sty
 Package: balance 1999/02/23 4.3 (PWD)
 \oldvsize=\dimen257
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgfplots/pgfplots.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplots.revision.tex)
-Package: pgfplots 2025/08/14 v1.18.2 Data Visualization (1.18.2)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgfplots\pgfplots.st
+y
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplots.
+revision.tex)
+Package: pgfplots 2021/05/15 v1.18.1 Data Visualization (1.18.1)
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.st
+y
 Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.st
+y
 Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty
+ (C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
 Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphic
+s.cfg
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 106.
 )
 \Gin@req@height=\dimen258
 \Gin@req@width=\dimen259
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/frontendlayer\ti
+kz.sty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/basiclayer\pgf.s
+ty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgfrcs
+.sty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfu
+til-common.tex
 \pgfutil@everybye=\toks26
 \pgfutil@tempdima=\dimen260
 \pgfutil@tempdimb=\dimen261
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfu
+til-latex.def
 \pgfutil@abb=\box61
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/pgf.revision.tex)
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfr
+cs.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf\pgf.revision.t
+ex)
 Package: pgfrcs 2025-08-29 v3.1.11a (3.1.11a)
 ))
 Package: pgf 2025-08-29 v3.1.11a (3.1.11a)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/basiclayer\pgfco
+re.sty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/systemlayer\pgfs
+ys.sty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pg
+fsys.code.tex
 Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfk
+eys.code.tex
 \pgfkeys@pathtoks=\toks27
 \pgfkeys@temptoks=\toks28
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfk
+eyslibraryfiltered.code.tex
 \pgfkeys@tmptoks=\toks29
 ))
 \pgf@x=\dimen262
@@ -325,32 +400,76 @@ Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
 \t@pgf@tokb=\toks31
 \t@pgf@tokc=\toks32
 \pgf@sys@id@count=\count319
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pg
+f.cfg
 File: pgf.cfg 2025-08-29 v3.1.11a (3.1.11a)
 )
 Driver file for pgf: pgfsys-pdftex.def
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-pdftex.def
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pg
+fsys-pdftex.def
 File: pgfsys-pdftex.def 2025-08-29 v3.1.11a (3.1.11a)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-common-pdf.def
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pg
+fsys-common-pdf.def
 File: pgfsys-common-pdf.def 2025-08-29 v3.1.11a (3.1.11a)
-))) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex
+)))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pg
+fsyssoftpath.code.tex
 File: pgfsyssoftpath.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfsyssoftpath@smallbuffer@items=\count320
 \pgfsyssoftpath@bigbuffer@items=\count321
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pg
+fsysprotocol.code.tex
 File: pgfsysprotocol.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
+))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+core.code.tex
 Package: pgfcore 2025-08-29 v3.1.11a (3.1.11a)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmath.c
+ode.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathut
+il.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathpa
+rser.code.tex
 \pgfmath@dimen=\dimen272
 \pgfmath@count=\count322
 \pgfmath@box=\box62
 \pgfmath@toks=\toks33
 \pgfmath@stack@operand=\toks34
 \pgfmath@stack@operation=\toks35
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigonometric.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.random.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.comparison.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.basic.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.trigonometric.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.random.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.comparison.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.base.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.round.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.misc.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfu
+nctions.integerarithmetics.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathca
+lc.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfl
+oat.code.tex
 \c@pgfmathroundto@lastzeros=\count323
-)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfint.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex
+))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfint.co
+de.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corepoints.code.tex
 File: pgfcorepoints.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@picminx=\dimen273
 \pgf@picmaxx=\dimen274
@@ -366,75 +485,131 @@ File: pgfcorepoints.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@yy=\dimen284
 \pgf@zx=\dimen285
 \pgf@zy=\dimen286
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corepathconstruct.code.tex
 File: pgfcorepathconstruct.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@path@lastx=\dimen287
 \pgf@path@lasty=\dimen288
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corepathusage.code.tex
 File: pgfcorepathusage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@shorten@end@additional=\dimen289
 \pgf@shorten@start@additional=\dimen290
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corescopes.code.tex
 File: pgfcorescopes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfpic=\box63
 \pgf@hbox=\box64
 \pgf@layerbox@main=\box65
 \pgf@picture@serial@count=\count324
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicstate.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+coregraphicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgflinewidth=\dimen291
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransformations.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+coretransformations.code.tex
 File: pgfcoretransformations.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@pt@x=\dimen292
 \pgf@pt@y=\dimen293
 \pgf@pt@temp=\dimen294
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corequick.code.tex
 File: pgfcorequick.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreobjects.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+coreobjects.code.tex
 File: pgfcoreobjects.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathprocessing.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corepathprocessing.code.tex
 File: pgfcorepathprocessing.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corearrows.code.tex
 File: pgfcorearrows.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfarrowsep=\dimen295
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+coreshade.code.tex
 File: pgfcoreshade.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@max=\dimen296
 \pgf@sys@shading@range@num=\count325
 \pgf@shadingcount=\count326
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+coreimage.code.tex
 File: pgfcoreimage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreexternal.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+coreexternal.code.tex
 File: pgfcoreexternal.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfexternal@startupbox=\box66
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorelayers.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corelayers.code.tex
 File: pgfcorelayers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransparency.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+coretransparency.code.tex
 File: pgfcoretransparency.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepatterns.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corepatterns.code.tex
 File: pgfcorepatterns.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorerdf.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgf
+corerdf.code.tex
 File: pgfcorerdf.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-))) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmoduleshapes.code.tex
+)))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgfmod
+uleshapes.code.tex
 File: pgfmoduleshapes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfnodeparttextbox=\box67
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmoduleplot.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgfmod
+uleplot.code.tex
 File: pgfmoduleplot.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-0-65.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibility\pg
+fcomp-version-0-65.sty
 Package: pgfcomp-version-0-65 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@nodesepstart=\dimen297
 \pgf@nodesepend=\dimen298
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-1-18.sty
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibility\pg
+fcomp-version-1-18.sty
 Package: pgfcomp-version-1-18 2025-08-29 v3.1.11a (3.1.11a)
-)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgffor.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/pgf/math/pgfmath.sty (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
+))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgffor
+.sty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgfkey
+s.sty
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfk
+eys.code.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/pgf/math\pgfmath.sty
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmath.c
+ode.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgff
+or.code.tex
 Package: pgffor 2025-08-29 v3.1.11a (3.1.11a)
 \pgffor@iter=\dimen299
 \pgffor@skip=\dimen300
 \pgffor@stack=\toks36
 \pgffor@toks=\toks37
-)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex
+))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz\tikz.code.tex
 Package: tikz 2025-08-29 v3.1.11a (3.1.11a)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries\pgfl
+ibraryplothandlers.code.tex
 File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@plot@mark@count=\count327
 \pgfplotmarksize=\dimen301
@@ -455,30 +630,105 @@ File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \tikznumberofchildren=\count329
 \tikznumberofcurrentchild=\count330
 \tikz@fig@count=\count331
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgfmod
+ulematrix.code.tex
 File: pgfmodulematrix.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfmatrixcurrentrow=\count332
 \pgfmatrixcurrentcolumn=\count333
 \pgf@matrix@numberofcolumns=\count334
 )
 \tikz@expandcount=\count335
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibrarytopaths.code.tex
 File: tikzlibrarytopaths.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-))) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplots.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplotscore.code.tex
+)))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplots.
+code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplotsc
+ore.code.tex
 \t@pgfplots@toka=\toks38
 \t@pgfplots@tokb=\toks39
 \t@pgfplots@tokc=\toks40
 \pgfplots@tmpa=\dimen310
 \c@pgfplots@coordindex=\count336
 \c@pgfplots@scanlineindex=\count337
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/sys/pgfplotssysgeneric.code.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/libs/pgfplotslibrary.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/oldpgfcompatib/pgfplotsoldpgfsupp_loader.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/libraries/pgflibraryfpu.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/oldpgfcompatib/pgfplotsoldpgfsupp_pgfutil-common-lists.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/util/pgfplotsutil.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/liststructure/pgfplotsliststructure.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/liststructure/pgfplotsliststructureext.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/liststructure/pgfplotsarray.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/sys\pgfpl
+otssysgeneric.code.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/libs\pgfp
+lotslibrary.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/oldpgfcom
+patib\pgfplotsoldpgfsupp_loader.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries\pgfl
+ibraryfpu.code.tex)
+Package pgfplots: loading complementary utilities for your pgf version...
+\t@pgf@toka=\toks41
+\t@pgf@tokb=\toks42
+\t@pgf@tokc=\toks43
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/oldpgfcom
+patib\pgfplotsoldpgfsupp_pgfutil-common-lists.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/util\pgfp
+lotsutil.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/liststruc
+ture\pgfplotsliststructure.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/liststruc
+ture\pgfplotsliststructureext.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/liststruc
+ture\pgfplotsarray.code.tex
 \c@pgfplotsarray@tmp=\count338
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/liststructure/pgfplotsmatrix.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/numtable/pgfplotstableshared.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/liststruc
+ture\pgfplotsmatrix.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/numtable\
+pgfplotstableshared.code.tex
 \c@pgfplotstable@counta=\count339
-\t@pgfplotstable@a=\toks41
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/liststructure/pgfplotsdeque.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/util/pgfplotsbinary.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/util/pgfplotsbinary.data.code.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/util/pgfplotsutil.verb.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/libs/pgflibrarypgfplots.surfshading.code.tex
+\t@pgfplotstable@a=\toks44
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/liststruc
+ture\pgfplotsdeque.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/util\pgfp
+lotsbinary.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/util\pgfp
+lotsbinary.data.code.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/util\pgfp
+lotsutil.verb.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/libs\pgfl
+ibrarypgfplots.surfshading.code.tex
 \c@pgfplotslibrarysurf@no=\count340
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/sys/pgflibrarypgfplots.surfshading.pgfsys-pdftex.def))) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/util/pgfplotscolormap.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/util/pgfplotscolor.code.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplotsstackedplots.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplotsplothandlers.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplotsmeshplothandler.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplotsmeshplotimage.code.tex))) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplots.scaling.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplotscoordprocessing.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplots.errorbars.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplots.markers.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplotsticks.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/pgfplots.paths.code.tex) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarydecorations.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmoduledecorations.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/sys\pgfli
+brarypgfplots.surfshading.pgfsys-pdftex.def)))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/util\pgfp
+lotscolormap.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/util\pgfp
+lotscolor.code.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplotss
+tackedplots.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplotsp
+lothandlers.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplotsm
+eshplothandler.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplotsm
+eshplotimage.code.tex)))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplots.
+scaling.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplotsc
+oordprocessing.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplots.
+errorbars.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplots.
+markers.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplotst
+icks.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots\pgfplots.
+paths.code.tex)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibrarydecorations.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgfmod
+uledecorations.code.tex
 \pgfdecoratedcompleteddistance=\dimen311
 \pgfdecoratedremainingdistance=\dimen312
 \pgfdecoratedinputsegmentcompleteddistance=\dimen313
@@ -489,8 +739,17 @@ File: tikzlibrarytopaths.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfdecorationsegmentlength=\dimen317
 )
 \tikz@lib@dec@box=\box72
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarydecorations.pathmorphing.code.tex (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/libraries/decorations/pgflibrarydecorations.pathmorphing.code.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarydecorations.pathreplacing.code.tex
-(/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/libraries/decorations/pgflibrarydecorations.pathreplacing.code.tex)) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgfplots/libs/tikzlibrarypgfplots.contourlua.code.tex)
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibrarydecorations.pathmorphing.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries/deco
+rations\pgflibrarydecorations.pathmorphing.code.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibrarydecorations.pathreplacing.code.tex
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries/deco
+rations\pgflibrarydecorations.pathreplacing.code.tex))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgfplots/libs\tikz
+librarypgfplots.contourlua.code.tex)
 \pgfplots@numplots=\count342
 \pgfplots@xmin@reg=\dimen318
 \pgfplots@xmax@reg=\dimen319
@@ -498,230 +757,431 @@ File: tikzlibrarytopaths.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfplots@ymax@reg=\dimen321
 \pgfplots@zmin@reg=\dimen322
 \pgfplots@zmax@reg=\dimen323
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryplotmarks.code.tex
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibraryplotmarks.code.tex
 File: tikzlibraryplotmarks.code.tex 2025-08-29 v3.1.11a (3.1.11a)
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/generic/pgf/libraries/pgflibraryplotmarks.code.tex
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries\pgfl
+ibraryplotmarks.code.tex
 File: pgflibraryplotmarks.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-))) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/needspace/needspace.sty
+)))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries\pgfl
+ibraryarrows.meta.code.tex
+File: pgflibraryarrows.meta.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+\pgfarrowinset=\dimen324
+\pgfarrowlength=\dimen325
+\pgfarrowwidth=\dimen326
+\pgfarrowlinewidth=\dimen327
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibrarypositioning.code.tex
+File: tikzlibrarypositioning.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibraryshapes.geometric.code.tex
+File: tikzlibraryshapes.geometric.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries/shap
+es\pgflibraryshapes.geometric.code.tex
+File: pgflibraryshapes.geometric.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+))
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibraryfit.code.tex
+File: tikzlibraryfit.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibrarybackgrounds.code.tex
+File: tikzlibrarybackgrounds.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+\pgf@layerbox@background=\box73
+\pgf@layerboxsaved@background=\box74
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/
+tikz/libraries\tikzlibrarycalc.code.tex
+File: tikzlibrarycalc.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/needspace\needspace.
+sty
 Package: needspace 2025/03/13 v1.3e reserve vertical space
-) (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-
+pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count343
-) (./main.aux)
+) (main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 57.
+LaTeX Font Info:    ... okay on input line 57.
 
 -- Lines per column: 58 (exact).
-(/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf
+.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count344
+\scratchdimen=\dimen328
+\scratchbox=\box75
+\nofMPsegments=\count345
+\nofMParguments=\count346
+\everyMPshowfont=\toks45
+\MPscratchCnt=\count347
+\MPscratchDim=\dimen329
+\MPnumerator=\count348
+\makeMPintoPDFobject=\count349
+\everyMPtoPDFconversion=\toks46
+)
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopd
+f-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
-Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
-File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sy
+s.cfg
+File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
-\c@lstlisting=\count344
+\c@lstlisting=\count350
 
-Package pgfplots notification 'compat/show suggested version=true': document has been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
+Package pgfplots notification 'compat/show suggested version=true': document ha
+s been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
 
-LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 60.
-(/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 6
+7.
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 63.
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
+LaTeX Font Info:    Trying to load font information for U+msa on input line 70.
+
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 63.
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
+LaTeX Font Info:    Trying to load font information for U+msb on input line 70.
+
+
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 1810) in paragraph at lines 115--118
-[]\OT1/ptm/b/n/10 Formal meth-ods and strate-gic games. \OT1/ptm/m/n/10 For-mal rea-
+Underfull \hbox (badness 1810) in paragraph at lines 124--127
+[]\OT1/ptm/b/n/10 Formal meth-ods and strate-gic games. \OT1/ptm/m/n/10 For-mal
+ rea-
  []
 
-[1{/Users/arthur/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/arthur/Library/TinyTeX/texmf-dist/fonts/enc/dvips/base/8r.enc}
+[1{C:/Users/arfreita/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users
+/arfreita/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc}
 
 
 ]
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <8> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 147.
-
-Underfull \hbox (badness 2932) in paragraph at lines 180--184
- \OT1/ptm/m/it/10 a) Type as-sign-ment method-ol-ogy: [][] \OT1/ptm/m/n/10 The pri-mary at-
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 197.
+ [2]
+Underfull \hbox (badness 2932) in paragraph at lines 230--240
+ \OT1/ptm/m/it/10 a) Type as-sign-ment method-ol-ogy: [][] \OT1/ptm/m/n/10 The 
+pri-mary at-
  []
 
-[2]
-Underfull \hbox (badness 10000) in paragraph at lines 232--234
- \OT1/ptm/m/it/10 b) Nu-mer-i-cal suf-fi-ciency: [][] \OT1/ptm/m/n/10 A stronger the-o-rem
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 288--290
+ \OT1/ptm/m/it/10 b) Nu-mer-i-cal suf-fi-ciency: [][] \OT1/ptm/m/n/10 A stronge
+r the-o-rem
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--234
+Underfull \hbox (badness 10000) in paragraph at lines 288--290
 \OT1/ptm/m/n/10 (\OT1/pcr/m/n/10 dark_weakness_sufficient_for_sub-
  []
 
 
-Underfull \hbox (badness 5607) in paragraph at lines 232--234
-\OT1/pcr/m/n/10 optimality\OT1/ptm/m/n/10 ) proves that Dark-type weak-ness \OT1/ptm/m/it/10 alone
+Underfull \hbox (badness 5607) in paragraph at lines 288--290
+\OT1/pcr/m/n/10 optimality\OT1/ptm/m/n/10 ) proves that Dark-type weak-ness \OT
+1/ptm/m/it/10 alone
  []
 
 
-Underfull \hbox (badness 5563) in paragraph at lines 239--240
-[]\OT1/ptm/m/n/10 A com-pan-ion mod-ule (\OT1/pcr/m/n/10 IntegrationTests.lean\OT1/ptm/m/n/10 )
+Underfull \hbox (badness 5563) in paragraph at lines 295--296
+[]\OT1/ptm/m/n/10 A com-pan-ion mod-ule (\OT1/pcr/m/n/10 IntegrationTests.lean\
+OT1/ptm/m/n/10 )
  []
 
 
-Underfull \hbox (badness 3323) in paragraph at lines 239--240
-\OT1/ptm/m/n/10 col-lects 12 cross-module in-te-gra-tion the-o-rems span-ning
+Underfull \hbox (badness 3323) in paragraph at lines 295--296
+\OT1/ptm/m/n/10 col-lects 15 cross-module in-te-gra-tion the-o-rems span-ning
  []
 
 
-Underfull \hbox (badness 6559) in paragraph at lines 239--240
+Underfull \hbox (badness 6559) in paragraph at lines 295--296
 \OT1/ptm/m/n/10 the full in-fras-truc-ture, in-clud-ing a sum-mary the-o-rem
  []
 
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 3
+35.
+(C:\Users\arfreita\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)
 
-Underfull \hbox (badness 1424) in paragraph at lines 260--262
+LaTeX Warning: Command \textperthousand invalid in math mode on input line 335.
+
+
+
+LaTeX Warning: Command \textperthousand invalid in math mode on input line 335.
+
+
+Missing character: There is no ‡ in font cmr8!
+
+Underfull \hbox (badness 1424) in paragraph at lines 342--348
 []\OT1/ptm/m/n/10 All em-pir-i-cal val-ues come from Trainer Hill [2] for
  []
 
+[4]
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/it' instead on input line 290.
+(Font)              using `OT1/ptm/m/it' instead on input line 376.
 
-[3]
-Underfull \hbox (badness 10000) in paragraph at lines 345--346
+
+Underfull \hbox (badness 10000) in paragraph at lines 431--432
 []|\OT1/ptm/m/n/8 Popularity sus-tained by
  []
 
 
-Package pgfplots Warning: scatter/classes: can't find class for ''!? Please make sure you have specified 'scatter src=explicit symbolic'. Ignoring class '' (this message will not come again). on input line 446.
+Package pgfplots Warning: scatter/classes: can't find class for ''!? Please mak
+e sure you have specified 'scatter src=explicit symbolic'. Ignoring class '' (t
+his message will not come again). on input line 532.
 
  [warning /pgfplots/warning/scatter classes no such class]
-[4]
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 482.
- (/Users/arthur/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-)
+[5]
 
 LaTeX Font Warning: Font shape `TS1/ptm/m/sc' undefined
 (Font)              using `TS1/ptm/m/n' instead
-(Font)              for symbol `textperthousand' on input line 517.
+(Font)              for symbol `textperthousand' on input line 610.
+
+[6]
+Underfull \hbox (badness 10000) in paragraph at lines 654--655
+ \OT1/ptm/m/it/10 b) []Why Dra-ga-pult's ex-clu-sion is equilibrium-
+ []
 
 
-Underfull \hbox (badness 6236) in paragraph at lines 572--578
+Underfull \hbox (badness 3965) in paragraph at lines 654--655
+\OT1/ptm/m/n/10 We there-fore make a stronger, equilibrium-independent
+ []
+
+
+Underfull \hbox (badness 2495) in paragraph at lines 654--655
+\OT1/ptm/m/n/10 In a constant-sum game with value $\OML/cmm/m/it/10 v$\OT1/ptm/
+m/n/10 , com-ple-men-tary
+ []
+
+
+Underfull \hbox (badness 1629) in paragraph at lines 654--655
+\OT1/ptm/m/it/10 in the sym-metriza-tion\OT1/ptm/m/n/10 , Dra-ga-pult is a best
+ re-sponse to
+ []
+
+
+Underfull \hbox (badness 3547) in paragraph at lines 654--655
+\OT1/ptm/m/n/10 equilibrium---symmetric \OT1/ptm/m/it/10 or \OT1/ptm/m/n/10 asy
+m-met-ric. An in-de-pen-dent
+ []
+
+
+Underfull \hbox (badness 1635) in paragraph at lines 654--655
+\OT1/ptm/m/n/10 op-po-nent strate-gies yields $\OT1/cmr/m/n/10 459\OML/cmm/m/it
+/10 :\OT1/cmr/m/n/10 6$\TS1/ptm/m/n/10 ‡$\OML/cmm/m/it/10 < \OT1/cmr/m/n/10 500
+$\OT1/ptm/m/n/10 , so Dra-ga-pult
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 654--655
+\OT1/ptm/m/n/10 (\OT1/pcr/m/n/10 dragapult_strictly_suboptimal\OT1/ptm/m/n/10 )
+---reinforced by
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [7]
+Underfull \hbox (badness 6236) in paragraph at lines 677--683
 []\OT1/ptm/m/n/10 The full clas-si-fi-ca-tion iden-ti-fies 5 grow-ing and 9
  []
 
 
-Underfull \hbox (badness 6526) in paragraph at lines 572--578
+Underfull \hbox (badness 6526) in paragraph at lines 677--683
 \OT1/ptm/m/n/10 shrink-ing archetypes: (i) Dra-ga-pult has below-average
  []
 
 
-Underfull \hbox (badness 1810) in paragraph at lines 572--578
+Underfull \hbox (badness 1810) in paragraph at lines 677--683
 \OT1/ptm/m/n/10 fit-ness and should lose share, (ii) Grimm-snarl has the
  []
 
 
-Underfull \hbox (badness 3088) in paragraph at lines 572--578
+Underfull \hbox (badness 3088) in paragraph at lines 677--683
 \OT1/ptm/m/n/10 faces the strongest ex-tinc-tion pres-sure. The di-rec-tional
  []
 
 
-Underfull \hbox (badness 2245) in paragraph at lines 572--578
-\OT1/ptm/m/n/10 clas-si-fi-ca-tion is al-ge-braically step-size-independent: since
+Underfull \hbox (badness 2245) in paragraph at lines 677--683
+\OT1/ptm/m/n/10 clas-si-fi-ca-tion is al-ge-braically step-size-independent: si
+nce
  []
 
 
-Underfull \hbox (badness 3078) in paragraph at lines 572--578
+Underfull \hbox (badness 3078) in paragraph at lines 677--683
 \OT1/ptm/m/n/10 level lemma (\OT1/pcr/m/n/10 rat_replicator_sign_independent
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 572--578
-\OT1/pcr/m/n/10 _of_dt\OT1/ptm/m/n/10 ) us-ing \OT1/pcr/m/n/10 simp\OT1/ptm/m/n/10 , \OT1/pcr/m/n/10 ring\OT1/ptm/m/n/10 , and \OT1/pcr/m/n/10 omega\OT1/ptm/m/n/10 ---without
+Underfull \hbox (badness 10000) in paragraph at lines 677--683
+\OT1/pcr/m/n/10 _of_dt\OT1/ptm/m/n/10 ) us-ing \OT1/pcr/m/n/10 simp\OT1/ptm/m/n
+/10 , \OT1/pcr/m/n/10 ring\OT1/ptm/m/n/10 , and \OT1/pcr/m/n/10 omega\OT1/ptm/m
+/n/10 ---without
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 579--580
+Underfull \hbox (badness 10000) in paragraph at lines 684--685
 []\OT1/ptm/m/n/10 A dis-crete repli-ca-tor step con-firms that
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 579--580
+Underfull \hbox (badness 10000) in paragraph at lines 684--685
 \OT1/ptm/m/n/10 Grimm-snarl's share in-creases while Dra-ga-pult's
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 579--580
-\OT1/ptm/m/n/10 de-creases (\OT1/pcr/m/n/10 grimmsnarl_share_increases\OT1/ptm/m/n/10 ,
+Underfull \hbox (badness 10000) in paragraph at lines 684--685
+\OT1/ptm/m/n/10 de-creases (\OT1/pcr/m/n/10 grimmsnarl_share_increases\OT1/ptm/
+m/n/10 ,
  []
 
-[5] [6]
+[8]
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <10> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 654.
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 775.
 
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/it' instead on input line 662.
+(Font)              using `OT1/ptm/m/it' instead on input line 783.
 
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/it' instead on input line 662.
+(Font)              using `OT1/ptm/m/it' instead on input line 783.
 
 
-Underfull \hbox (badness 1490) in paragraph at lines 686--691
-[]\OT1/ptm/m/n/10 We in-ves-ti-gated re-plac-ing \OT1/pcr/m/n/10 native_decide \OT1/ptm/m/n/10 with the
+Overfull \hbox (8.05453pt too wide) in paragraph at lines 786--807
+ [][] 
  []
 
 
-Underfull \hbox (badness 1371) in paragraph at lines 694--700
-\OT1/ptm/m/n/10 file con-sis-tency the-o-rem (\OT1/pcr/m/n/10 MatrixConsistency.lean\OT1/ptm/m/n/10 )
- []
-
-[7]
-Underfull \hbox (badness 3514) in paragraph at lines 758--763
-[]\OT1/ptm/b/n/10 Player-skill con-found-ing. \OT1/ptm/m/n/10 Matchup win rates ag-gre-
+Underfull \hbox (badness 1490) in paragraph at lines 813--816
+[][]\OT1/ptm/m/n/10 We in-ves-ti-gated re-plac-ing \OT1/pcr/m/n/10 native_decid
+e \OT1/ptm/m/n/10 with the
  []
 
 
-Underfull \hbox (badness 3482) in paragraph at lines 758--763
+Underfull \hbox (badness 1371) in paragraph at lines 819--825
+\OT1/ptm/m/n/10 file con-sis-tency the-o-rem (\OT1/pcr/m/n/10 MatrixConsistency
+.lean\OT1/ptm/m/n/10 )
+ []
+
+[9] [10]
+Underfull \hbox (badness 3514) in paragraph at lines 894--899
+[]\OT1/ptm/b/n/10 Player-skill con-found-ing. \OT1/ptm/m/n/10 Matchup win rates
+ ag-gre-
+ []
+
+
+Underfull \hbox (badness 3482) in paragraph at lines 894--899
 \OT1/ptm/m/n/10 gate across all skill lev-els. If pop-u-lar archetypes at-
  []
 
 
-Underfull \hbox (badness 3291) in paragraph at lines 758--763
+Underfull \hbox (badness 3291) in paragraph at lines 894--899
 \OT1/ptm/m/n/10 tract less ex-pe-ri-enced pi-lots, their ob-served win rates
  []
 
-[8] (./main.bbl [9]
-Underfull \hbox (badness 10000) in paragraph at lines 105--106
+[11]
+Underfull \hbox (badness 1590) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 February 19, 2026). The tour-na-ment matchup data and
+ []
+
+
+Underfull \hbox (badness 2443) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 com-puted re-sults are avail-able at IEEE Dat-a-Port [44].
+ []
+
+
+Underfull \hbox (badness 7081) in paragraph at lines 953--957
+[]\OT1/ptm/m/n/10 The com-plete artifact---all Lean 4 source (87 files,
+ []
+
+
+Underfull \hbox (badness 5563) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 in \OT1/pcr/m/n/10 RealMetagame.lean\OT1/ptm/m/n/10 , the Pytho
+n dis-cov-ery and
+ []
+
+
+Underfull \hbox (badness 7379) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 sen-si-tiv-ity scripts, and build instructions---is pro-vided
+ []
+
+
+Underfull \hbox (badness 7030) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 as anonymized sup-ple-men-tary ma-te-rial and re-verifies
+ []
+
+
+Underfull \hbox (badness 3281) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 end to end via a sin-gle \OT1/pcr/m/n/10 lake build \OT1/ptm/m/
+n/10 ($[]$10min on
+ []
+
+
+Underfull \hbox (badness 5741) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 com-mod-ity hard-ware: Ap-ple M-series or x86, 16GB
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 953--957
+\OT1/ptm/m/n/10 (e.g., \OT1/pcr/m/n/10 symmetric_nash_equilibrium_verified\OT1/
+ptm/m/n/10 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 953--957
+\OT1/pcr/m/n/10 dragapult_strictly_suboptimal\OT1/ptm/m/n/10 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 953--957
+\OT1/pcr/m/n/10 full_replicator_dragapult_decline\OT1/ptm/m/n/10 ), so
+ []
+
+(main.bbl [12]
+Underfull \hbox (badness 10000) in paragraph at lines 158--161
 []\OT1/ptm/m/n/8 ------, ``Play pok[]emon tour-na-ment rules [],''
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 105--106
+Underfull \hbox (badness 10000) in paragraph at lines 158--161
 \OT1/ptm/m/n/8 https : / / www . pokemon . com / us / play-[]pokemon / about /
  []
 
-) [10] (./main.aux)
+) [13] (main.aux)
  ***********
 LaTeX2e <2025-11-01>
-L3 programming layer <2026-01-19>
+L3 programming layer <2025-12-24>
  ***********
 
 
@@ -729,18 +1189,49 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 26369 strings out of 469471
- 663779 string characters out of 5467771
- 1398396 words of memory out of 5000000
- 54601 multiletter control sequences out of 15000+600000
- 679653 words of font info for 146 fonts, out of 8000000 for 9000
- 36 hyphenation exceptions out of 8191
- 99i,19n,108p,725b,2270s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></Users/arthur/Library/TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (10 pages, 336893 bytes).
+ 27764 strings out of 467871
+ 698216 string characters out of 5416924
+ 1350128 words of memory out of 5000000
+ 56185 multiletter control sequences out of 15000+600000
+ 680169 words of font info for 148 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 99i,19n,108p,731b,2269s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmbx10.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/publ
+ic/amsfonts/cm/cmbx8.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts
+/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/arfreita/AppData/Local/Programs/
+MiKTeX/fonts/type1/public/amsfonts/cmextra/cmex8.pfb><C:/Users/arfreita/AppData
+/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/arfr
+eita/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:
+/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cm
+mi7.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
+fonts/cm/cmmi8.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1
+/public/amsfonts/cm/cmmi9.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/
+fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/arfreita/AppData/Local/Progr
+ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/arfreita/AppData/L
+ocal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/arfreita
+/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/User
+s/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pf
+b><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmsy10.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/publ
+ic/amsfonts/cm/cmsy5.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts
+/type1/public/amsfonts/cm/cmsy6.pfb><C:/Users/arfreita/AppData/Local/Programs/M
+iKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/arfreita/AppData/Local
+/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/arfreita/Ap
+pData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Users/
+arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msam
+10.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsf
+onts/symbols/msbm10.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/fonts/
+type1/urw/courier/ucrb8a.pfb><C:/Users/arfreita/AppData/Local/Programs/MiKTeX/f
+onts/type1/urw/courier/ucrr8a.pfb><C:/Users/arfreita/AppData/Local/Programs/MiK
+TeX/fonts/type1/urw/courier/ucrro8a.pfb><C:/Users/arfreita/AppData/Local/Progra
+ms/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/arfreita/AppData/Local/Pro
+grams/MiKTeX/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/arfreita/AppData/Local
+/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/arfreita/AppData/Lo
+cal/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
+Output written on main.pdf (13 pages, 421402 bytes).
 PDF statistics:
- 172 PDF objects out of 1000 (max. 8388607)
- 106 compressed objects within 2 object streams
+ 194 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 
